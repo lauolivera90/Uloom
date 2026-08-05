@@ -6,11 +6,11 @@ Aplicación de escritorio para Windows, Electron + Vite + React (JS puro, SIN Ty
 
 Leé siempre, en este orden, antes de tocar cualquier archivo:
 
-1. `architecture.md` — estructura de carpetas (FSD simplificado), capas del backend (ipc/services/data), convenciones de nomenclatura.
-2. `doc/rules.md` — reglas obligatorias: separación lógica/hooks, memory leaks, barrels, manejo de errores IPC, JSDoc.
-3. Tema visual: todavía no está definido. Si en algún momento se agrega un archivo de sistema de diseño, se referenciará acá — hasta entonces, no asumas ningún estilo obligatorio más allá de lo que ya esté en el código existente.
+1. `.doc/architecture.md` — estructura de carpetas (FSD simplificado), capas del backend (ipc/services/data), convenciones de nomenclatura.
+2. `.doc/rules.md` — reglas obligatorias: separación lógica/hooks, memory leaks, barrels, manejo de errores IPC, JSDoc.
+3. `.doc/design.md` — sistema de diseño: fuente de verdad de tokens (`src/renderer/app/index.css` + mapeo en `tailwind.config.js`), lenguaje visual (shape, bordes, sombras, focus, motion, iconos) y convenciones de widgets. Regla actual: los componentes usan SOLO tokens (`bg-background`, `text-text`, `bg-primary`, `text-on-primary`, `bg-surface`, `border-primary/30`, `duration-fast`, etc.) — nunca hex hardcodeados ni colores de la paleta por defecto. Seguí los patrones de los widgets existentes (ej. `Button` y sus `variants`) y consumí SIEMPRE desde el barrel de `widgets`.
 
-**Regla general de scope:** implementá únicamente lo que está descrito en `architecture.md` y `doc/rules.md` para la fase actual (ver abajo). Si te parece que hace falta algo que no está documentado ahí, preguntame antes de darlo por sentado — no asumas ni agregues funcionalidad no pedida, aunque te parezca una buena idea.
+**Regla general de scope:** implementá únicamente lo que está descrito en `.doc/architecture.md` y `.doc/rules.md` para la fase actual (ver abajo). Si te parece que hace falta algo que no está documentado ahí, preguntame antes de darlo por sentado — no asumas ni agregues funcionalidad no pedida, aunque te parezca una buena idea.
 
 ## Fase actual: v0.1.0 (MVP)
 
@@ -18,7 +18,7 @@ Leé siempre, en este orden, antes de tocar cualquier archivo:
 
 Este proyecto está planeado para escalar en fases futuras. Esta sección se actualiza en cada fase nueva — no asumas que el scope de v0.1.0 es el scope final del proyecto, pero tampoco adelantes funcionalidad de fases futuras sin que se documente acá primero.
 
-## Reglas no negociables (resumen — el detalle completo está en doc/rules.md)
+## Reglas no negociables (resumen — el detalle completo está en .doc/rules.md)
 
 - Componentes `.jsx` solo presentan. Toda lógica, estado, efectos → hooks `.js` en `hook/`.
 - Todo `useEffect` con timers/listeners/recursos necesita cleanup. Async en efectos necesita flag de cancelación.

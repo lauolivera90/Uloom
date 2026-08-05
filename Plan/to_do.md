@@ -66,3 +66,5 @@ v0.4.1 Exportación
 
 v0.4.2 Importación
 [ ] Importar Sesión/Sistema: Selector de archivos en Opciones para cargar un .json y reconstruir las sesiones en electron-store.
+
+[ ] Sistema de Temas (Claro/Oscuro): Implementar el runtime del toggle — ThemeProvider + hook useTheme en app/shared, persistencia en localStorage (clave `uloom-theme`), default a `prefers-color-scheme`, y script anti-flash en el entry. Los tokens CSS (`--primary`, etc.) y su mapeo en Tailwind ya están definidos; queda pendiente solo el runtime, que depende del boot de React.

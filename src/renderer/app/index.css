@@ -1,0 +1,34 @@
+@import '@material-symbols/font-400/outlined.css';
+
+@layer base {
+  :root {
+    --text: #0c0b0f;
+    --background: #eeeef1;
+    --primary: #221ab7;
+    --secondary: #b8a6b9;
+    --accent: #7f627b;
+    --on-primary: #f6f5fb;
+    --surface: #f7f7fa;
+    --error: #b3261e;
+    --on-error: #ffffff;
+    --tertiary: #a04f18;
+    --on-tertiary: #ffffff;
+    --duration-fast: 150ms;
+    --duration-base: 200ms;
+    --duration-slow: 300ms;
+  }
+  .dark {
+    --text: #f1f0f4;
+    --background: #0e0e11;
+    --primary: #5048e5;
+    --secondary: #584659;
+    --accent: #9d8099;
+    --on-primary: #f8f7ff;
+    --surface: #191921;
+    --error: #f2b8b5;
+    --on-error: #601410;
+    --tertiary: #ffb77c;
+    --on-tertiary: #4a2700;
+  }
+}
+
