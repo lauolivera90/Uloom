@@ -4,13 +4,33 @@
     "es6": true,
     "node": true
   },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
     "plugin:import/recommended",
     "plugin:import/electron",
-    "plugin:import/typescript"
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
-  "parser": "@typescript-eslint/parser"
+  "plugins": ["react"],
+  "settings": {
+    "react": {
+      "version": "detect",
+      "runtime": "automatic"
+    }
+  },
+  "rules": {
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off"
+  },
+  "globals": {
+    "MAIN_WINDOW_VITE_DEV_SERVER_URL": "readonly",
+    "MAIN_WINDOW_VITE_NAME": "readonly"
+  }
 }

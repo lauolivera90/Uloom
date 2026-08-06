@@ -1,4 +1,5 @@
 import { useScrollLock } from '../../hooks/useScrollLock.js';
+import { IconButton } from '../IconButton/IconButton.jsx';
 
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -22,7 +23,7 @@ export function Modal({
 
   if (!isOpen) return null;
 
-  const resolvedHeader = header ?? title || null;
+  const resolvedHeader = header ?? (title || null);
   const hasHeader = resolvedHeader !== null || !hideCloseButton;
   const showClose = !hideCloseButton;
 
@@ -32,14 +33,14 @@ export function Modal({
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center"
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-overlay/50 backdrop-blur-sm" onClick={onClose} />
       <div
         className={`relative z-10 w-full mx-4 ${
           SIZE_CLASSES[size] || SIZE_CLASSES.md
-        } border border-primary/30 bg-surface rounded-xl shadow-xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-base ${className}`}
+        } border border-border bg-surface rounded-xl shadow-xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-base ${className}`}
       >
         {hasHeader && (
-          <div className="p-5 border-b border-primary/20 flex-shrink-0">
+          <div className="p-5 border-b border-border/40 flex-shrink-0">
             <div className="flex items-center gap-2">
               {resolvedHeader ? (
                 <div className="flex-1 min-w-0">
@@ -53,13 +54,13 @@ export function Modal({
                 <div className="flex-1" />
               )}
               {showClose && (
-                <button
+                <IconButton
+                  variant="ghost"
+                  icon="close"
+                  label="Cerrar"
                   onClick={onClose}
-                  aria-label="Cerrar"
-                  className="p-2 rounded-full text-text/50 hover:text-text hover:bg-primary/10 transition-colors flex-shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[24px]">close</span>
-                </button>
+                  className="flex-shrink-0"
+                />
               )}
             </div>
           </div>
@@ -68,7 +69,7 @@ export function Modal({
         <div className="p-5 overflow-y-auto flex-1 min-h-0">{children}</div>
 
         {footer && (
-          <div className="p-5 border-t border-primary/20 flex-shrink-0 flex flex-col-reverse gap-3 xl:flex-row [&>*]:contents">
+          <div className="p-5 border-t border-border/40 flex-shrink-0 flex flex-col-reverse gap-3 xl:flex-row [&>*]:contents">
             {footer}
           </div>
         )}

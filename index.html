@@ -1,14 +1,15 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World!</title>
-
+    <title>Uloom</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+    />
   </head>
   <body>
-    <h1>💖 Hello World!</h1>
-    <h1 className="text-3xl font-bold text-indigo-500 underline">
-  Uloom funcionando con Tailwind!
-</h1>
+    <div id="root"></div>
+    <script type="module" src="/src/renderer.jsx"></script>
   </body>
 </html>

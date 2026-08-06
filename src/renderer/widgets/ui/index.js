@@ -1,4 +1,9 @@
 export { Button } from './Button/Button.jsx';
+export { IconButton } from './IconButton/IconButton.jsx';
 export { Card } from './Card/Card.jsx';
 export { Modal } from './Modal/Modal.jsx';
 export { ConfirmDialog } from './ConfirmDialog/ConfirmDialog.jsx';
+export { CreateTile } from './CreateTile/CreateTile.jsx';
+export { Icon } from './Icon/Icon.jsx';
+export { focusRing } from './focusRing.js';
+export { Form, FormField, TextInput, Select, Textarea } from './form/index.js';

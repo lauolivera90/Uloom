@@ -1,0 +1,68 @@
+/**
+ * @typedef {import('../../../shared/types.js').Workspace} Workspace
+ */
+
+import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
+
+/**
+ * Tarjeta de una sesión de trabajo del Hub. Presentacional: muestra icono, nombre,
+ * descripción y cantidad de pestañas. La card completa es clickeable (abre el
+ * detalle) y en hover muestra un botón de play para lanzar la sesión.
+ * @param {{
+ *   workspace: Workspace,
+ *   onClick: () => void,
+ *   onPlay?: (workspaceId: string) => void,
+ * }} props
+ */
+export function WorkspaceCard({ workspace, onClick, onPlay }) {
+  const tabsCount = workspace.tabs?.length ?? 0;
+
+  return (
+    <Card
+      className={`group hover:border-primary transition duration-fast active:scale-[0.98] cursor-pointer ${focusRing}`}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+      footerClassName="px-5 py-3 flex items-center justify-between gap-2"
+      footer={
+        <>
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-text/60">Recursos</span>
+            <span className="flex items-center gap-2 text-xs text-text/60">
+              <Icon icon="tab" size={16} className="text-text/60" />
+              {`${tabsCount} ${tabsCount === 1 ? 'pestaña' : 'pestañas'}`}
+            </span>
+          </div>
+          <IconButton
+            variant="primary"
+            icon="play_arrow"
+            label="Abrir sesión"
+            appearOnHover
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onPlay?.(workspace.id);
+            }}
+          />
+        </>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <Icon icon={workspace.icon || 'work'} className="text-primary" />
+          <h3 className="text-base font-semibold text-text">{workspace.name}</h3>
+        </div>
+        {workspace.description && (
+          <p className="text-sm text-text/60 line-clamp-3">{workspace.description}</p>
+        )}
+      </div>
+    </Card>
+  );
+}

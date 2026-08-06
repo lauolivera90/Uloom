@@ -25,19 +25,17 @@ export function Card({
   const footerPadding = footerClassName.includes('p-') ? '' : 'p-5';
 
   return (
-    <div className={`border border-primary/30 rounded-xl shadow-sm ${className}`} {...props}>
+    <div className={`border border-border rounded-xl shadow-sm bg-surface ${className}`} {...props}>
       {hasHeader && (
-        <div className={`${headerPadding} border-b border-primary/20 bg-surface rounded-t-xl ${headerClassName}`}>
+        <div className={`${headerPadding} border-b border-border/40 rounded-t-xl ${headerClassName}`}>
           {resolvedHeader}
         </div>
       )}
-      <div
-        className={`${bodyPadding} bg-surface ${!hasHeader ? 'rounded-t-xl' : ''} ${!hasFooter ? 'rounded-b-xl' : ''} ${bodyClassName}`}
-      >
+      <div className={`${bodyPadding} ${bodyClassName}`}>
         {children}
       </div>
       {hasFooter && (
-        <div className={`${footerPadding} border-t border-primary/20 bg-surface rounded-b-xl ${footerClassName}`}>
+        <div className={`${footerPadding} border-t border-border/40 rounded-b-xl ${footerClassName}`}>
           {footer}
         </div>
       )}

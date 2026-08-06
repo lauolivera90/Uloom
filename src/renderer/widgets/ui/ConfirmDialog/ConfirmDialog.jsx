@@ -1,5 +1,6 @@
 import { Button } from '../Button/Button.jsx';
 import { Modal } from '../Modal/Modal.jsx';
+import { Icon } from '../Icon/Icon.jsx';
 
 export function ConfirmDialog({
   isOpen,
@@ -52,14 +53,10 @@ export function ConfirmDialog({
                 variant === 'danger' ? 'bg-error/15' : 'bg-tertiary/20'
               }`}
             >
-              <span
-                aria-hidden="true"
-                className={`material-symbols-outlined ${
-                  variant === 'danger' ? 'text-error' : 'text-tertiary'
-                }`}
-              >
-                {variant === 'danger' ? 'delete' : 'warning'}
-              </span>
+              <Icon
+                icon={variant === 'danger' ? 'delete' : 'warning'}
+                className={variant === 'danger' ? 'text-error' : 'text-tertiary'}
+              />
             </div>
           )}
           <p className="text-sm text-text/60 flex-1">{description}</p>

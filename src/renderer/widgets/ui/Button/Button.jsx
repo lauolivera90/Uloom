@@ -1,3 +1,18 @@
+import { buttonStyles, focusRing } from '../buttonStyles.js';
+import { Icon } from '../Icon/Icon.jsx';
+
+/**
+ * Botón de acción. Variantes primary/secondary/ghost/warning/danger definidas en
+ * el mapa compartido de widgets. Presentacional: el resto de las props se pasan
+ * al elemento nativo. Cuando está disabled no aplica hover ni active (no rebota).
+ * @param {{
+ *   variant?: keyof typeof buttonStyles,
+ *   disabled?: boolean,
+ *   className?: string,
+ *   children?: React.ReactNode,
+ *   icon?: string,
+ * }} props
+ */
 export function Button({
   variant = 'primary',
   disabled = false,
@@ -6,30 +21,20 @@ export function Button({
   icon,
   ...props
 }) {
-  const baseStyles =
-    'inline-flex items-center justify-center gap-2 px-5 py-1.5 text-sm font-medium rounded transition-colors duration-fast focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background';
-
-  const variants = {
-    primary: 'bg-primary text-on-primary hover:bg-primary/90 cursor-pointer active:scale-[0.98]',
-    secondary: 'border border-primary/30 text-primary hover:bg-primary/10 cursor-pointer active:scale-[0.98]',
-    ghost: 'text-text hover:bg-primary/10 cursor-pointer active:scale-[0.98]',
-    warning: 'bg-tertiary text-on-tertiary hover:bg-tertiary/90 cursor-pointer active:scale-[0.98]',
-    danger: 'bg-error text-on-error hover:bg-error/90 cursor-pointer active:scale-[0.98]',
-  };
+  const baseStyles = `inline-flex items-center justify-center gap-2 px-5 py-1.5 text-sm font-medium rounded transition duration-fast ${focusRing}`;
+  const { base, hover, active } = buttonStyles[variant];
 
   return (
     <button
       type="button"
       disabled={disabled}
-      className={`${baseStyles}${variants[variant]}${
-        disabled ? ' opacity-50 cursor-not-allowed' : ''
+      className={`${baseStyles} ${base} ${
+        disabled ? 'opacity-50 cursor-not-allowed' : `${hover} ${active}`
       }${className ? ` ${className}` : ''}`}
       {...props}
     >
       {icon ? (
-        <span aria-hidden="true" className="material-symbols-outlined">
-          {icon}
-        </span>
+        <Icon icon={icon} />
       ) : null}
       {children ? <span>{children}</span> : null}
     </button>
