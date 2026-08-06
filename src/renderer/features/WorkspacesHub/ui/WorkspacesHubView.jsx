@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateWorkspace, useWorkspaces } from '../hook/index.js';
+import { useCreateWorkspace, useWorkspacesHub } from '../hook/index.js';
 import { CreateWorkspaceModal } from './CreateWorkspaceModal.jsx';
 import { WorkspaceGrid } from './WorkspaceGrid.jsx';
 
@@ -10,7 +10,7 @@ import { WorkspaceGrid } from './WorkspaceGrid.jsx';
  */
 export function WorkspacesHubView() {
   const navigate = useNavigate();
-  const { workspaces, isCreateOpen, openCreate, closeCreate, addWorkspace } = useWorkspaces();
+  const { workspaces, isCreateOpen, openCreate, closeCreate, addWorkspace } = useWorkspacesHub();
 
   const handleCreate = useCallback(
     (workspace) => {
@@ -37,9 +37,11 @@ export function WorkspacesHubView() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-text">Sesiones</h1>
-        <p className="text-sm text-text/60">Elegí una sesión para abrirla o creá una nueva.</p>
+      <header>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold text-text">Sesiones</h1>
+          <p className="text-sm text-text/60">Elegí una sesión para abrirla o creá una nueva.</p>
+        </div>
       </header>
       <WorkspaceGrid workspaces={workspaces} onCreate={openCreate} onOpen={handleOpenWorkspace} />
       <CreateWorkspaceModal isOpen={isCreateOpen} form={form} onCancel={handleCancel} />

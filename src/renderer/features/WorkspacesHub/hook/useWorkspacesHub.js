@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
-import { mockWorkspaces } from '../../../entities/workspace/index.js';
+import { useWorkspaces } from '../../../app/index.js';
 
 /**
- * Administra la lista de sesiones del Hub y el estado del modal de creación.
+ * Estado del feature Hub de Sesiones: delega la lista de workspaces al context
+ * global de la app y conserva solo el estado local del modal de creación.
  * @returns {{
  *   workspaces: import('../../../shared/types.js').Workspace[],
  *   isCreateOpen: boolean,
@@ -11,16 +12,12 @@ import { mockWorkspaces } from '../../../entities/workspace/index.js';
  *   addWorkspace: (workspace: import('../../../shared/types.js').Workspace) => void,
  * }}
  */
-export function useWorkspaces() {
-  const [workspaces, setWorkspaces] = useState(mockWorkspaces);
+export function useWorkspacesHub() {
+  const { workspaces, addWorkspace } = useWorkspaces();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const openCreate = useCallback(() => setIsCreateOpen(true), []);
   const closeCreate = useCallback(() => setIsCreateOpen(false), []);
-
-  const addWorkspace = useCallback((workspace) => {
-    setWorkspaces((prev) => [...prev, workspace]);
-  }, []);
 
   return { workspaces, isCreateOpen, openCreate, closeCreate, addWorkspace };
 }

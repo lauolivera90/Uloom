@@ -1,12 +1,13 @@
-const sizeClasses = { 16: 'text-[16px]', 24: 'text-[24px]' };
+const sizeClasses = { 16: 'text-[16px]', 20: 'text-[20px]', 24: 'text-[24px]' };
 
 /**
  * Glifo de Material Symbols. Renderiza un span accesible (aria-hidden) como
- * decorativo. El tamaño default del sistema es 24px; 16px se usa para metadata
- * compacta. El className se usa para color u otros adornos (solo tokens).
+ * decorativo. El tamaño default del sistema es 24px; 20px se usa para densidad
+ * (colapsar); 16px para metadata compacta. El className se usa para color u
+ * otros adornos (solo tokens).
  * @param {{
  *   icon: string,
- *   size?: 16 | 24,
+ *   size?: 16 | 20 | 24,
  *   className?: string,
  * }} props
  */

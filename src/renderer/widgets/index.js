@@ -13,3 +13,5 @@ export {
   Select,
   Textarea,
 } from './ui/index.js';
+
+export { MainLayout, Sidebar } from './layout/index.js';

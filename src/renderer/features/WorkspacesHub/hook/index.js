@@ -1,2 +1,2 @@
-export { useWorkspaces } from './useWorkspaces.js';
+export { useWorkspacesHub } from './useWorkspacesHub.js';
 export { useCreateWorkspace } from './useCreateWorkspace.js';

@@ -53,8 +53,8 @@ export function CreateWorkspaceModal({ isOpen, form, onCancel }) {
           <TextInput
             id="workspace-description"
             type="text"
-            value={form.resolvedDescription}
-            onChange={(event) => form.handleDescriptionChange(event.target.value)}
+            value={form.description}
+            onChange={(event) => form.setDescription(event.target.value)}
             placeholder="Descripción de la sesión"
           />
         </FormField>

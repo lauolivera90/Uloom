@@ -5,17 +5,17 @@ import {
 } from '../../../entities/workspace/index.js';
 
 /**
- * Estado del formulario de creación de sesión. La descripción queda desacoplada del
- * nombre en cuanto el usuario la edita manualmente; antes, se deriva como "Sesión de {name}".
- * El form se resetea al crear (submit) o al cancelar (reset expuesto).
+ * Estado del formulario de creación de sesión. Nombre obligatorio; la descripción
+ * es opcional y arranca vacía (se omite al crear si no se completó). El form se
+ * resetea al crear (submit) o al cancelar (reset expuesto).
  * @param {{
  *   onCreate: (workspace: import('../../../shared/types.js').Workspace) => void,
  * }} props
  * @returns {{
  *   name: string,
  *   setName: (value: string) => void,
- *   resolvedDescription: string,
- *   handleDescriptionChange: (value: string) => void,
+ *   description: string,
+ *   setDescription: (value: string) => void,
  *   selectedIcon: string,
  *   selectIcon: (icon: string) => void,
  *   showAllIcons: boolean,
@@ -28,23 +28,14 @@ import {
 export function useCreateWorkspace({ onCreate }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [descriptionTouched, setDescriptionTouched] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(WORKSPACE_ICONS[0]);
   const [showAllIcons, setShowAllIcons] = useState(false);
 
   const reset = useCallback(() => {
     setName('');
     setDescription('');
-    setDescriptionTouched(false);
     setSelectedIcon(WORKSPACE_ICONS[0]);
     setShowAllIcons(false);
-  }, []);
-
-  const resolvedDescription = descriptionTouched ? description : `Sesión de ${name}`;
-
-  const handleDescriptionChange = useCallback((value) => {
-    setDescription(value);
-    setDescriptionTouched(true);
   }, []);
 
   const selectIcon = useCallback((icon) => setSelectedIcon(icon), []);
@@ -55,15 +46,16 @@ export function useCreateWorkspace({ onCreate }) {
 
   const submit = useCallback(() => {
     if (!isNameValid) return;
+    const trimmedDescription = description.trim();
     onCreate({
       id: `ws-${Date.now()}`,
       name: name.trim(),
-      description: resolvedDescription.trim(),
+      description: trimmedDescription || undefined,
       icon: selectedIcon,
       tabs: [],
     });
     reset();
-  }, [isNameValid, name, resolvedDescription, selectedIcon, onCreate, reset]);
+  }, [isNameValid, name, description, selectedIcon, onCreate, reset]);
 
   const visibleIcons = showAllIcons
     ? WORKSPACE_ICONS
@@ -72,8 +64,8 @@ export function useCreateWorkspace({ onCreate }) {
   return {
     name,
     setName,
-    resolvedDescription,
-    handleDescriptionChange,
+    description,
+    setDescription,
     selectedIcon,
     selectIcon,
     showAllIcons,

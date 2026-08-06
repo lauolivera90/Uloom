@@ -26,13 +26,15 @@ v0.1.2 Pantalla 1: Hub de Sesiones (Home)
 
 v0.1.3 Pantalla 2: Detalle de Sesión (Command Center)
 
-[ ] decidir si hacer todo elemento en la aplicacion, no copiable (es decir, que el texto de los elementos no sea copiable. Como el texto de las cards y demas.) 
+[x] decidir si hacer todo elemento en la aplicacion, no copiable (es decir, que el texto de los elementos no sea copiable. Como el texto de las cards y demas.) 
 
-[ ] Lienzo de Trabajo: Página principal para gestionar la sesión seleccionada.
+[ ] Lienzo de Trabajo: Página principal para gestionar la sesión seleccionada. (Estado: header funcional mínimo — nombre, descripción, conteo de tabs, vuelta al Hub. El Lienzo/Command Center se desarrolla en v0.2.x con el CRUD de tabs.)
 
-[ ] Vista de Pestañas Web: Renderizado de la lista de URLs añadidas con su icono y título.
+[ ] Vista de Pestañas Web: Renderizado de la lista de URLs añadidas con su icono y título. (Pasa a v0.2.x — Administración de Pestañas.)
 
-[ ] Navegación entre Vistas: Conexión de rutas entre el Hub, el Detalle y la Configuración.
+[x] Navegación entre Vistas: Conexión de rutas entre el Hub, el Detalle y la Configuración.
+
+[x] Sidebar/Nav principal: Widget `Sidebar` + `MainLayout` (layout route), colapsable a columna de iconos (modelo push, persistencia en localStorage, item activo por ruta). Incluye widget `IconButton` size `sm` + `Icon` size `20` para densidad.
 
 v0.1.4 Pantalla 3: Opciones (Settings)
 [ ] Diseño de Ajustes: Página de configuración general con apartado de Portabilidad.

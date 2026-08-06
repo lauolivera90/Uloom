@@ -42,3 +42,14 @@ body,
   background-color: rgb(var(--background));
   color: rgb(var(--text));
 }
+
+html,
+body {
+  user-select: none;
+}
+
+input,
+textarea,
+select {
+  user-select: text;
+}

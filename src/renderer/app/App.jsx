@@ -1,16 +1,22 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { WorkspacesHub } from '../pages/WorkspacesHub.jsx';
-import { WorkspaceDetail } from '../pages/WorkspaceDetail.jsx';
-import { Settings } from '../pages/Settings.jsx';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { WorkspacesHub, WorkspaceDetail, Settings } from '../pages/index.js';
+import { WorkspaceProvider, useSidebar } from './index.js';
+import { MainLayout } from '../widgets/index.js';
 
 export function App() {
+  const { collapsed, toggle } = useSidebar();
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<WorkspacesHub />} />
-        <Route path="/workspaces/:workspaceId" element={<WorkspaceDetail />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
-    </BrowserRouter>
+    <WorkspaceProvider>
+      <HashRouter>
+        <Routes>
+          <Route element={<MainLayout collapsed={collapsed} onToggle={toggle} />}>
+            <Route path="/" element={<WorkspacesHub />} />
+            <Route path="/workspaces/:workspaceId" element={<WorkspaceDetail />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </HashRouter>
+    </WorkspaceProvider>
   );
 }

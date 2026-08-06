@@ -19,7 +19,8 @@ export function WorkspaceCard({ workspace, onClick, onPlay }) {
 
   return (
     <Card
-      className={`group hover:border-primary transition duration-fast active:scale-[0.98] cursor-pointer ${focusRing}`}
+      className={`group flex flex-col hover:border-primary transition duration-fast active:scale-[0.98] cursor-pointer ${focusRing}`}
+      bodyClassName="flex-1"
       role="button"
       tabIndex={0}
       onClick={onClick}

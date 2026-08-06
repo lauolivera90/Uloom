@@ -1,3 +1,9 @@
+import { useParams } from 'react-router-dom';
+import { useWorkspaceDetail, WorkspaceDetailView } from '../features/WorkspaceDetail/index.js';
+
 export function WorkspaceDetail() {
-  return <h1>Workspace Detail</h1>;
+  const { workspaceId } = useParams();
+  const { workspace, isNotFound } = useWorkspaceDetail(workspaceId);
+
+  return <WorkspaceDetailView workspace={workspace} isNotFound={isNotFound} />;
 }
