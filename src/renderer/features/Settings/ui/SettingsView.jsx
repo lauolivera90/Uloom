@@ -46,7 +46,7 @@ export function SettingsView() {
             label="Tema"
             description="Elige tu tema de preferencia."
             control={
-              <Button variant="secondary" icon={isLight ? 'light_mode' : 'dark_mode'} onClick={toggleTheme}>
+              <Button variant="outline" icon={isLight ? 'light_mode' : 'dark_mode'} onClick={toggleTheme}>
                 {isLight ? 'Claro' : 'Oscuro'}
               </Button>
             }
@@ -56,12 +56,12 @@ export function SettingsView() {
             <OptionRow
               label="Exportar todo"
               description="Baja un archivo `.json` con todas tus sesiones."
-              control={<Button variant="secondary" icon="upload" aria-label="Exportar todo" />}
+              control={<Button variant="outline" icon="upload" aria-label="Exportar todo" />}
             />
             <OptionRow
               label="Importar"
               description="Carga un archivo `.json` y reconstruye tus sesiones."
-              control={<Button variant="secondary" icon="download" aria-label="Importar" />}
+              control={<Button variant="outline" icon="download" aria-label="Importar" />}
             />
           </>
         )}

@@ -2,7 +2,7 @@ import { buttonStyles, focusRing } from '../buttonStyles.js';
 import { Icon } from '../Icon/Icon.jsx';
 
 /**
- * Botón de acción. Variantes primary/secondary/ghost/warning/danger definidas en
+ * Botón de acción. Variantes primary/outline/ghost/warning/danger definidas en
  * el mapa compartido de widgets. Presentacional: el resto de las props se pasan
  * al elemento nativo. Cuando está disabled no aplica hover ni active (no rebota).
  * @param {{

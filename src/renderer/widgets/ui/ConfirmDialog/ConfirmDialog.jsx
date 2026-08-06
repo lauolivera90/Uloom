@@ -22,7 +22,7 @@ export function ConfirmDialog({
       footer={
         <div>
           <Button
-            variant="secondary"
+            variant="outline"
             className="flex-1"
             onClick={onCancel}
             disabled={isLoading}

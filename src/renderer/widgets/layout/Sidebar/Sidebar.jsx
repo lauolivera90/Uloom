@@ -44,7 +44,7 @@ export function Sidebar({ collapsed, onToggle }) {
           collapsed ? 'justify-center' : 'justify-between mx-5'
         }`}
       >
-        {!collapsed && <span className="text-lg font-semibold text-text truncate">Uloom</span>}
+        {!collapsed && <span className="text-lg font-semibold text-accent truncate">Uloom</span>}
         <IconButton
           size="sm"
           variant="ghost"

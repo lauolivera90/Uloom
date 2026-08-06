@@ -11,7 +11,6 @@ module.exports = {
         background: 'rgb(var(--background) / <alpha-value>)',
         primary: 'rgb(var(--primary) / <alpha-value>)',
         'primary-hover': 'rgb(var(--primary-hover) / <alpha-value>)',
-        secondary: 'rgb(var(--secondary) / <alpha-value>)',
         accent: 'rgb(var(--accent) / <alpha-value>)',
         'on-primary': 'rgb(var(--on-primary) / <alpha-value>)',
         surface: 'rgb(var(--surface) / <alpha-value>)',

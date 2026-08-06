@@ -19,7 +19,7 @@ export function WorkspaceCard({ workspace, onClick, onPlay }) {
 
   return (
     <Card
-      className={`group flex flex-col hover:border-primary transition duration-fast active:scale-[0.98] cursor-pointer ${focusRing}`}
+      className={`group flex flex-col hover:border-primary-hover transition duration-fast active:scale-[0.98] cursor-pointer ${focusRing}`}
       bodyClassName="flex-1"
       role="button"
       tabIndex={0}
@@ -57,7 +57,7 @@ export function WorkspaceCard({ workspace, onClick, onPlay }) {
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <Icon icon={workspace.icon || 'work'} className="text-primary" />
+          <Icon icon={workspace.icon || 'work'} className="text-accent" />
           <h3 className="text-base font-semibold text-text">{workspace.name}</h3>
         </div>
         {workspace.description && (

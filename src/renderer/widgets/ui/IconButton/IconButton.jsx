@@ -7,7 +7,7 @@ const sizeClasses = {
 };
 
 /**
- * Botón de solo icono. Variantes (subconjunto de Button: primary, secondary,
+ * Botón de solo icono. Variantes (subconjunto de Button: primary, outline,
  * ghost) con tamaño fijo y mismo rounded que Button. Tamaño `md` (w-9 h-9, Icon
  * 24px) para uso estándar; `sm` (w-8 h-8, Icon 20px) para densidad (botón
  * colapsar del sidebar). Recibe el glifo de Material Symbols y un label para
@@ -15,7 +15,7 @@ const sizeClasses = {
  * hover del contenedor (group). El className se usa solo para
  * posicionamiento/layout del consumidor, no para re-estilar.
  * @param {{
- *   variant?: 'primary' | 'secondary' | 'ghost',
+ *   variant?: 'primary' | 'outline' | 'ghost',
  *   icon: string,
  *   label?: string,
  *   disabled?: boolean,

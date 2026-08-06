@@ -63,7 +63,7 @@ v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [ ] Documentar la excepción estructural: la familia form/ agrupa sus componentes en una carpeta común, a diferencia de ui/<Widget>/<Widget>.jsx.
 [ ] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). Revisar cuando se implemente el launch real (v0.3.0) si se reestructura (p. ej. botón explícito "Abrir").
 [x] WorkspaceGrid: el botón nativo "Crear nueva sesión" (grid) reimplementa estilos de Card/Button a mano; migrarlo a widgets (Card clickeable o Button) para cumplir "siempre usar widgets". → Widget CreateTile en widgets/ui/CreateTile. 
-[ ] Contraste AA en dark: --primary (#5048e5) usado como color de texto (hover:text-primary de ghost, text-primary de secondary) queda ~3.1:1 sobre --background dark — por debajo de AA para texto. Definir un tinte de texto más claro o ajustar el token en dark.
+[x] Contraste AA en dark: resuelto en v0.1.5 con la regla "fill vs foreground" — `--primary` (valor base) queda reservado a fills (`bg-primary`) y el foreground de primary (texto/íconos/bordes/rings) pasa a `--primary-hover`, que supera AA en ambos temas. No se tocaron los valores RGB.
 
 🟢 v0.3.0 — Motor de Lanzamiento (Disparador IPC)
 Objetivo: Conectar el botón principal con el sistema operativo para ejecutar la apertura masiva de enlaces.

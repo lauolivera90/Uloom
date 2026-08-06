@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.1.4)
+# Backend — Arquitectura (v0.1.5)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,7 +7,7 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.1.4):
+API expuesta (v0.1.5):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 
 ### 2. `src/main/ipc/index.js` (Controladores)
@@ -16,7 +16,7 @@ API expuesta (v0.1.4):
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`).
 
-Canales registrados (v0.1.4):
+Canales registrados (v0.1.5):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |

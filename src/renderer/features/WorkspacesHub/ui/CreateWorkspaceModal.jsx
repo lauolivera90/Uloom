@@ -19,7 +19,7 @@ export function CreateWorkspaceModal({ isOpen, form, onCancel }) {
       size="md"
       footer={
         <div>
-          <Button variant="secondary" className="flex-1" onClick={onCancel} icon="arrow_back">
+          <Button variant="outline" className="flex-1" onClick={onCancel} icon="arrow_back">
             Cancelar
           </Button>
           <Button className="flex-1" onClick={form.submit} disabled={!form.isNameValid} icon="add">

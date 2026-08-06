@@ -10,14 +10,14 @@ export const buttonStyles = {
     hover: 'hover:bg-primary-hover',
     active: 'active:scale-[0.98]',
   },
-  secondary: {
-    base: 'border border-border text-primary cursor-pointer',
+  outline: {
+    base: 'border border-border text-primary-hover cursor-pointer',
     hover: '',
     active: 'active:scale-[0.98]',
   },
   ghost: {
     base: 'text-text cursor-pointer',
-    hover: 'hover:bg-primary/15 hover:text-primary',
+    hover: 'hover:bg-primary/15 hover:text-primary-hover',
     active: 'active:scale-[0.98]',
   },
   warning: {

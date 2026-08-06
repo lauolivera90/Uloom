@@ -36,7 +36,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       <header>
         <div className="flex items-center gap-3 min-w-0">
           <IconButton variant="ghost" icon="arrow_back" label="Volver al Hub" onClick={() => navigate('/')} />
-          <Icon icon={workspace.icon || 'work'} className="text-primary" />
+          <Icon icon={workspace.icon || 'work'} className="text-accent" />
           <div className="flex flex-col gap-1 min-w-0">
             <h1 className="text-2xl font-semibold text-text truncate">{workspace.name}</h1>
             {workspace.description && <p className="text-sm text-text/60 truncate">{workspace.description}</p>}
