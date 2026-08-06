@@ -1,3 +1,5 @@
+import { SettingsView } from '../features/Settings/index.js';
+
 export function Settings() {
-  return <h1>Settings</h1>;
+  return <SettingsView />;
 }

@@ -12,11 +12,11 @@ Leé siempre, en este orden, antes de tocar cualquier archivo:
 
 **Regla general de scope:** implementá únicamente lo que está descrito en `.doc/architecture.md` y `.doc/rules.md` para la fase actual (ver abajo). Si te parece que hace falta algo que no está documentado ahí, preguntame antes de darlo por sentado — no asumas ni agregues funcionalidad no pedida, aunque te parezca una buena idea.
 
-## Fase actual: v0.1.3
+## Fase actual: v0.1.4
 
-3 páginas: Hub de Sesiones, Detalle de Sesión, Configuración. Navegación principal con Sidebar colapsable (modelo push, persistencia en localStorage, item activo por ruta). La hoja de ruta por versión vive en `Plan/to_do.md`.
+3 páginas: Hub de Sesiones, Detalle de Sesión, Configuración. Navegación principal con Sidebar colapsable (modelo push, persistencia en localStorage, item activo por ruta). La página de Configuración es una maqueta: tabs Preferencias/Sesiones, toggle de Tema ilustrativo y placeholders de export/import (la portabilidad real es v0.4.x). La hoja de ruta por versión vive en `Plan/to_do.md`.
 
-Este proyecto está planeado para escalar en fases futuras. Esta sección se actualiza en cada fase nueva — no asumas que el scope de v0.1.3 es el scope final del proyecto, pero tampoco adelantes funcionalidad de fases futuras sin que se documente acá primero.
+Este proyecto está planeado para escalar en fases futuras. Esta sección se actualiza en cada fase nueva — no asumas que el scope de v0.1.4 es el scope final del proyecto, pero tampoco adelantes funcionalidad de fases futuras sin que se documente acá primero.
 
 ## Reglas no negociables (resumen — el detalle completo está en .doc/rules.md)
 

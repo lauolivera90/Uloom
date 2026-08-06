@@ -37,7 +37,7 @@ v0.1.3 Pantalla 2: Detalle de Sesión (Command Center)
 [x] Sidebar/Nav principal: Widget `Sidebar` + `MainLayout` (layout route), colapsable a columna de iconos (modelo push, persistencia en localStorage, item activo por ruta). Incluye widget `IconButton` size `sm` + `Icon` size `20` para densidad.
 
 v0.1.4 Pantalla 3: Opciones (Settings)
-[ ] Diseño de Ajustes: Página de configuración general con apartado de Portabilidad.
+[x] Diseño de Ajustes: Página de configuración general con apartado de Portabilidad. (Maqueta: feature Settings con tabs Preferencias/Sesiones, Tema mock y placeholders de export/import. La funcionalidad real de portabilidad es v0.4.x y el runtime de temas v0.4.2.)
 
 🟡 v0.2.0 — Gestor de Recursos Web (Tabs CRUD)
 Objetivo: Darle funcionalidad a la página de detalle para permitir agregar, editar, eliminar y configurar el comportamiento de las pestañas web.
