@@ -9,7 +9,7 @@ import {
  * es opcional y arranca vacía (se omite al crear si no se completó). El form se
  * resetea al crear (submit) o al cancelar (reset expuesto).
  * @param {{
- *   onCreate: (workspace: import('../../../shared/types.js').Workspace) => void,
+ *   onCreate: (workspace: { name: string, description?: string, icon?: string }) => Promise<void>,
  * }} props
  * @returns {{
  *   name: string,
@@ -21,8 +21,9 @@ import {
  *   showAllIcons: boolean,
  *   toggleShowAllIcons: () => void,
  *   visibleIcons: string[],
- *   isNameValid: boolean,
- *   submit: () => void,
+*   isNameValid: boolean,
+ *   submit: () => Promise<void>,
+ *   reset: () => void,
  * }}
  */
 export function useCreateWorkspace({ onCreate }) {
@@ -44,15 +45,13 @@ export function useCreateWorkspace({ onCreate }) {
 
   const isNameValid = name.trim().length > 0;
 
-  const submit = useCallback(() => {
+  const submit = useCallback(async () => {
     if (!isNameValid) return;
     const trimmedDescription = description.trim();
-    onCreate({
-      id: `ws-${Date.now()}`,
+    await onCreate({
       name: name.trim(),
       description: trimmedDescription || undefined,
       icon: selectedIcon,
-      tabs: [],
     });
     reset();
   }, [isNameValid, name, description, selectedIcon, onCreate, reset]);

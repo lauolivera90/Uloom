@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { getConfig } from '../services/configService.js';
+import { getConfig, createWorkspace, updateWorkspace } from '../services/configService.js';
 
 /**
  * Registra todos los handlers de IPC del proceso main.
@@ -10,6 +10,24 @@ export function registerIpcHandlers() {
     try {
       const config = getConfig();
       return { success: true, data: config };
+    } catch (error) {
+      return { success: false, data: null, error: error.message };
+    }
+  });
+
+  ipcMain.handle('workspace:create', (event, input) => {
+    try {
+      const created = createWorkspace(input);
+      return { success: true, data: created, error: null };
+    } catch (error) {
+      return { success: false, data: null, error: error.message };
+    }
+  });
+
+  ipcMain.handle('workspace:update', (event, workspace) => {
+    try {
+      const updated = updateWorkspace(workspace);
+      return { success: true, data: updated, error: null };
     } catch (error) {
       return { success: false, data: null, error: error.message };
     }

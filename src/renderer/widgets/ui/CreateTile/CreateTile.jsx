@@ -9,18 +9,20 @@ import { Icon } from '../Icon/Icon.jsx';
  * re-estilar.
  * @param {{
  *   label: string,
+ *   description?: string,
  *   icon?: string,
  *   onClick?: () => void,
  *   className?: string,
  * }} props
  */
-export function CreateTile({ label, icon = 'add', onClick, className = '' }) {
+export function CreateTile({ label, description, icon = 'add', onClick, className = '' }) {
   const baseStyles = `flex flex-col items-center justify-center gap-2 p-5 border border-dashed border-border rounded-xl bg-surface/40 text-text/70 hover:border-primary-hover hover:bg-primary/10 hover:text-primary-hover cursor-pointer active:scale-[0.98] transition duration-fast min-h-40 ${focusRing}${className ? ` ${className}` : ''}`;
 
   return (
     <button type="button" onClick={onClick} className={baseStyles}>
       <Icon icon={icon} />
       <span className="text-sm font-medium">{label}</span>
+      {description && <span className="text-xs text-text/60">{description}</span>}
     </button>
   );
 }

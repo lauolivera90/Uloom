@@ -43,11 +43,13 @@ v0.1.4 Pantalla 3: Opciones (Settings)
 Objetivo: Darle funcionalidad a la página de detalle para permitir agregar, editar, eliminar y configurar el comportamiento de las pestañas web.
 
 v0.2.1 Administración de Pestañas
-[ ] Añadir Web Tab: Formulario con inputs para URL y Nombre sugerido/personalizado.
+[x] Añadir Web Tab: Formulario con inputs para URL y Nombre sugerido/personalizado.
 
-[ ] Asignación de Icono: Icono por defecto (mapamundi) y extracción/asignación del favicon si está disponible.
+[x] Asignación de Icono: Icono por defecto (mapamundi) y extracción/asignación del favicon si está disponible.
 
-[ ] Eliminar Web Tab: Opción para remover URLs de la lista de la sesión.
+[ ] Botón para reiniciar el icono de la pestaña (pendiente, junto a la asignación de iconos): cuando se implemente subir favicon / elegir del catálogo, mostrar una acción de reinicio SOLO si el icono fue seteado manualmente; si proviene de la URL de la página (favicon por defecto), NO mostrarla. En `useAddTabForm`: visible cuando icono ≠ default, al presionar → restaurar default (mapamundi) y colapsar el picker.
+
+[x] Eliminar Web Tab: Opción para remover URLs de la lista de la sesión.
 
 v0.2.2 Configuración de Navegador por Sesión
 [ ] Comportamiento de Apertura: Selector de opción para elegir si la sesión se abre en una Ventana Nueva o en la Ventana Activa del navegador.
@@ -57,6 +59,7 @@ v0.2.2 Configuración de Navegador por Sesión
 v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [x] Widget IconButton: Extraer el patrón de botón/icono duplicado (focus ring, active:scale, hover, span material-symbols 24px) que hoy vive inline en Button, IconPicker y WorkspaceGrid; consumirlo desde el barrel widgets/ui.
 [ ] Footer de acciones del Modal: Extraer widget compartido para el par de botones (secondary + primary, .flex-1) duplicado entre CreateWorkspaceModal y ConfirmDialog.
+[ ] Extraer hook compartido useIconPicker (showPicker/showAllIcons/visibleIcons/selectIcon) para eliminar la duplicación entre useAddTabForm y useCreateWorkspace (detectado por @reviewer en v0.2.1).
 [ ] widgets/index.js: Reexportar también el segmento layout/ (hoy vacío) para cumplir el contrato de architecture.md y evitar roturas silenciosas.
 [ ] FormField accesibilidad: Propagar el estado required/aria-required al elemento hijo (hoy solo el asterisco visual con aria-hidden).
 [ ] @typedef de useCreateWorkspace: Nombrar la forma de retorno del hook y corregir el JSDoc del prop form en CreateWorkspaceModal (hoy tipa la función, no el objeto retornado).

@@ -2,7 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const APP_VERSION = '0.1.5';
+const APP_VERSION = '0.2.1';
 
 /**
  * Devuelve la estructura de config por defecto cuando el archivo no existe o está corrupto.
@@ -24,6 +24,18 @@ function getConfigFilePath() {
 }
 
 /**
+ * Normaliza un workspace para persistencia: garantiza que `tabs` sea un array.
+ * @param {import('../../renderer/shared/types.js').Workspace} workspace
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+function normalizeWorkspace(workspace) {
+  return {
+    ...workspace,
+    tabs: Array.isArray(workspace.tabs) ? workspace.tabs : [],
+  };
+}
+
+/**
  * Lee, valida y devuelve la configuración persistida.
  * Si el archivo no existe o no tiene un formato válido, se crea/restaura el default.
  * @returns {import('../../renderer/shared/types.js').Config}
@@ -41,6 +53,7 @@ export function readConfig() {
     if (!parsed || !Array.isArray(parsed.workspaces)) {
       throw new Error('Formato de config.json inválido');
     }
+    parsed.workspaces = parsed.workspaces.map(normalizeWorkspace);
     return parsed;
   } catch (error) {
     return writeConfig(defaultConfig());
@@ -57,4 +70,35 @@ export function writeConfig(config) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(config, null, 2), 'utf-8');
   return config;
+}
+
+/**
+ * Agrega un workspace nuevo al archivo de configuración y lo persiste.
+ * @param {import('../../renderer/shared/types.js').Workspace} workspace
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function addWorkspace(workspace) {
+  const config = readConfig();
+  const saved = normalizeWorkspace(workspace);
+  config.workspaces.push(saved);
+  writeConfig(config);
+  return saved;
+}
+
+/**
+ * Actualiza un workspace existente por su id (update estricto: no inserta).
+ * Si el id no existe, lanza; de lo contrario escribe y devuelve el persistido.
+ * @param {import('../../renderer/shared/types.js').Workspace} nextWorkspace
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function updateWorkspace(nextWorkspace) {
+  const config = readConfig();
+  const index = config.workspaces.findIndex((workspace) => workspace.id === nextWorkspace.id);
+  if (index === -1) {
+    throw new Error('Workspace no encontrado');
+  }
+  const saved = normalizeWorkspace(nextWorkspace);
+  config.workspaces[index] = saved;
+  writeConfig(config);
+  return saved;
 }

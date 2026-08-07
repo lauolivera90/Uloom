@@ -6,6 +6,7 @@ export {
   ConfirmDialog,
   CreateTile,
   Icon,
+  IconPicker,
   focusRing,
   Form,
   FormField,

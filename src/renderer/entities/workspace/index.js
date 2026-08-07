@@ -1,7 +1,8 @@
 export {
   getConfig,
-  mockWorkspaces,
+  createWorkspace,
+  updateWorkspace,
   WORKSPACE_ICONS,
   WORKSPACE_ICON_PREVIEW_COUNT,
 } from './api/index.js';
-export { WorkspaceCard } from './ui/index.js';
+export { WorkspaceCard, TabFavicon } from './ui/index.js';

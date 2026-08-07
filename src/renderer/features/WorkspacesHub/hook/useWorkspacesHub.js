@@ -3,21 +3,43 @@ import { useWorkspaces } from '../../../app/index.js';
 
 /**
  * Estado del feature Hub de Sesiones: delega la lista de workspaces al context
- * global de la app y conserva solo el estado local del modal de creación.
+ * global de la app y conserva el estado local del modal de creación, incluida la
+ * persistencia pesimista (isCreating mientras se escribe en disco).
  * @returns {{
  *   workspaces: import('../../../shared/types.js').Workspace[],
  *   isCreateOpen: boolean,
  *   openCreate: () => void,
  *   closeCreate: () => void,
- *   addWorkspace: (workspace: import('../../../shared/types.js').Workspace) => void,
+ *   isCreating: boolean,
+ *   createWorkspace: (workspace: { name: string, description?: string, icon?: string }) => Promise<import('../../../shared/types.js').Workspace>,
  * }}
  */
 export function useWorkspacesHub() {
-  const { workspaces, addWorkspace } = useWorkspaces();
+  const { workspaces, createWorkspace: createWorkspaceGlobal } = useWorkspaces();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const openCreate = useCallback(() => setIsCreateOpen(true), []);
   const closeCreate = useCallback(() => setIsCreateOpen(false), []);
 
-  return { workspaces, isCreateOpen, openCreate, closeCreate, addWorkspace };
+  const createWorkspace = useCallback(
+    async (workspace) => {
+      setIsCreating(true);
+      try {
+        return await createWorkspaceGlobal(workspace);
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [createWorkspaceGlobal],
+  );
+
+  return {
+    workspaces,
+    isCreateOpen,
+    openCreate,
+    closeCreate,
+    isCreating,
+    createWorkspace,
+  };
 }

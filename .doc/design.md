@@ -44,6 +44,16 @@ Doc vivo de reglas visuales y de componentes. Se actualiza a medida que crece el
 - **Padding base `p-5`** en contenedores, con override real por `className` (chequeo `includes('p-')`).
 - **Variants:** mapas de clases por `variant` con default sensato (ver `Button`). Variantes del Button: `primary`, `outline`, `ghost`, `warning` (token `tertiary`), `danger` (token `error`). `ConfirmDialog` consume `Modal` (size `sm`) + `Button` desde el barrel.
 
+### Convención de modales
+
+Todos los modales siguen el mismo layout base (derivado de `CreateWorkspaceModal` y `ConfirmDialog`):
+
+- **Formularios** → `Modal size="md"` con título en el header; contenido en `Form` (gap default `5`) con `FormField` (label `text-sm font-medium`, gap `2`) y `TextInput`.
+- **Confirmaciones** → `Modal size="sm"` vía `ConfirmDialog`.
+- **Footer** → par de botones que reparten el ancho con `flex-1`, encerrados en un `<div>`: `Cancelar` (`variant="outline"`, ícono `arrow_back`) + acción principal (`primary` / `warning` / `danger` según semántica, con ícono de acción). El confirmar va `disabled` si la validación del form no pasa.
+- **Cierre** → el botón `×` del header cierra y cancela; la vista llama `reset()` del form al cancelar.
+- **Deuda conocida:** el par de botones del footer está duplicado entre modales; el widget compartido es refactor pendiente de **v0.2.3** (ver `Plan/to_do.md`).
+
 ## 4. Accesibilidad
 
 - Contraste WCAG AA en texto y controles; usar `--on-primary` para texto sobre `--primary`.

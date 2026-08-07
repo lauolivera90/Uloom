@@ -1,4 +1,9 @@
-import { readConfig } from '../data/configRepository.js';
+import { randomUUID } from 'node:crypto';
+import {
+  readConfig,
+  addWorkspace,
+  updateWorkspace as updateWorkspaceInRepository,
+} from '../data/configRepository.js';
 
 /**
  * Devuelve el contenido actual de la configuración.
@@ -6,4 +11,31 @@ import { readConfig } from '../data/configRepository.js';
  */
 export function getConfig() {
   return readConfig();
+}
+
+/**
+ * Crea un workspace nuevo. El id lo genera el proceso main (randomUUID), no llega
+ * del cliente. Arma el workspace completo con `tabs` vacío y lo persiste.
+ * @param {{ name: string, description?: string, icon?: string }} input
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function createWorkspace({ name, description, icon }) {
+  const workspace = {
+    id: randomUUID(),
+    name,
+    description,
+    icon,
+    tabs: [],
+  };
+  return addWorkspace(workspace);
+}
+
+/**
+ * Actualiza un workspace existente por su id (update estricto). Delega en el
+ * repositorio y deja subir el error si el id no existe.
+ * @param {import('../../renderer/shared/types.js').Workspace} nextWorkspace
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function updateWorkspace(nextWorkspace) {
+  return updateWorkspaceInRepository(nextWorkspace);
 }

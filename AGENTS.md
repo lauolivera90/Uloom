@@ -12,11 +12,13 @@ Leé siempre, en este orden, antes de tocar cualquier archivo:
 
 **Regla general de scope:** implementá únicamente lo que está descrito en `.doc/architecture.md` y `.doc/rules.md` para la fase actual (ver abajo). Si te parece que hace falta algo que no está documentado ahí, preguntame antes de darlo por sentado — no asumas ni agregues funcionalidad no pedida, aunque te parezca una buena idea.
 
-## Fase actual: v0.1.5
+## Fase actual: v0.2.1
 
-3 páginas: Hub de Sesiones, Detalle de Sesión, Configuración. Navegación principal con Sidebar colapsable (modelo push, persistencia en localStorage, item activo por ruta). La página de Configuración es una maqueta: tabs Preferencias/Sesiones, toggle de Tema ilustrativo y placeholders de export/import (la portabilidad real es v0.4.x). Sistema de tokens con la regla "fill vs foreground" (`primary` = fill, `primary-hover` = foreground) y `accent` para identidad no interactiva (ver `.doc/design.md`). La hoja de ruta por versión vive en `Plan/to_do.md`.
+3 páginas: Hub de Sesiones, Detalle de Sesión, Configuración. Navegación principal con Sidebar colapsable (modelo push, persistencia en localStorage, item activo por ruta). La página de Configuración sigue siendo una maqueta: tabs Preferencias/Sesiones, toggle de Tema ilustrativo y placeholders de export/import (la portabilidad real es v0.4.x). Sistema de tokens con la regla "fill vs foreground" (`primary` = fill, `primary-hover` = foreground) y `accent` para identidad no interactiva (ver `.doc/design.md`). La hoja de ruta por versión vive en `Plan/to_do.md`.
 
-Este proyecto está planeado para escalar en fases futuras. Esta sección se actualiza en cada fase nueva — no asumas que el scope de v0.1.5 es el scope final del proyecto, pero tampoco adelantes funcionalidad de fases futuras sin que se documente acá primero.
+**Nuevo en v0.2.1 — Tabs CRUD con persistencia real:** la app dejó de ser mock en memoria. Lee y escribe `config.json` vía canales IPC `workspace:create` y `workspace:update` (escritura **pesimista**; update estricto sin upsert; id de sesión por `crypto.randomUUID` en el service; cada mutación de pestañas reescribe el workspace completo; `tabs` normalizado a array en disco). El Detalle de Sesión (Lienzo) tiene el gestor de pestañas operativo: alta con `AddTabModal` (URL/nombre/ícono + favicon) y baja con `ConfirmDialog`. Los errores de persistencia hoy solo se loguean con `console.error`; el sistema de toast/mensajes se diseña casi al final del proyecto. Fuera de esta fase: config de navegador por sesión (v0.2.2), refactors pendientes del reviewer (v0.2.3), Launch (v0.3), portabilidad/temas (v0.4).
+
+Este proyecto está planeado para escalar en fases futuras. Esta sección se actualiza en cada fase nueva — no asumas que el scope de v0.2.1 es el scope final del proyecto, pero tampoco adelantes funcionalidad de fases futuras sin que se documente acá primero.
 
 ## Reglas no negociables (resumen — el detalle completo está en .doc/rules.md)
 

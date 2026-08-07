@@ -5,5 +5,6 @@ export { Modal } from './Modal/Modal.jsx';
 export { ConfirmDialog } from './ConfirmDialog/ConfirmDialog.jsx';
 export { CreateTile } from './CreateTile/CreateTile.jsx';
 export { Icon } from './Icon/Icon.jsx';
+export { IconPicker } from './IconPicker/IconPicker.jsx';
 export { focusRing } from './focusRing.js';
 export { Form, FormField, TextInput, Select, Textarea } from './form/index.js';

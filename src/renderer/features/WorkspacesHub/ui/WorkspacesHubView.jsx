@@ -10,14 +10,15 @@ import { WorkspaceGrid } from './WorkspaceGrid.jsx';
  */
 export function WorkspacesHubView() {
   const navigate = useNavigate();
-  const { workspaces, isCreateOpen, openCreate, closeCreate, addWorkspace } = useWorkspacesHub();
+  const { workspaces, isCreateOpen, openCreate, closeCreate, isCreating, createWorkspace } =
+    useWorkspacesHub();
 
   const handleCreate = useCallback(
-    (workspace) => {
-      addWorkspace(workspace);
+    async (workspace) => {
+      await createWorkspace(workspace);
       closeCreate();
     },
-    [addWorkspace, closeCreate],
+    [createWorkspace, closeCreate],
   );
 
   const form = useCreateWorkspace({ onCreate: handleCreate });
@@ -44,7 +45,7 @@ export function WorkspacesHubView() {
         </div>
       </header>
       <WorkspaceGrid workspaces={workspaces} onCreate={openCreate} onOpen={handleOpenWorkspace} />
-      <CreateWorkspaceModal isOpen={isCreateOpen} form={form} onCancel={handleCancel} />
+      <CreateWorkspaceModal isOpen={isCreateOpen} isSaving={isCreating} form={form} onCancel={handleCancel} />
     </div>
   );
 }

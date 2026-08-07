@@ -1,9 +1,10 @@
-import { Button, IconButton } from '../../../widgets/index.js';
+import { Button } from '../Button/Button.jsx';
+import { IconButton } from '../IconButton/IconButton.jsx';
 
 /**
- * Selector de icono para una sesión. Muestra una grilla reducida y permite expandir
- * la lista completa con un botón ghost. Cada celda es un IconButton: ghost si no
- * está seleccionada, primary si sí. Controlado por props, sin estado propio.
+ * Selector de icono. Muestra una grilla reducida y permite expandir la lista
+ * completa con un botón ghost. Cada celda es un IconButton: ghost si no está
+ * seleccionada, primary si sí. Controlado por props, sin estado propio.
  * No incluye label: lo aporta el FormField contenedor.
  * @param {{
  *   icons: string[],
@@ -16,11 +17,7 @@ import { Button, IconButton } from '../../../widgets/index.js';
 export function IconPicker({ icons, selectedIcon, showAllIcons, onSelect, onToggleShowAll }) {
   return (
     <div className="flex flex-col gap-3">
-      <div
-        role="radiogroup"
-        aria-label="Icono de la sesión"
-        className="grid grid-cols-7 gap-2"
-      >
+      <div role="radiogroup" aria-label="Icono" className="grid grid-cols-7 gap-2">
         {icons.map((icon) => {
           const isSelected = icon === selectedIcon;
           return (

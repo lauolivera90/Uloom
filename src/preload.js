@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 const uloomApi = {
   getConfig: () => ipcRenderer.invoke('config:get'),
+  createWorkspace: (workspace) => ipcRenderer.invoke('workspace:create', workspace),
+  updateWorkspace: (workspace) => ipcRenderer.invoke('workspace:update', workspace),
 };
 
 if (process.contextIsolated) {
