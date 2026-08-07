@@ -1,25 +1,23 @@
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, ConfirmDialog, Icon, IconButton } from '../../../widgets/index.js';
-import { useAddTab, useAddTabForm, useDeleteTab } from '../hook/index.js';
+import {
+  Button,
+  Card,
+  ConfirmDialog,
+  Icon,
+  IconButton,
+  ResourceCardHeader,
+} from '../../../widgets/index.js';
+import { useAddTab, useAddTabForm, useDeleteTab, useSessionConfig } from '../hook/index.js';
 import { AddTabModal } from './AddTabModal.jsx';
 import { TabList } from './TabList.jsx';
-
-function ResourceCardHeader({ title, icon, children }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon icon={icon} className="text-accent" />
-      <h3 className="text-lg font-semibold text-accent">{title}</h3>
-      {children && <div className="ml-auto flex-shrink-0">{children}</div>}
-    </div>
-  );
-}
+import { WorkspaceConfig } from './WorkspaceConfig.jsx';
 
 /**
- * Vista del Detalle de Sesión (Lienzo / Command Center), fase v0.2.1: header con
+ * Vista del Detalle de Sesión (Lienzo / Command Center), fase v0.2.2: header con
  * nombre, descripción y acciones (Launch deshabilitado, editar/borrar inertes) y
- * dos cards en fila — Administrador de recursos (lista de pestañas con alta en
- * memoria) y Configuración (placeholder). Si la sesión no existe, muestra un
- * estado de no encontrada.
+ * dos cards en fila — Administrador de recursos (lista de pestañas con alta y
+ * baja) y Configuración (openBehavior/browser por sesión). Si la sesión no
+ * existe, muestra un estado de no encontrada.
  * @param {{
  *   workspace: import('../../../shared/types.js').Workspace | null,
  *   isNotFound: boolean,
@@ -33,22 +31,11 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   const { target, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(
     workspace?.id,
   );
+  const browserConfig = useSessionConfig(workspace?.id, workspace);
 
   const handleCancel = () => {
     reset();
     closeAdd();
-  };
-
-  const handleDelete = (tab) => {
-    requestDelete(tab);
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await confirmDelete();
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   if (isNotFound) {
@@ -89,8 +76,8 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         </div>
       </header>
 
-      <div className="flex flex-row items-start gap-6">
-        <section className="flex-1 min-w-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_40rem] items-start gap-6">
+        <section>
           <Card
             header={
               <ResourceCardHeader title="Administrador de recursos" icon="tab">
@@ -102,17 +89,25 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
             headerClassName="bg-accent/10"
             bodyClassName="p-0"
           >
-            <TabList tabs={workspace.tabs ?? []} onAddTab={openAdd} onDelete={handleDelete} />
+            <TabList tabs={workspace.tabs ?? []} onAddTab={openAdd} onDelete={requestDelete} />
           </Card>
         </section>
-        <section className="w-80 flex-shrink-0">
+        <section>
           <Card
             header={<ResourceCardHeader title="Configuración" icon="settings" />}
             headerClassName="bg-accent/10"
           >
-            <p className="text-sm text-text/60">
-              Opciones de ejecución de la sesión (próximamente).
-            </p>
+            <WorkspaceConfig
+              browsers={browserConfig.browsers}
+              isLoadingBrowsers={browserConfig.isLoadingBrowsers}
+              openBehavior={browserConfig.openBehavior}
+              browserOverride={browserConfig.browser}
+              resolvedBrowserLabel={browserConfig.resolvedBrowserLabel}
+              onOpenBehaviorChange={browserConfig.setOpenBehavior}
+              onBrowserChange={browserConfig.setBrowser}
+              isSaving={browserConfig.isSaving}
+              error={browserConfig.error}
+            />
           </Card>
         </section>
       </div>
@@ -125,7 +120,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         cancelLabel="Cancelar"
         variant="danger"
         isLoading={isDeleting}
-        onConfirm={handleConfirmDelete}
+        onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />
     </div>

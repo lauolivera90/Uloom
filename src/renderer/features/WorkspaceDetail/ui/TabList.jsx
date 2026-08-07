@@ -15,7 +15,7 @@ export function TabList({ tabs, onAddTab, onDelete }) {
   if (tabs.length === 0) {
     return (
       <div className="p-5">
-        <CreateTile label="Sin pestañas aquí" description="Agrega algunas" onClick={onAddTab} />
+        <CreateTile className='w-full' label="Sin pestañas aquí" description="Agrega algunas" onClick={onAddTab} />
       </div>
     );
   }

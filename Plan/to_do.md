@@ -28,9 +28,9 @@ v0.1.3 Pantalla 2: Detalle de Sesión (Command Center)
 
 [x] decidir si hacer todo elemento en la aplicacion, no copiable (es decir, que el texto de los elementos no sea copiable. Como el texto de las cards y demas.) 
 
-[ ] Lienzo de Trabajo: Página principal para gestionar la sesión seleccionada. (Estado: header funcional mínimo — nombre, descripción, conteo de tabs, vuelta al Hub. El Lienzo/Command Center se desarrolla en v0.2.x con el CRUD de tabs.)
+[x] Lienzo de Trabajo: Página principal para gestionar la sesión seleccionada. (Estado: header funcional mínimo — nombre, descripción, conteo de tabs, vuelta al Hub. El Lienzo/Command Center se desarrolla en v0.2.x con el CRUD de tabs.)
 
-[ ] Vista de Pestañas Web: Renderizado de la lista de URLs añadidas con su icono y título. (Pasa a v0.2.x — Administración de Pestañas.)
+[x] Vista de Pestañas Web: Renderizado de la lista de URLs añadidas con su icono y título. (Pasa a v0.2.x — Administración de Pestañas.)
 
 [x] Navegación entre Vistas: Conexión de rutas entre el Hub, el Detalle y la Configuración.
 
@@ -52,18 +52,20 @@ v0.2.1 Administración de Pestañas
 [x] Eliminar Web Tab: Opción para remover URLs de la lista de la sesión.
 
 v0.2.2 Configuración de Navegador por Sesión
-[ ] Comportamiento de Apertura: Selector de opción para elegir si la sesión se abre en una Ventana Nueva o en la Ventana Activa del navegador.
+[x] Comportamiento de Apertura: Selector de opción para elegir si la sesión se abre en una Ventana Nueva o en la Ventana Activa del navegador. (Card Configuración del Detalle; default 'active-tab'.)
 
-[ ] Navegador por Defecto: Selección del navegador a utilizar para la sesión.
+[x] Navegador por Defecto: Selección del navegador a utilizar para la sesión. (Solo navegadores instalados detectados en el sistema; "Predeterminado" hereda el navegador global de Preferencias, que a su vez puede ser "Sistema" o un navegador pineado — override fijo por sesión.)
 
 v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [x] Widget IconButton: Extraer el patrón de botón/icono duplicado (focus ring, active:scale, hover, span material-symbols 24px) que hoy vive inline en Button, IconPicker y WorkspaceGrid; consumirlo desde el barrel widgets/ui.
+[ ] Backend por dominio: dividir los archivos monolíticos del main en archivos por dominio (decisión deliberada al implementar v0.2.2, donde ya separamos browser/preferences): data/configRepository.js → configStore + workspaceRepository; services/configService.js → workspaceService (preferencesService ya separado); ipc/index.js → handlers por dominio. Actualizar architecture.md/backend.md.
 [ ] Footer de acciones del Modal: Extraer widget compartido para el par de botones (secondary + primary, .flex-1) duplicado entre CreateWorkspaceModal y ConfirmDialog.
 [ ] Extraer hook compartido useIconPicker (showPicker/showAllIcons/visibleIcons/selectIcon) para eliminar la duplicación entre useAddTabForm y useCreateWorkspace (detectado por @reviewer en v0.2.1).
 [ ] widgets/index.js: Reexportar también el segmento layout/ (hoy vacío) para cumplir el contrato de architecture.md y evitar roturas silenciosas.
 [ ] FormField accesibilidad: Propagar el estado required/aria-required al elemento hijo (hoy solo el asterisco visual con aria-hidden).
 [ ] @typedef de useCreateWorkspace: Nombrar la forma de retorno del hook y corregir el JSDoc del prop form en CreateWorkspaceModal (hoy tipa la función, no el objeto retornado).
 [ ] Documentar la excepción estructural: la familia form/ agrupa sus componentes en una carpeta común, a diferencia de ui/<Widget>/<Widget>.jsx.
+[ ] Líder único de escritura (raza cross-feature detectada por @reviewer en v0.2.2): addTab/deleteTab construyen el próximo workspace desde workspacesRef (estado global) mientras useSessionConfig parte de un ref local en cola; si un guardado de config y un alta/baja de pestaña se solapan, ambos escriben snapshots parciales y pueden pisarse en disco. Unificar en un solo líder de escritura.
 [ ] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). Revisar cuando se implemente el launch real (v0.3.0) si se reestructura (p. ej. botón explícito "Abrir").
 [x] WorkspaceGrid: el botón nativo "Crear nueva sesión" (grid) reimplementa estilos de Card/Button a mano; migrarlo a widgets (Card clickeable o Button) para cumplir "siempre usar widgets". → Widget CreateTile en widgets/ui/CreateTile. 
 [x] Contraste AA en dark: resuelto en v0.1.5 con la regla "fill vs foreground" — `--primary` (valor base) queda reservado a fills (`bg-primary`) y el foreground de primary (texto/íconos/bordes/rings) pasa a `--primary-hover`, que supera AA en ambos temas. No se tocaron los valores RGB.

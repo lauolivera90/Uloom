@@ -5,6 +5,8 @@ export {
   Modal,
   ConfirmDialog,
   CreateTile,
+  OptionRow,
+  ResourceCardHeader,
   Icon,
   IconPicker,
   focusRing,

@@ -1,22 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getConfig, createWorkspace, updateWorkspace } from '../../entities/workspace/index.js';
+import {
+  getConfig,
+  createWorkspace,
+  updateWorkspace,
+  updatePreferences,
+  SYSTEM_BROWSER,
+} from '../../entities/workspace/index.js';
 
 /**
- * Estado de la lista de sesiones compartida por la app, respaldado en config.json
- * vía IPC. Estrategia pesimista: cada mutación espera la respuesta del disco y usa
- * el workspace persistido como fuente de verdad; si el IPC falla, el error se
- * propaga al caller (sin optimismo ni rollback).
+ * Estado de la lista de sesiones y preferencias globales compartidos por la app,
+ * respaldado en config.json vía IPC. Estrategia pesimista: cada mutación espera
+ * la respuesta del disco y usa el valor persistido como fuente de verdad; si el
+ * IPC falla, el error se propaga al caller (sin optimismo ni rollback).
  * @returns {{
  *   workspaces: import('../../shared/types.js').Workspace[],
+ *   preferences: import('../../shared/types.js').Preferences,
  *   createWorkspace: (input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
  *   updateWorkspace: (next: import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../../shared/types.js').Workspace>,
+ *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
  * }}
  */
 export function useWorkspaceState() {
   const [workspaces, setWorkspaces] = useState([]);
   const workspacesRef = useRef([]);
+  const [preferences, setPreferences] = useState({ defaultBrowser: SYSTEM_BROWSER });
 
   useEffect(() => {
     workspacesRef.current = workspaces;
@@ -29,6 +38,7 @@ export function useWorkspaceState() {
         const config = await getConfig();
         if (!cancelled) {
           setWorkspaces(config.workspaces ?? []);
+          setPreferences(config.preferences ?? { defaultBrowser: SYSTEM_BROWSER });
         }
       } catch (error) {
         console.error(error);
@@ -82,11 +92,19 @@ export function useWorkspaceState() {
     [updateWorkspacePersisted],
   );
 
+  const updatePreferencesPersisted = useCallback(async (partial) => {
+    const saved = await updatePreferences(partial);
+    setPreferences(saved);
+    return saved;
+  }, []);
+
   return {
     workspaces,
+    preferences,
     createWorkspace: createWorkspacePersisted,
     updateWorkspace: updateWorkspacePersisted,
     addTab,
     deleteTab,
+    updatePreferences: updatePreferencesPersisted,
   };
 }

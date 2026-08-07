@@ -1,1 +1,1 @@
-export {};
+export { useInstalledBrowsers } from './hook/useInstalledBrowsers.js';

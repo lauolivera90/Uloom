@@ -4,14 +4,16 @@ import { useWorkspaceState } from './hook/useWorkspaceState.js';
 const WorkspaceContext = createContext(null);
 
 /**
- * Acceso a la lista de sesiones compartida. Debe usarse dentro de un
- * WorkspaceProvider; fuera de él lanza un error descriptivo.
+ * Acceso a la lista de sesiones y preferencias globales compartidas. Debe usarse
+ * dentro de un WorkspaceProvider; fuera de él lanza un error descriptivo.
  * @returns {{
  *   workspaces: import('../shared/types.js').Workspace[],
+ *   preferences: import('../shared/types.js').Preferences,
  *   createWorkspace: (input: { name: string, description?: string, icon?: string }) => Promise<import('../shared/types.js').Workspace>,
  *   updateWorkspace: (next: import('../shared/types.js').Workspace) => Promise<import('../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../shared/types.js').Tab) => Promise<import('../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../shared/types.js').Workspace>,
+ *   updatePreferences: (partial: Partial<import('../shared/types.js').Preferences>) => Promise<import('../shared/types.js').Preferences>,
  * }}
  */
 export function useWorkspaces() {

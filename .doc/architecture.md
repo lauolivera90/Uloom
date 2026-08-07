@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.1)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.2)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 

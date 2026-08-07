@@ -2,7 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const APP_VERSION = '0.2.1';
+const APP_VERSION = '0.2.2';
 
 /**
  * Devuelve la estructura de config por defecto cuando el archivo no existe o está corrupto.
@@ -11,7 +11,22 @@ const APP_VERSION = '0.2.1';
 function defaultConfig() {
   return {
     version: APP_VERSION,
+    preferences: {
+      defaultBrowser: 'system',
+    },
     workspaces: [],
+  };
+}
+
+/**
+ * Normaliza las preferencias globales para persistencia y migración:
+ * garantiza la existencia de `defaultBrowser` (default 'system').
+ * @param {import('../../renderer/shared/types.js').Preferences} [preferences]
+ * @returns {import('../../renderer/shared/types.js').Preferences}
+ */
+function normalizePreferences(preferences) {
+  return {
+    defaultBrowser: preferences?.defaultBrowser ?? 'system',
   };
 }
 
@@ -24,7 +39,8 @@ function getConfigFilePath() {
 }
 
 /**
- * Normaliza un workspace para persistencia: garantiza que `tabs` sea un array.
+ * Normaliza un workspace para persistencia: garantiza que `tabs` sea un array y
+ * rellena los defaults de navegador (`openBehavior`, `browser`) ante configs viejas.
  * @param {import('../../renderer/shared/types.js').Workspace} workspace
  * @returns {import('../../renderer/shared/types.js').Workspace}
  */
@@ -32,6 +48,8 @@ function normalizeWorkspace(workspace) {
   return {
     ...workspace,
     tabs: Array.isArray(workspace.tabs) ? workspace.tabs : [],
+    openBehavior: workspace.openBehavior ?? 'active-tab',
+    browser: workspace.browser ?? null,
   };
 }
 
@@ -54,6 +72,7 @@ export function readConfig() {
       throw new Error('Formato de config.json inválido');
     }
     parsed.workspaces = parsed.workspaces.map(normalizeWorkspace);
+    parsed.preferences = normalizePreferences(parsed.preferences);
     return parsed;
   } catch (error) {
     return writeConfig(defaultConfig());

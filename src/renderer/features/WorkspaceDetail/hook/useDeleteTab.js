@@ -5,7 +5,7 @@ import { useWorkspaces } from '../../../app/index.js';
  * Estado del borrado de una pestaña en el Detalle: guarda la pestaña objetivo del
  * ConfirmDialog y ejecuta la baja de forma pesimista (espera la respuesta del
  * disco). El diálogo solo se cierra si la persistencia tiene éxito; si falla, el
- * error se propaga (console.error en la vista) y el objetivo se mantiene.
+ * error se loguea acá y el objetivo se mantiene para reintentar.
  * @param {string} [workspaceId]
  * @returns {{
  *   target: import('../../../shared/types.js').Tab | null,
@@ -32,6 +32,8 @@ export function useDeleteTab(workspaceId) {
     try {
       await deleteTab(workspaceId, target.id);
       setTarget(null);
+    } catch (error) {
+      console.error(`Error al eliminar la pestaña "${target.name}":`, error);
     } finally {
       setIsDeleting(false);
     }

@@ -1,6 +1,7 @@
 /**
  * @typedef {import('../../shared/types.js').Config} Config
  * @typedef {import('../../shared/types.js').Workspace} Workspace
+ * @typedef {import('../../shared/types.js').Preferences} Preferences
  */
 
 /**
@@ -37,6 +38,32 @@ export async function createWorkspace(input) {
  */
 export async function updateWorkspace(workspace) {
   const response = await window.uloomApi.updateWorkspace(workspace);
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
+ * Obtiene la lista de navegadores instalados detectados por el proceso main.
+ * @returns {Promise<Array<{ id: string, name: string }>>}
+ */
+export async function getInstalledBrowsers() {
+  const response = await window.uloomApi.getInstalledBrowsers();
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
+ * Actualiza las preferencias globales por merge parcial (el main combina las
+ * claves provistas sobre las existentes).
+ * @param {Partial<Preferences>} partial
+ * @returns {Promise<Preferences>}
+ */
+export async function updatePreferences(partial) {
+  const response = await window.uloomApi.updatePreferences(partial);
   if (!response.success) {
     throw new Error(response.error);
   }

@@ -26,6 +26,8 @@ export function createWorkspace({ name, description, icon }) {
     description,
     icon,
     tabs: [],
+    openBehavior: 'active-tab',
+    browser: null,
   };
   return addWorkspace(workspace);
 }

@@ -1,5 +1,7 @@
 import { ipcMain } from 'electron';
 import { getConfig, createWorkspace, updateWorkspace } from '../services/configService.js';
+import { registerBrowserHandlers } from './browserHandler.js';
+import { registerPreferencesHandlers } from './preferencesHandler.js';
 
 /**
  * Registra todos los handlers de IPC del proceso main.
@@ -32,4 +34,7 @@ export function registerIpcHandlers() {
       return { success: false, data: null, error: error.message };
     }
   });
+
+  registerBrowserHandlers();
+  registerPreferencesHandlers();
 }
