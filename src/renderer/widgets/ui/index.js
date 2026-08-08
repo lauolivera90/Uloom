@@ -3,6 +3,7 @@ export { IconButton } from './IconButton/IconButton.jsx';
 export { Card } from './Card/Card.jsx';
 export { Modal } from './Modal/Modal.jsx';
 export { ConfirmDialog } from './ConfirmDialog/ConfirmDialog.jsx';
+export { ModalFooter } from './ModalFooter/ModalFooter.jsx';
 export { CreateTile } from './CreateTile/CreateTile.jsx';
 export { OptionRow } from './OptionRow/OptionRow.jsx';
 export { ResourceCardHeader } from './ResourceCardHeader/ResourceCardHeader.jsx';

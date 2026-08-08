@@ -4,6 +4,7 @@ export {
   Card,
   Modal,
   ConfirmDialog,
+  ModalFooter,
   CreateTile,
   OptionRow,
   ResourceCardHeader,

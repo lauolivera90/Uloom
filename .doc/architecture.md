@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.2)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.3)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -15,6 +15,7 @@ Para el desarrollo de la interfaz de usuario con React, adoptamos una **variante
 1. **`app/`**: Configuración global de la aplicación. Aquí residen los Providers (Context API), la inicialización de estilos globales y la estructura raíz de React. Dentro de esta capa se ubica la subcarpeta `pages/`.
    - **`pages/`**: Las vistas completas de la aplicación. No debe haber una subcarpeta por cada página; los archivos `.jsx` se colocan directamente en la raíz de esta carpeta y se exportan mediante un archivo `index.js`.
 2. **`widgets/`**: Bloques de interfaz de usuario independientes y complejos (ej. `Sidebar`). Se subdivide en `hooks/` (lógica propia de widgets), `layout/` (widgets de layout) y `ui/` (widgets de UI atómicos), donde cada widget vive en su propia carpeta (ej. `ui/Button/Button.jsx`). `ui/` y `layout/` cuentan con su propio `index.js` que agrega los widgets de su segmento, y un `index.js` en la raíz reexporta ambos segmentos.
+   > **Excepción estructural:** la familia `ui/form/` agrupa *todas* las primitivas de formulario (`Form`, `FormField`, `TextInput`, `Select`, `Textarea` y `formStyles.js`) en una carpeta común con su propio `index.js`, a diferencia de `ui/<Widget>/<Widget>.jsx`. Es la única familia (no un widget) sin carpeta propia por componente — decisión deliberada para mantener el namespace de formularios agrupado y su barrel dedicado.
 3. **`features/`**: Cada feature coincide con una page (ej. la página de detalle de workspace tiene su `features/workspace`). Cada carpeta debe contener dos subcarpetas: `hook/` y `ui/`, y contar con un `index.js` general que exporte ambos contenidos.
 4. **`entities/`**: Entidades de negocio centrales. Se dividen en dos subcarpetas: `ui/` y `api/`. Los archivos dentro de `api/` toman el formato `[nombre]IpcApi.js` (comunicación con el proceso main vía `window.uloomApi`), pudiendo existir además una capa `local[Nombre]Api.js` si hay lógica derivada que no necesita cruzar el puente IPC. Ambas se exponen a través de un barrel `index.js` (ver `rules.md` regla 5).
 5. **`shared/`**: Código reutilizable en todo el proyecto. Contiene dos subcarpetas (`hook/` y `ui/`) y un archivo `index.js` general en su raíz que exporta ambas partes.
@@ -38,7 +39,7 @@ Para el proceso principal de Electron, se adopta una **Arquitectura por Capas (L
 3. **`services/` (Lógica de Negocio)**: El corazón del backend. Para el MVP, la responsabilidad principal es el `LauncherService`, encargado de recorrer los Web Tabs de un workspace y abrir cada URL con `shell.openExternal()` en el navegador predeterminado del sistema (respetando la configuración de "Ventana Nueva vs Ventana Activa" que soporte el navegador).
 4. **`data/` (Repositorio de Datos)**: Se encarga exclusivamente de la persistencia local. Lee, parsea, valida y escribe el archivo `config.json` del usuario en disco. El resto de la aplicación ignora cómo se guardan los datos, simplemente le pide información al repositorio.
 
-> **Decisión de persistencia:** el MVP usa un repositorio manual (`src/main/data/configRepository.js`) que lee/escribe `config.json` directamente en `app.getPath('userData')`. Esto reemplaza la mención de `electron-store` del brief original (que fue removida de las dependencias). Se eligió así para soportar el import/export de sesiones que pide el MVP con control total del formato del archivo.
+> **Decisión de persistencia:** el MVP usa un repositorio manual por dominio (`src/main/data/configStore.js` para el acceso al archivo y `src/main/data/workspaceRepository.js` para la entidad workspace) que lee/escribe `config.json` directamente en `app.getPath('userData')`. Esto reemplaza la mención de `electron-store` del brief original (que fue removida de las dependencias). Se eligió así para soportar el import/export de sesiones que pide el MVP con control total del formato del archivo.
 
 ---
 
@@ -95,8 +96,18 @@ uloom/
 │   ├── main/                      # BACKEND (Electron Main Process)
 │   │   ├── index.js               # Punto de entrada de Electron (creación de ventana)
 │   │   ├── ipc/                   # Controladores (Listeners de ipcMain)
-│   │   ├── services/              # LauncherService (shell.openExternal)
-│   │   └── data/                  # Repositorio (lectura/escritura de config.json)
+│   │   │   ├── index.js           # Orquestador: registra los handlers por dominio
+│   │   │   ├── workspaceHandler.js
+│   │   │   ├── browserHandler.js
+│   │   │   └── preferencesHandler.js
+│   │   ├── services/              # Lógica de negocio (por dominio)
+│   │   │   ├── workspaceService.js
+│   │   │   ├── browserService.js
+│   │   │   └── preferencesService.js
+│   │   └── data/                  # Persistencia (por dominio)
+│   │       ├── configStore.js          # Acceso al archivo (read/write/defaults)
+│   │       ├── workspaceRepository.js  # CRUD + normalización de workspaces
+│   │       └── preferencesRepository.js
 │   │
 │   ├── preload.js                 # BRIDGE (contextBridge → window.uloomApi)
 │   │
@@ -121,6 +132,15 @@ uloom/
 │       │   │   │   └── Card.jsx
 │       │   │   ├── Modal/
 │       │   │   │   └── Modal.jsx
+│       │   │   ├── ModalFooter/
+│       │   │   │   └── ModalFooter.jsx
+│       │   │   ├── form/                # Excepción familia: agrupada, no por widget
+│       │   │   │   ├── Form.jsx
+│       │   │   │   ├── FormField.jsx
+│       │   │   │   ├── TextInput.jsx
+│       │   │   │   ├── Select.jsx
+│       │   │   │   ├── Textarea.jsx
+│       │   │   │   └── index.js
 │       │   │   └── index.js
 │       │   └── index.js
 │       ├── features/

@@ -50,9 +50,8 @@ Todos los modales siguen el mismo layout base (derivado de `CreateWorkspaceModal
 
 - **Formularios** → `Modal size="md"` con título en el header; contenido en `Form` (gap default `5`) con `FormField` (label `text-sm font-medium`, gap `2`) y `TextInput`.
 - **Confirmaciones** → `Modal size="sm"` vía `ConfirmDialog`.
-- **Footer** → par de botones que reparten el ancho con `flex-1`, encerrados en un `<div>`: `Cancelar` (`variant="outline"`, ícono `arrow_back`) + acción principal (`primary` / `warning` / `danger` según semántica, con ícono de acción). El confirmar va `disabled` si la validación del form no pasa.
+- **Footer** → widget `ModalFooter`: par de botones que reparten el ancho con `flex-1` (`Cancelar`, `variant="outline"`, ícono `arrow_back` + acción principal con `confirmVariant` según semántica, ícono de acción y spinner cuando `isLoading`). El confirmar va `disabled` si la validación del form no pasa (`confirmDisabled`).
 - **Cierre** → el botón `×` del header cierra y cancela; la vista llama `reset()` del form al cancelar.
-- **Deuda conocida:** el par de botones del footer está duplicado entre modales; el widget compartido es refactor pendiente de **v0.2.3** (ver `Plan/to_do.md`).
 
 ## 4. Accesibilidad
 

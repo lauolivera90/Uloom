@@ -1,8 +1,23 @@
 import { useCallback, useState } from 'react';
-import {
-  WORKSPACE_ICONS,
-  WORKSPACE_ICON_PREVIEW_COUNT,
-} from '../../../entities/workspace/index.js';
+import { useIconPicker } from '../../../shared/index.js';
+import { WORKSPACE_ICONS, WORKSPACE_ICON_PREVIEW_COUNT } from '../../../entities/workspace/index.js';
+
+/**
+ * @typedef {Object} CreateWorkspaceFormState
+ * Estado del formulario de creación de sesión retornado por `useCreateWorkspace`.
+ * @property {string} name Nombre de la sesión.
+ * @property {(value: string) => void} setName Actualiza el nombre.
+ * @property {string} description Descripción opcional.
+ * @property {(value: string) => void} setDescription Actualiza la descripción.
+ * @property {string} selectedIcon Icono seleccionado del catálogo.
+ * @property {(icon: string) => void} selectIcon Elige un icono.
+ * @property {boolean} showAllIcons Indica si el selector muestra todos los iconos.
+ * @property {() => void} toggleShowAllIcons Expande/contrae la grilla de iconos.
+ * @property {string[]} visibleIcons Iconos visibles según la expansión.
+ * @property {boolean} isNameValid Valida que el nombre no esté vacío.
+ * @property {() => Promise<void>} submit Persiste el workspace y resetea el form.
+ * @property {() => void} reset Resetea el form (submit o cancelar).
+ */
 
 /**
  * Estado del formulario de creación de sesión. Nombre obligatorio; la descripción
@@ -11,37 +26,23 @@ import {
  * @param {{
  *   onCreate: (workspace: { name: string, description?: string, icon?: string }) => Promise<void>,
  * }} props
- * @returns {{
- *   name: string,
- *   setName: (value: string) => void,
- *   description: string,
- *   setDescription: (value: string) => void,
- *   selectedIcon: string,
- *   selectIcon: (icon: string) => void,
- *   showAllIcons: boolean,
- *   toggleShowAllIcons: () => void,
- *   visibleIcons: string[],
-*   isNameValid: boolean,
- *   submit: () => Promise<void>,
- *   reset: () => void,
- * }}
+ * @returns {CreateWorkspaceFormState}
  */
 export function useCreateWorkspace({ onCreate }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(WORKSPACE_ICONS[0]);
-  const [showAllIcons, setShowAllIcons] = useState(false);
+  const picker = useIconPicker({
+    defaultIcon: WORKSPACE_ICONS[0],
+    icons: WORKSPACE_ICONS,
+    previewCount: WORKSPACE_ICON_PREVIEW_COUNT,
+  });
+  const { selectIcon, reset: resetPicker, showAllIcons, toggleShowAllIcons, visibleIcons, selectedIcon } = picker;
 
   const reset = useCallback(() => {
     setName('');
     setDescription('');
-    setSelectedIcon(WORKSPACE_ICONS[0]);
-    setShowAllIcons(false);
-  }, []);
-
-  const selectIcon = useCallback((icon) => setSelectedIcon(icon), []);
-
-  const toggleShowAllIcons = useCallback(() => setShowAllIcons((prev) => !prev), []);
+    resetPicker();
+  }, [resetPicker]);
 
   const isNameValid = name.trim().length > 0;
 
@@ -55,10 +56,6 @@ export function useCreateWorkspace({ onCreate }) {
     });
     reset();
   }, [isNameValid, name, description, selectedIcon, onCreate, reset]);
-
-  const visibleIcons = showAllIcons
-    ? WORKSPACE_ICONS
-    : WORKSPACE_ICONS.slice(0, WORKSPACE_ICON_PREVIEW_COUNT);
 
   return {
     name,

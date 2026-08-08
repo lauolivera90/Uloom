@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
-import {
-  WORKSPACE_ICONS,
-  WORKSPACE_ICON_PREVIEW_COUNT,
-} from '../../../entities/workspace/index.js';
+import { useIconPicker } from '../../../shared/index.js';
+import { WORKSPACE_ICONS, WORKSPACE_ICON_PREVIEW_COUNT } from '../../../entities/workspace/index.js';
 
 function getHostname(url) {
   try {
@@ -19,6 +17,25 @@ function normalizeUrl(value) {
 }
 
 /**
+ * @typedef {Object} AddTabFormState
+ * Estado del formulario de agregar pestaña retornado por `useAddTabForm`.
+ * @property {string} url URL a normalizar (obligatoria y válida).
+ * @property {(value: string) => void} setUrl Actualiza la URL.
+ * @property {string} name Nombre sugerido de la pestaña.
+ * @property {(value: string) => void} setName Actualiza el nombre.
+ * @property {string} selectedIcon Icono seleccionado (default mapamundi).
+ * @property {(icon: string) => void} selectIcon Elige un icono y cierra el picker.
+ * @property {boolean} showPicker Indica si el selector de icono está visible.
+ * @property {() => void} toggleShowPicker Muestra/oculta el selector de iconos.
+ * @property {boolean} showAllIcons Indica si el selector muestra todos los iconos.
+ * @property {() => void} toggleShowAllIcons Expande/contrae la grilla de iconos.
+ * @property {string[]} visibleIcons Iconos visibles según la expansión.
+ * @property {boolean} isUrlValid Valida que la URL sea parseable.
+ * @property {() => Promise<void>} submit Persiste la pestaña y resetea el form.
+ * @property {() => void} reset Resetea el form (submit o cancelar).
+ */
+
+/**
  * Estado del formulario de agregar pestaña. La URL es obligatoria y se normaliza
  * (prefijo https:// si falta); el nombre es opcional y se sugiere desde el
  * hostname de la URL mientras el usuario no lo complete. El icono por defecto es
@@ -27,43 +44,34 @@ function normalizeUrl(value) {
  * @param {{
  *   onSubmit: (tab: import('../../../shared/types.js').Tab) => Promise<void>,
  * }} props
- * @returns {{
- *   url: string,
- *   setUrl: (value: string) => void,
- *   name: string,
- *   setName: (value: string) => void,
- *   selectedIcon: string,
- *   selectIcon: (icon: string) => void,
- *   showPicker: boolean,
- *   toggleShowPicker: () => void,
- *   showAllIcons: boolean,
- *   toggleShowAllIcons: () => void,
- *   visibleIcons: string[],
- *   isUrlValid: boolean,
- *   submit: () => Promise<void>,
- * }}
+ * @returns {AddTabFormState}
  */
 export function useAddTabForm({ onSubmit }) {
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('public');
   const [showPicker, setShowPicker] = useState(false);
-  const [showAllIcons, setShowAllIcons] = useState(false);
+  const picker = useIconPicker({
+    defaultIcon: 'public',
+    icons: WORKSPACE_ICONS,
+    previewCount: WORKSPACE_ICON_PREVIEW_COUNT,
+  });
+  const { selectIcon: pickerSelectIcon, reset: resetPicker, showAllIcons, toggleShowAllIcons, visibleIcons, selectedIcon } = picker;
 
   const reset = useCallback(() => {
     setUrl('');
     setName('');
-    setSelectedIcon('public');
     setShowPicker(false);
-    setShowAllIcons(false);
-  }, []);
+    resetPicker();
+  }, [resetPicker]);
 
-  const selectIcon = useCallback((icon) => {
-    setSelectedIcon(icon);
-    setShowPicker(false);
-  }, []);
+  const selectIcon = useCallback(
+    (icon) => {
+      pickerSelectIcon(icon);
+      setShowPicker(false);
+    },
+    [pickerSelectIcon],
+  );
   const toggleShowPicker = useCallback(() => setShowPicker((prev) => !prev), []);
-  const toggleShowAllIcons = useCallback(() => setShowAllIcons((prev) => !prev), []);
 
   const isUrlValid = getHostname(normalizeUrl(url)) !== null;
 
@@ -79,10 +87,6 @@ export function useAddTabForm({ onSubmit }) {
     });
     reset();
   }, [isUrlValid, url, name, selectedIcon, onSubmit, reset]);
-
-  const visibleIcons = showAllIcons
-    ? WORKSPACE_ICONS
-    : WORKSPACE_ICONS.slice(0, WORKSPACE_ICON_PREVIEW_COUNT);
 
   return {
     url,

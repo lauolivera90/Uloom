@@ -1,13 +1,13 @@
-import { Button } from '../Button/Button.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { Icon } from '../Icon/Icon.jsx';
+import { ModalFooter } from '../ModalFooter/ModalFooter.jsx';
 
 export function ConfirmDialog({
   isOpen,
   title,
   description,
-  confirmLabel = 'Confirmar',
-  cancelLabel = 'Cancelar',
+  confirmLabel,
+  cancelLabel,
   variant = 'primary',
   isLoading = false,
   onConfirm,
@@ -20,29 +20,17 @@ export function ConfirmDialog({
       title={title}
       size="sm"
       footer={
-        <div>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={onCancel}
-            disabled={isLoading}
-            icon="arrow_back"
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            variant={variant}
-            className="flex-1"
-            onClick={onConfirm}
-            disabled={isLoading}
-            icon={variant === 'danger' ? 'delete' : undefined}
-          >
-            {isLoading && (
-              <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            )}
-            {confirmLabel}
-          </Button>
-        </div>
+        <ModalFooter
+          cancelLabel={cancelLabel}
+          confirmLabel={confirmLabel}
+          onCancel={onCancel}
+          onConfirm={onConfirm}
+          confirmVariant={variant}
+          confirmIcon={variant === 'danger' ? 'delete' : undefined}
+          cancelDisabled={isLoading}
+          confirmDisabled={isLoading}
+          isLoading={isLoading}
+        />
       }
     >
       {description && (

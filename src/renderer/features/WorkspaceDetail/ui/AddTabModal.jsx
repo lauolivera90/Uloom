@@ -1,4 +1,15 @@
-import { Button, Form, FormField, Icon, IconPicker, Modal, TextInput } from '../../../widgets/index.js';
+import {
+  Button,
+  Form,
+  FormField,
+  Icon,
+  IconPicker,
+  Modal,
+  ModalFooter,
+  TextInput,
+} from '../../../widgets/index.js';
+
+/** @typedef {import('../hook/useAddTabForm.js').AddTabFormState} AddTabFormState */
 
 /**
  * Modal de agregar pestaña. Sigue la convención de modales de formulario
@@ -8,21 +19,7 @@ import { Button, Form, FormField, Icon, IconPicker, Modal, TextInput } from '../
  * @param {{
  *   isOpen: boolean,
  *   isSaving?: boolean,
- *   form: {
- *     url: string,
- *     name: string,
- *     selectedIcon: string,
- *     showPicker: boolean,
- *     visibleIcons: string[],
- *     showAllIcons: boolean,
- *     isUrlValid: boolean,
- *     submit: () => Promise<void>,
- *     setName: (value: string) => void,
- *     setUrl: (value: string) => void,
- *     selectIcon: (icon: string) => void,
- *     toggleShowPicker: () => void,
- *     toggleShowAllIcons: () => void,
- *   },
+ *   form: AddTabFormState,
  *   onCancel: () => void,
  * }} props
  */
@@ -39,19 +36,15 @@ export function AddTabModal({ isOpen, isSaving = false, form, onCancel }) {
       title="Agregar pestaña"
       size="md"
       footer={
-        <div>
-          <Button variant="outline" className="flex-1" onClick={onCancel} disabled={isSaving} icon="arrow_back">
-            Cancelar
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSubmit}
-            disabled={!isUrlValid || isSaving}
-            icon="add"
-          >
-            Agregar pestaña
-          </Button>
-        </div>
+        <ModalFooter
+          cancelLabel="Cancelar"
+          confirmLabel="Agregar pestaña"
+          onCancel={onCancel}
+          onConfirm={handleSubmit}
+          confirmIcon="add"
+          cancelDisabled={isSaving}
+          confirmDisabled={!isUrlValid || isSaving}
+        />
       }
     >
       <Form onSubmit={handleSubmit}>

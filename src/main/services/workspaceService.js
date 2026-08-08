@@ -1,16 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import {
-  readConfig,
+  getConfig as getConfigFromRepository,
   addWorkspace,
   updateWorkspace as updateWorkspaceInRepository,
-} from '../data/configRepository.js';
+} from '../data/workspaceRepository.js';
 
 /**
- * Devuelve el contenido actual de la configuración.
+ * Devuelve el contenido actual de la configuración (workspaces y preferencias normalizados).
  * @returns {import('../../renderer/shared/types.js').Config}
  */
 export function getConfig() {
-  return readConfig();
+  return getConfigFromRepository();
 }
 
 /**

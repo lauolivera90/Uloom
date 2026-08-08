@@ -58,14 +58,14 @@ v0.2.2 Configuración de Navegador por Sesión
 
 v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [x] Widget IconButton: Extraer el patrón de botón/icono duplicado (focus ring, active:scale, hover, span material-symbols 24px) que hoy vive inline en Button, IconPicker y WorkspaceGrid; consumirlo desde el barrel widgets/ui.
-[ ] Backend por dominio: dividir los archivos monolíticos del main en archivos por dominio (decisión deliberada al implementar v0.2.2, donde ya separamos browser/preferences): data/configRepository.js → configStore + workspaceRepository; services/configService.js → workspaceService (preferencesService ya separado); ipc/index.js → handlers por dominio. Actualizar architecture.md/backend.md.
-[ ] Footer de acciones del Modal: Extraer widget compartido para el par de botones (secondary + primary, .flex-1) duplicado entre CreateWorkspaceModal y ConfirmDialog.
-[ ] Extraer hook compartido useIconPicker (showPicker/showAllIcons/visibleIcons/selectIcon) para eliminar la duplicación entre useAddTabForm y useCreateWorkspace (detectado por @reviewer en v0.2.1).
-[ ] widgets/index.js: Reexportar también el segmento layout/ (hoy vacío) para cumplir el contrato de architecture.md y evitar roturas silenciosas.
-[ ] FormField accesibilidad: Propagar el estado required/aria-required al elemento hijo (hoy solo el asterisco visual con aria-hidden).
-[ ] @typedef de useCreateWorkspace: Nombrar la forma de retorno del hook y corregir el JSDoc del prop form en CreateWorkspaceModal (hoy tipa la función, no el objeto retornado).
-[ ] Documentar la excepción estructural: la familia form/ agrupa sus componentes en una carpeta común, a diferencia de ui/<Widget>/<Widget>.jsx.
-[ ] Líder único de escritura (raza cross-feature detectada por @reviewer en v0.2.2): addTab/deleteTab construyen el próximo workspace desde workspacesRef (estado global) mientras useSessionConfig parte de un ref local en cola; si un guardado de config y un alta/baja de pestaña se solapan, ambos escriben snapshots parciales y pueden pisarse en disco. Unificar en un solo líder de escritura.
+[x] Backend por dominio: dividir los archivos monolíticos del main en archivos por dominio: data/configRepository.js → configStore + workspaceRepository; services/configService.js → workspaceService (preferencesService ya separado); ipc/index.js → workspaceHandler + browserHandler + preferencesHandler. architecture.md/backend.md actualizados.
+[x] Footer de acciones del Modal: widget compartido `ModalFooter` (outline + variante semántica, flex-1, spinner de carga) consumido por CreateWorkspaceModal, AddTabModal y ConfirmDialog.
+[x] Extraer hook compartido `useIconPicker` (shared/hook) para eliminar la duplicación entre useAddTabForm y useCreateWorkspace (detectado por @reviewer en v0.2.1).
+[x] widgets/index.js: reexportar el segmento layout/ (MainLayout, Sidebar) — ya estaba implementado en v0.2.2; destildado al verificar la roadmap contra el código.
+[x] FormField accesibilidad: `required`/`aria-required` propagados al elemento hijo (asterisco visual sigue aria-hidden).
+[x] @typedef de formularios: `CreateWorkspaceFormState` y `AddTabFormState` definidos en sus hooks; CreateWorkspaceModal y AddTabModal los referencian por JSDoc (elimina el tipado manual desincronizado del prop `form`).
+[x] Documentar la excepción estructural: la familia `ui/form/` agrupa sus componentes en una carpeta común, a diferencia de `ui/<Widget>/<Widget>.jsx`.
+[x] Líder único de escritura (raza cross-feature detectada por @reviewer en v0.2.2): `useWorkspaceState.mutateWorkspace` serializa todas las escrituras de workspaces (tabs + configuración) sobre el último persistido por id; addTab/deleteTab y useSessionConfig delegan en el líder (este último perdió su cola local).
 [ ] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). Revisar cuando se implemente el launch real (v0.3.0) si se reestructura (p. ej. botón explícito "Abrir").
 [x] WorkspaceGrid: el botón nativo "Crear nueva sesión" (grid) reimplementa estilos de Card/Button a mano; migrarlo a widgets (Card clickeable o Button) para cumplir "siempre usar widgets". → Widget CreateTile en widgets/ui/CreateTile. 
 [x] Contraste AA en dark: resuelto en v0.1.5 con la regla "fill vs foreground" — `--primary` (valor base) queda reservado a fills (`bg-primary`) y el foreground de primary (texto/íconos/bordes/rings) pasa a `--primary-hover`, que supera AA en ambos temas. No se tocaron los valores RGB.

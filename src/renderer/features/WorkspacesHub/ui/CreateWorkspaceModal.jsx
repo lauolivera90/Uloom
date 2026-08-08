@@ -1,4 +1,13 @@
-import { Button, Form, FormField, IconPicker, Modal, TextInput } from '../../../widgets/index.js';
+import {
+  Form,
+  FormField,
+  IconPicker,
+  Modal,
+  ModalFooter,
+  TextInput,
+} from '../../../widgets/index.js';
+
+/** @typedef {import('../hook/useCreateWorkspace.js').CreateWorkspaceFormState} CreateWorkspaceFormState */
 
 /**
  * Modal de creación de sesión. Todo el contenido está en columna: nombre, selector
@@ -6,19 +15,7 @@ import { Button, Form, FormField, IconPicker, Modal, TextInput } from '../../../
  * @param {{
  *   isOpen: boolean,
  *   isSaving?: boolean,
- *   form: {
- *     name: string,
- *     description: string,
- *     selectedIcon: string,
- *     visibleIcons: string[],
- *     showAllIcons: boolean,
- *     isNameValid: boolean,
- *     submit: () => Promise<void>,
- *     setName: (value: string) => void,
- *     setDescription: (value: string) => void,
- *     selectIcon: (icon: string) => void,
- *     toggleShowAllIcons: () => void,
- *   },
+ *   form: CreateWorkspaceFormState,
  *   onCancel: () => void,
  * }} props
  */
@@ -35,14 +32,15 @@ export function CreateWorkspaceModal({ isOpen, isSaving = false, form, onCancel 
       title="Nueva sesión"
       size="md"
       footer={
-        <div>
-          <Button variant="outline" className="flex-1" onClick={onCancel} disabled={isSaving} icon="arrow_back">
-            Cancelar
-          </Button>
-          <Button className="flex-1" onClick={handleSubmit} disabled={!isNameValid || isSaving} icon="add">
-            Crear sesión
-          </Button>
-        </div>
+        <ModalFooter
+          cancelLabel="Cancelar"
+          confirmLabel="Crear sesión"
+          onCancel={onCancel}
+          onConfirm={handleSubmit}
+          confirmIcon="add"
+          cancelDisabled={isSaving}
+          confirmDisabled={!isNameValid || isSaving}
+        />
       }
     >
       <Form onSubmit={handleSubmit}>

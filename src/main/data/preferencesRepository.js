@@ -1,4 +1,4 @@
-import { readConfig, writeConfig } from './configRepository.js';
+import { readConfig, writeConfig } from './configStore.js';
 
 /**
  * Devuelve las preferencias globales persistidas (normalizadas al leer).
