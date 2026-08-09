@@ -6,6 +6,7 @@ const uloomApi = {
   updateWorkspace: (workspace) => ipcRenderer.invoke('workspace:update', workspace),
   deleteWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:delete', workspaceId),
   getInstalledBrowsers: () => ipcRenderer.invoke('browser:list'),
+  getSystemDefaultBrowser: () => ipcRenderer.invoke('browser:system'),
   updatePreferences: (preferences) => ipcRenderer.invoke('config:updatePreferences', preferences),
   getPageMetadata: (url) => ipcRenderer.invoke('page:metadata', url),
   launchWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:launch', workspaceId),

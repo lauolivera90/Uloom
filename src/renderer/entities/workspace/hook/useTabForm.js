@@ -4,7 +4,7 @@ import {
   getPageMetadata,
   WORKSPACE_ICONS,
   WORKSPACE_ICON_PREVIEW_COUNT,
-} from '../../../entities/workspace/index.js';
+} from '../api/index.js';
 
 function normalizeUrl(value) {
   const trimmed = value.trim();
@@ -64,7 +64,6 @@ function normalizeUrl(value) {
 export function useTabForm({ initialTab = null, onSubmit }) {
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
   const [isIconManual, setIsIconManual] = useState(false);
   const [manualIcon, setManualIcon] = useState('');
   const [metadata, setMetadata] = useState({ url: null, title: null, favicon: null });
@@ -76,7 +75,6 @@ export function useTabForm({ initialTab = null, onSubmit }) {
     (icon) => {
       setManualIcon(icon);
       setIsIconManual(true);
-      setShowPicker(false);
     },
     [],
   );
@@ -86,14 +84,13 @@ export function useTabForm({ initialTab = null, onSubmit }) {
     selected: highlightIcon,
     onSelect: selectIcon,
   });
-  const { reset: resetPicker, showAllIcons, toggleShowAllIcons, visibleIcons, ensureVisible } = picker;
+  const { reset: resetPicker, showPicker, toggleShowPicker, selectIcon: pickerSelectIcon, showAllIcons, toggleShowAllIcons, visibleIcons, ensureVisible } = picker;
 
   const syncInitial = useCallback(
     (tab) => {
       const catalogIcon = tab?.icon && isCatalogIcon(tab.icon) && tab.icon !== 'public' ? tab.icon : null;
       setUrl(tab?.url ?? '');
       setName(tab?.name ?? '');
-      setShowPicker(false);
       resetPicker();
       setIsIconManual(Boolean(catalogIcon));
       setManualIcon(catalogIcon ?? '');
@@ -150,8 +147,6 @@ export function useTabForm({ initialTab = null, onSubmit }) {
     syncInitial(initialTab);
   }, [syncInitial, initialTab]);
 
-  const toggleShowPicker = useCallback(() => setShowPicker((prev) => !prev), []);
-
   const metadataMatches = normalizedUrl !== '' && metadata.url === normalizedUrl;
   const suggestedName = metadataMatches ? metadata.title : null;
   const autoFavicon = metadataMatches ? metadata.favicon : null;
@@ -160,8 +155,8 @@ export function useTabForm({ initialTab = null, onSubmit }) {
   const previewIcon = isIconManual ? manualIcon : defaultIcon;
   const useSuggestedIcon = useCallback(() => {
     setIsIconManual(false);
-    setShowPicker(false);
-  }, []);
+    resetPicker();
+  }, [resetPicker]);
   const showSuggestedIcon = autoFavicon !== null && isIconManual;
 
   const showSuggestionSwap = name.trim() !== '' && suggestedName !== null && name.trim() !== suggestedName;
@@ -189,7 +184,7 @@ export function useTabForm({ initialTab = null, onSubmit }) {
     name,
     setName,
     selectedIcon: highlightIcon,
-    selectIcon,
+    selectIcon: pickerSelectIcon,
     showPicker,
     toggleShowPicker,
     showAllIcons,

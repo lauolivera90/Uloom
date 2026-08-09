@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
 import {
   useInstalledBrowsers,
+  useSystemDefaultBrowser,
   SYSTEM_BROWSER,
   DEFAULT_BROWSER_LABEL,
   getBrowserNameById,
@@ -24,6 +25,7 @@ import {
  *   openBehavior: import('../../../shared/types.js').OpenBehavior,
  *   browser: string,
  *   resolvedBrowserLabel: string,
+ *   resolvedBrowserId: string | null,
  *   setOpenBehavior: (value: import('../../../shared/types.js').OpenBehavior) => Promise<void>,
  *   setBrowser: (value: string) => Promise<void>,
  *   isSaving: boolean,
@@ -33,6 +35,7 @@ import {
 export function useSessionConfig(workspaceId, workspace) {
   const { mutateWorkspace, preferences } = useWorkspaces();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
+  const { systemDefaultId, systemDefaultName } = useSystemDefaultBrowser();
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -62,8 +65,12 @@ export function useSessionConfig(workspaceId, workspace) {
   const resolvedBrowserLabel = isLoadingBrowsers
     ? DEFAULT_BROWSER_LABEL
     : globalDefault === SYSTEM_BROWSER
-      ? `${DEFAULT_BROWSER_LABEL} (Sistema)`
+      ? systemDefaultId
+        ? `${DEFAULT_BROWSER_LABEL} (${systemDefaultName ?? getBrowserNameById(systemDefaultId, browsers)})`
+        : `${DEFAULT_BROWSER_LABEL} (Sistema)`
       : `${DEFAULT_BROWSER_LABEL} (${getBrowserNameById(globalDefault, browsers)})`;
+
+  const resolvedBrowserId = browserOverride ?? (globalDefault === SYSTEM_BROWSER ? (systemDefaultId ?? null) : globalDefault);
 
   return {
     browsers,
@@ -71,6 +78,7 @@ export function useSessionConfig(workspaceId, workspace) {
     openBehavior,
     browser: browserOverride ?? '',
     resolvedBrowserLabel,
+    resolvedBrowserId,
     setOpenBehavior,
     setBrowser,
     isSaving,

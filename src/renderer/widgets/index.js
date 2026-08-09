@@ -9,7 +9,7 @@ export {
   OptionRow,
   ResourceCardHeader,
   Icon,
-  IconPicker,
+  IconPickerField,
   focusRing,
   Form,
   FormField,

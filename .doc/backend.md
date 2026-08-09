@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.3.1)
+# Backend — Arquitectura (v0.3.2)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,13 +7,14 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1):
+API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 - `uloomApi.createWorkspace(input)` → invoca el canal `workspace:create`.
 - `uloomApi.updateWorkspace(workspace)` → invoca el canal `workspace:update`.
 - `uloomApi.deleteWorkspace(workspaceId)` → invoca el canal `workspace:delete`.
 - `uloomApi.launchWorkspace(workspaceId)` → invoca el canal `workspace:launch`.
 - `uloomApi.getInstalledBrowsers()` → invoca el canal `browser:list`. Devuelve los navegadores instalados detectados.
+- `uloomApi.getSystemDefaultBrowser()` → invoca el canal `browser:system`. Resuelve el navegador del SO si es del catálogo; `null` en otro caso.
 - `uloomApi.updatePreferences(partial)` → invoca el canal `config:updatePreferences`.
 - `uloomApi.getPageMetadata(url)` → invoca el canal `page:metadata`. Devuelve `{ title, favicon }` (favicon como data URL; soft-fallback a `null`).
 
@@ -23,7 +24,7 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`).
 
-Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1):
+Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |
@@ -33,12 +34,13 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 | `workspace:launch` | `workspaceId` | `{ opened, failed }` (URLs abiertas / fallidas) |
 | `page:metadata` | `url` | `{ title, favicon }` (favicon data URL; soft-fallback a `null`) |
 | `browser:list` | — | `Array<{ id, name }>` (navegadores instalados) |
+| `browser:system` | — | `{ id, name }` navegador del SO si es del catálogo, o `null` |
 | `config:updatePreferences` | `Partial<Preferences>` | `Preferences` (merge persistido) |
 
 ### 3. `src/main/services/` (Lógica de Negocio)
 - `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `updateWorkspace()` (delega; update estricto) y `deleteWorkspace()` (delega; baja estricta).
-- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre cada `tab.url`. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto vía `app.getApplicationInfoForProtocol('https:')` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`), pasando la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera se deduce del motor por el ejecutable) cuando `openBehavior === 'new-window'`, o solo la URL en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` (único caso sin control de ventana nueva). Devuelve `{ opened, failed }`; lanza solo ante errores estructurales (sesión inexistente o navegador configurado no instalado). Los fallos de spawn por URL se cuentan, no abortan el lote.
-- `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn.
+- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre cada `tab.url`. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`), pasando la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) cuando `openBehavior === 'new-window'`, o solo la URL en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` (único caso sin control de ventana nueva). Devuelve `{ opened, failed }`; lanza solo ante errores estructurales (sesión inexistente o navegador configurado no instalado). Los fallos de spawn por URL se cuentan, no abortan el lote.
+- `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn. `resolveSystemBrowser()` — **resolución única y compartida** del navegador predeterminado del SO (`app.getApplicationInfoForProtocol('https:')`): devuelve `{ id, name, path }` con `id: null` si el default no es del catálogo (mapeo por basename del ejecutable), o `null` si no es Windows o no se pudo resolver. Lo usan el launcher (spawn) y la UI. `getSystemDefaultBrowser()` — envuelve `resolveSystemBrowser()` y devuelve `{ id, name }` del catálogo o `null` (para el ícono del selector).
 - `preferencesService.js`: `getPreferences()` y `updatePreferences(partial)` (merge parcial, delega en el repositorio).
 - `pageService.js`: `fetchPageMetadata(url)` — trae el `<title>` y el favicon del sitio con `net.fetch` (session default, `AbortController` de 4s, cap 1MB al HTML y ~32KB al favicon, favicon como **data URL**). Regex tolerante al orden de atributos para `<link rel="icon">`, resuelve URLs absolutas y cae a `/favicon.ico` si no hay link. **Soft-fallback**: cualquier fallo devuelve `null` en los campos, no lanza.
 
@@ -105,7 +107,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
-- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `updatePreferences`, `getPageMetadata`.
+- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`.
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `OPEN_BEHAVIORS`, `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL` y `getBrowserNameById`.
 - `index.js` es el barrel (exporta toda la API y catálogos).
@@ -127,6 +129,18 @@ useInstalledBrowsers (entities, hook de entidad) → getInstalledBrowsers → pr
 ```
 Se consume desde el Detalle (navegador por sesión) y desde Configuración (preferencia global).
 
+### Navegador del sistema (`browser:system`)
+```
+useSystemDefaultBrowser (entities, hook de entidad) → useCachedQuery (shared, promesa cacheada a nivel módulo — 1 consulta por sesión de app)
+   → getSystemDefaultBrowser → preload → ipc 'browser:system'
+   → browserService.getSystemDefaultBrowser → resolveSystemBrowser (centraliza app.getApplicationInfoForProtocol('https:'))
+       → basename del exe → id del catálogo; si no es del catálogo → null
+```
+El renderer usa el id resuelto para mostrar el ícono del default real cuando la preferencia es
+`system` (Detalle con "Predeterminado" sin override y Configuración). `null` → ícono genérico.
+La consulta es barata (registro del OS) y cacheada por sesión; el trade-off es que si el default
+del SO cambia con la app abierta, el ícono queda fijo hasta reiniciar.
+
 ### Preferencia global / herencia
 - `preferences.defaultBrowser` se escribe con `config:updatePreferences` (merge parcial desde Configuración → Preferencias).
 - Resolución (implementada por el Launcher en v0.3.1): `navegador_final = sesión.browser ?? (preferences.defaultBrowser !== 'system' ? preferences.defaultBrowser : null)`; `null` = decide el SO (→ `shell.openExternal`).
@@ -138,8 +152,8 @@ Detalle: useLaunchWorkspace.launch()   /   Hub: useLaunchWorkspace.launch(worksp
    → launcherService.launchWorkspace(id): getConfig + getWorkspaceById (lectura estricta)
        → resuelve navegador (sesión → global → sistema)
        → navegador concreto: spawn(exe, [bandera-ventana-nueva?, url]) detached/unref
-       → navegador de sistema: app.getApplicationInfoForProtocol('https:') → su ejecutable
-           → spawn con bandera de motor deducida del ejecutable; si no resuelve → shell.openExternal
+→ navegador de sistema: browserService.resolveSystemBrowser → su ejecutable
+            → spawn con bandera por id (catálogo) o heurística de motor; si no resuelve → shell.openExternal
        → en paralelo con Promise.allSettled
    → { opened, failed } → el botón se deshabilita mientras isLaunching y si la sesión no tiene tabs
 ```

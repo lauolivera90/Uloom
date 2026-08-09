@@ -8,6 +8,6 @@ export { CreateTile } from './CreateTile/CreateTile.jsx';
 export { OptionRow } from './OptionRow/OptionRow.jsx';
 export { ResourceCardHeader } from './ResourceCardHeader/ResourceCardHeader.jsx';
 export { Icon } from './Icon/Icon.jsx';
-export { IconPicker } from './IconPicker/IconPicker.jsx';
+export { IconPickerField } from './IconPickerField/IconPickerField.jsx';
 export { focusRing } from './focusRing.js';
 export { Form, FormField, TextInput, Select, Textarea } from './form/index.js';

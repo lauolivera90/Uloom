@@ -8,17 +8,18 @@ import {
   PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
-import { WorkspaceFormModal, useLaunchWorkspace, LAUNCH_EMPTY_TABS_TITLE } from '../../../entities/workspace/index.js';
-import { useTabModal, useTabForm, useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
-import { TabFormModal } from './TabFormModal.jsx';
+import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL } from '../../../entities/workspace/index.js';
+import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
+import { useWorkspaces } from '../../../app/index.js';
 
 const BACK_TO_HUB_LABEL = 'Volver al Hub';
 
 /**
  * Vista del Detalle de Sesión (Lienzo / Command Center): header con nombre,
- * descripción y acciones (Launch disponible en v0.3, editar/borrar sesión) y
+ * descripción y acciones (Lanzar —o Agregar pestaña si la sesión está vacía— y
+ * editar/borrar sesión) y
  * dos cards en fila — Administrador de recursos (lista de pestañas con alta/
  * edición/baja) y Configuración (openBehavior/browser por sesión). Las mutaciones
  * de pestañas y de la sesión pasan por el líder único de escritura del estado
@@ -31,7 +32,12 @@ const BACK_TO_HUB_LABEL = 'Volver al Hub';
  */
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
-  const { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab } = useTabModal(workspace?.id);
+  const { addTab, updateTab } = useWorkspaces();
+  const { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab } = useTabModal({
+    workspaceId: workspace?.id,
+    addTab,
+    updateTab,
+  });
   const tabForm = useTabForm({ initialTab: isOpen ? editingTab : null, onSubmit: onSubmitTab });
   const { reset: resetTabForm } = tabForm;
   const { target, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(workspace?.id);
@@ -81,18 +87,23 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         icon={workspace.icon || 'work'}
         actions={
           <>
-            <Button
-              variant="primary"
-              icon="play_arrow"
-              disabled={isLaunching || (workspace.tabs?.length ?? 0) === 0}
-              title={(workspace.tabs?.length ?? 0) === 0 ? LAUNCH_EMPTY_TABS_TITLE : undefined}
-              onClick={launch}
-            >
-              Launch
-            </Button>
+            {(workspace.tabs?.length ?? 0) === 0 ? (
+              <Button variant="primary" icon="add" onClick={openAdd}>
+                {ADD_TAB_LABEL}
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                icon="play_arrow"
+                disabled={isLaunching}
+                onClick={launch}
+              >
+                Lanzar
+              </Button>
+            )}
             <IconButton variant="warning" icon="edit" label="Editar sesión" onClick={workspaceEdit.open} />
             <IconButton variant="danger" icon="delete" label="Eliminar sesión" onClick={requestDeleteWorkspace} />
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border/40 mx-1" />
             <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
               Volver
             </Button>
@@ -127,6 +138,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
               openBehavior={browserConfig.openBehavior}
               browserOverride={browserConfig.browser}
               resolvedBrowserLabel={browserConfig.resolvedBrowserLabel}
+              resolvedBrowserId={browserConfig.resolvedBrowserId}
               onOpenBehaviorChange={browserConfig.setOpenBehavior}
               onBrowserChange={browserConfig.setBrowser}
               isSaving={browserConfig.isSaving}
@@ -152,7 +164,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       />
       <ConfirmDialog
         isOpen={target !== null}
-        title="Eliminar pestaña"
+        title={DELETE_TAB_LABEL}
         description={`¿Eliminar "${target?.name ?? ''}" de esta sesión?`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
@@ -165,7 +177,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         isOpen={isDeleteConfirmOpen}
         title="Eliminar sesión"
         description={`¿Eliminar "${workspace.name}" y todas sus pestañas? Esta acción no se puede deshacer.`}
-        confirmLabel="Eliminar sesión"
+        confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="danger"
         isLoading={isDeletingWorkspace}

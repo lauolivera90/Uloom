@@ -4,6 +4,7 @@ import {
   SYSTEM_BROWSER,
   SYSTEM_BROWSER_LABEL,
   buildBrowserOptions,
+  BrowserIcon,
 } from '../../../entities/workspace/index.js';
 
 const SECTIONS = [
@@ -25,6 +26,7 @@ export function SettingsView() {
     toggleTheme,
     browsers,
     isLoadingBrowsers,
+    systemDefaultId,
     defaultBrowser,
     setDefaultBrowser,
   } = useSettings();
@@ -34,6 +36,9 @@ export function SettingsView() {
     { value: SYSTEM_BROWSER, label: SYSTEM_BROWSER_LABEL },
     ...buildBrowserOptions(browsers),
   ];
+
+  const defaultBrowserIconId =
+    defaultBrowser === SYSTEM_BROWSER ? (systemDefaultId ?? SYSTEM_BROWSER) : defaultBrowser;
 
   return (
     <Page>
@@ -69,12 +74,15 @@ export function SettingsView() {
               label="Navegador predeterminado"
               description="Navegador que usan las sesiones al lanzarse."
               control={
-                <Select
-                  value={defaultBrowser}
-                  disabled={isLoadingBrowsers}
-                  onChange={(event) => setDefaultBrowser(event.target.value)}
-                  options={defaultBrowserOptions}
-                />
+                <div className="flex items-center gap-2">
+                  <BrowserIcon browserId={defaultBrowserIconId} />
+                  <Select
+                    value={defaultBrowser}
+                    disabled={isLoadingBrowsers}
+                    onChange={(event) => setDefaultBrowser(event.target.value)}
+                    options={defaultBrowserOptions}
+                  />
+                </div>
               }
             />
           </>

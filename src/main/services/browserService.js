@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { app } from 'electron';
 
 /**
  * Candidatos a navegador con rutas relativas típicas de instalación en Windows.
@@ -73,6 +74,69 @@ export function getInstalledBrowsers() {
   return BROWSER_CANDIDATES.filter((candidate) =>
     resolveCandidatePaths(candidate).some((fullPath) => existsSync(fullPath)),
   ).map(({ id, name }) => ({ id, name }));
+}
+
+/**
+ * Mapea un ejecutable a un id de candidato conocido por el basename del archivo.
+ * @param {string} executablePath
+ * @returns {string | null}
+ */
+function matchBrowserIdByPath(executablePath) {
+  const basename = path.basename(executablePath).toLowerCase();
+  const byExecutableName = {
+    'chrome.exe': 'chrome',
+    'msedge.exe': 'edge',
+    'firefox.exe': 'firefox',
+    'brave.exe': 'brave',
+    'opera.exe': 'opera',
+    'vivaldi.exe': 'vivaldi',
+  };
+  return byExecutableName[basename] ?? null;
+}
+
+/**
+ * Resuelve el navegador predeterminado del sistema operativo con su ejecutable,
+ * vía el handler registrado del protocolo `https:` (`app.getApplicationInfoForProtocol`).
+ * Centraliza la consulta que hoy se hacía por separado en el launcher y en la UI:
+ * `id` es `null` si el default no pertenece al catálogo (la heurística por motor
+ * del launcher aplica sobre `path`); `null` completo si no hay handler o no se
+ * pudo resolver. Solo Windows; en otras plataformas devuelve `null`.
+ * @returns {Promise<{ id: string | null, name: string, path: string } | null>}
+ */
+export async function resolveSystemBrowser() {
+  if (process.platform !== 'win32') {
+    return null;
+  }
+  try {
+    const info = await app.getApplicationInfoForProtocol('https:');
+    if (!info || !info.path) {
+      return null;
+    }
+    return {
+      id: matchBrowserIdByPath(info.path),
+      name: info.name,
+      path: info.path,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Navegador predeterminado del sistema operativo si pertenece al catálogo
+ * conocido. Devuelve `null` si el default no se puede resolver o no es uno de los
+ * navegadores del catálogo (el renderer cae al ícono genérico). Para la UI del
+ * selector; el launcher usa `resolveSystemBrowser` (la misma consulta) porque
+ * necesita el ejecutable.
+ * @returns {Promise<{ id: string, name: string } | null>}
+ */
+export async function getSystemDefaultBrowser() {
+  const systemBrowser = await resolveSystemBrowser();
+  if (!systemBrowser?.id) {
+    return null;
+  }
+  const candidate = BROWSER_CANDIDATES.find((item) => item.id === systemBrowser.id);
+  return candidate ? { id: candidate.id, name: candidate.name } : null;
 }
 
 /**

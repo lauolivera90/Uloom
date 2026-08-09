@@ -1,11 +1,12 @@
 import {
   Form,
   FormField,
-  IconPicker,
+  IconPickerField,
   Modal,
   ModalFooter,
   TextInput,
 } from '../../../widgets/index.js';
+import { SAVE_CHANGES_LABEL } from '../api/index.js';
 
 /** @typedef {import('../hook/useWorkspaceForm.js').WorkspaceFormState} WorkspaceFormState */
 
@@ -35,8 +36,7 @@ export function WorkspaceFormModal({ isOpen, isSaving = false, isEditing = false
       size="md"
       footer={
         <ModalFooter
-          cancelLabel="Cancelar"
-          confirmLabel={isEditing ? 'Guardar cambios' : 'Crear sesión'}
+          confirmLabel={isEditing ? SAVE_CHANGES_LABEL : 'Crear sesión'}
           onCancel={onCancel}
           onConfirm={handleSubmit}
           confirmIcon={isEditing ? 'save' : 'add'}
@@ -57,7 +57,10 @@ export function WorkspaceFormModal({ isOpen, isSaving = false, isEditing = false
         </FormField>
 
         <FormField label="Icono">
-          <IconPicker
+          <IconPickerField
+            previewIcon={form.previewIcon}
+            showPicker={form.showPicker}
+            toggleShowPicker={form.toggleShowPicker}
             icons={form.visibleIcons}
             selectedIcon={form.selectedIcon}
             showAllIcons={form.showAllIcons}

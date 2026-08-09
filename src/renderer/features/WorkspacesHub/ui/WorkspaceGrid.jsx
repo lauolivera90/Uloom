@@ -13,9 +13,10 @@ import { CreateTile } from '../../../widgets/index.js';
  *   onCreate: () => void,
  *   onOpen: (workspaceId: string) => void,
  *   onPlay: (workspaceId: string) => void,
+ *   onAddTab: (workspaceId: string) => void,
  * }} props
  */
-export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay }) {
+export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
       {workspaces.map((workspace) => (
@@ -24,6 +25,7 @@ export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay }) {
           workspace={workspace}
           onClick={() => onOpen(workspace.id)}
           onPlay={onPlay}
+          onAddTab={onAddTab}
         />
       ))}
       <CreateTile label="Crear nueva sesión" onClick={onCreate} />

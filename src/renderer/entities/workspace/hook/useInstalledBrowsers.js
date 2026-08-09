@@ -1,51 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useCachedQuery } from '../../../shared/index.js';
 import { getInstalledBrowsers } from '../api/index.js';
 
-let cachedPromise = null;
+const INSTALLED_BROWSERS_QUERY_KEY = 'installed:list';
 
-function fetchInstalledBrowsers() {
-  if (!cachedPromise) {
-    cachedPromise = getInstalledBrowsers();
-  }
-  return cachedPromise;
+function loadInstalledBrowsers() {
+  return getInstalledBrowsers();
 }
 
 /**
- * Carga los navegadores instalados detectados por el backend (browser:list).
+ * Carga los navegadores instalados detectados por el backend (`browser:list`).
  * Usado en común por el Detalle (config por sesión) y la página de Configuración
- * (predeterminado global) para no duplicar la detección. La promesa se cachea a
- * nivel de módulo: la lista es estática por sesión de app y los múltiples
- * consumidores comparten un único fetch.
+ * (predeterminado global) para no duplicar la detección. La consulta está cacheada
+ * a nivel de módulo vía `useCachedQuery`: la lista es estática por sesión de app y
+ * los múltiples consumidores comparten un único fetch.
  * @returns {{
  *   browsers: Array<{ id: string, name: string }>,
  *   isLoading: boolean,
  * }}
  */
 export function useInstalledBrowsers() {
-  const [browsers, setBrowsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchInstalledBrowsers()
-      .then((detected) => {
-        if (!cancelled) {
-          setBrowsers(detected);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        cachedPromise = null;
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { browsers, isLoading };
+  const { data, isLoading } = useCachedQuery(INSTALLED_BROWSERS_QUERY_KEY, loadInstalledBrowsers, {
+    initialData: [],
+  });
+  return { browsers: data, isLoading };
 }

@@ -4,6 +4,7 @@ export {
   updateWorkspace,
   deleteWorkspace,
   getInstalledBrowsers,
+  getSystemDefaultBrowser,
   updatePreferences,
   getPageMetadata,
   launchWorkspace,
@@ -13,9 +14,12 @@ export {
   SYSTEM_BROWSER_LABEL,
   DEFAULT_BROWSER_LABEL,
   LAUNCH_EMPTY_TABS_TITLE,
+  ADD_TAB_LABEL,
+  SAVE_CHANGES_LABEL,
+  DELETE_TAB_LABEL,
   OPEN_BEHAVIORS,
   getBrowserNameById,
   buildBrowserOptions,
 } from './api/index.js';
-export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers } from './hook/index.js';
-export { WorkspaceCard, TabFavicon, WorkspaceFormModal } from './ui/index.js';
+export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers, useTabForm, useTabModal, useSystemDefaultBrowser } from './hook/index.js';
+export { WorkspaceCard, TabFavicon, WorkspaceFormModal, TabFormModal, BrowserIcon } from './ui/index.js';

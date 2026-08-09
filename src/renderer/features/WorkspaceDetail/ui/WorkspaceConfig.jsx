@@ -1,5 +1,5 @@
 import { OptionRow, Select } from '../../../widgets/index.js';
-import { OPEN_BEHAVIORS, buildBrowserOptions } from '../../../entities/workspace/index.js';
+import { OPEN_BEHAVIORS, buildBrowserOptions, BrowserIcon } from '../../../entities/workspace/index.js';
 
 /**
  * Configuración de lanzamiento de una sesión (card "Configuración" del Detalle):
@@ -12,6 +12,7 @@ import { OPEN_BEHAVIORS, buildBrowserOptions } from '../../../entities/workspace
  *   openBehavior: string,
  *   browserOverride: string,
  *   resolvedBrowserLabel: string,
+ *   resolvedBrowserId: string | null,
  *   onOpenBehaviorChange: (value: string) => void,
  *   onBrowserChange: (value: string) => void,
  *   isSaving: boolean,
@@ -24,6 +25,7 @@ export function WorkspaceConfig({
   openBehavior,
   browserOverride,
   resolvedBrowserLabel,
+  resolvedBrowserId,
   onOpenBehaviorChange,
   onBrowserChange,
   isSaving,
@@ -45,11 +47,18 @@ export function WorkspaceConfig({
       key: 'browser',
       label: 'Navegador de uso',
       description: 'Elige el navegador en el que se abren sus pestañas.',
-      value: browserOverride,
-      options: browserOptions,
-      placeholder: resolvedBrowserLabel,
-      disabled: isSaving || isLoadingBrowsers,
-      onChange: onBrowserChange,
+      control: (
+        <div className="flex items-center gap-2">
+          <BrowserIcon browserId={resolvedBrowserId} />
+          <Select
+            value={browserOverride}
+            options={browserOptions}
+            placeholder={resolvedBrowserLabel}
+            disabled={isSaving || isLoadingBrowsers}
+            onChange={(event) => onBrowserChange(event.target.value)}
+          />
+        </div>
+      ),
     },
   ];
 
@@ -61,13 +70,15 @@ export function WorkspaceConfig({
           label={item.label}
           description={item.description}
           control={
-            <Select
-              value={item.value}
-              options={item.options}
-              placeholder={item.placeholder}
-              disabled={item.disabled}
-              onChange={(event) => item.onChange(event.target.value)}
-            />
+            item.control ?? (
+              <Select
+                value={item.value}
+                options={item.options}
+                placeholder={item.placeholder}
+                disabled={item.disabled}
+                onChange={(event) => item.onChange(event.target.value)}
+              />
+            )
           }
         />
       ))}

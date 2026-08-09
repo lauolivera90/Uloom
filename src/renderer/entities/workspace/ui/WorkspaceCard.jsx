@@ -3,19 +3,23 @@
  */
 
 import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
-import { LAUNCH_EMPTY_TABS_TITLE } from '../api/index.js';
+import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
 
 /**
  * Tarjeta de una sesión de trabajo del Hub. Presentacional: muestra icono, nombre,
  * descripción y cantidad de pestañas. La card completa es clickeable (abre el
- * detalle) y en hover muestra un botón de play para lanzar la sesión.
+ * detalle) y en hover muestra el botón de play para lanzar la sesión; si la sesión
+ * no tiene pestañas el play se reemplaza por un botón `+` que invita a agregar la
+ * primera pestaña (modal de alta vía `onAddTab`), porque no se puede lanzar una
+ * sesión vacía.
  * @param {{
  *   workspace: Workspace,
  *   onClick: () => void,
  *   onPlay?: (workspaceId: string) => void,
+ *   onAddTab?: (workspaceId: string) => void,
  * }} props
  */
-export function WorkspaceCard({ workspace, onClick, onPlay }) {
+export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
   const tabsCount = workspace.tabs?.length ?? 0;
 
   return (
@@ -42,19 +46,32 @@ export function WorkspaceCard({ workspace, onClick, onPlay }) {
               {`${tabsCount} ${tabsCount === 1 ? 'pestaña' : 'pestañas'}`}
             </span>
           </div>
-          <IconButton
-            variant="primary"
-            icon="play_arrow"
-            label="Abrir sesión"
-            appearOnHover
-            disabled={tabsCount === 0}
-            title={tabsCount === 0 ? LAUNCH_EMPTY_TABS_TITLE : undefined}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={(event) => {
-              event.stopPropagation();
-              onPlay?.(workspace.id);
-            }}
-          />
+          {tabsCount === 0 ? (
+            <IconButton
+              variant="primary"
+              icon="add"
+              label={ADD_TAB_LABEL}
+              appearOnHover
+              title={LAUNCH_EMPTY_TABS_TITLE}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddTab?.(workspace.id);
+              }}
+            />
+          ) : (
+            <IconButton
+              variant="primary"
+              icon="play_arrow"
+              label="Abrir sesión"
+              appearOnHover
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onPlay?.(workspace.id);
+              }}
+            />
+          )}
         </>
       }
     >

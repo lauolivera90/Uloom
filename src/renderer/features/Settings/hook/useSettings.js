@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
-import { useInstalledBrowsers, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
+import { useInstalledBrowsers, useSystemDefaultBrowser, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
 
 /**
  * Identificadores de las secciones del navegador de apartados de Configuración.
@@ -22,6 +22,7 @@ export const SETTINGS_SECTION = {
  *   toggleTheme: () => void,
  *   browsers: Array<{ id: string, name: string }>,
  *   isLoadingBrowsers: boolean,
+ *   systemDefaultId: string | null,
  *   defaultBrowser: string,
  *   setDefaultBrowser: (value: string) => Promise<void>,
  * }}
@@ -29,6 +30,7 @@ export const SETTINGS_SECTION = {
 export function useSettings() {
   const { preferences, updatePreferences } = useWorkspaces();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
+  const { systemDefaultId } = useSystemDefaultBrowser();
   const [activeSection, setActiveSection] = useState(SETTINGS_SECTION.preferences);
   const [theme, setTheme] = useState('light');
 
@@ -56,6 +58,7 @@ export function useSettings() {
     toggleTheme,
     browsers,
     isLoadingBrowsers,
+    systemDefaultId,
     defaultBrowser,
     setDefaultBrowser,
   };

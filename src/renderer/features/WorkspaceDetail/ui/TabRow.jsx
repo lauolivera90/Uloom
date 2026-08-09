@@ -1,5 +1,5 @@
 import { IconButton } from '../../../widgets/index.js';
-import { TabFavicon } from '../../../entities/workspace/index.js';
+import { TabFavicon, DELETE_TAB_LABEL } from '../../../entities/workspace/index.js';
 
 /**
  * Fila de una pestaña web en la lista de recursos. Presentacional: icono (favicon)
@@ -24,7 +24,7 @@ export function TabRow({ tab, onEdit, onDelete }) {
         <IconButton
           variant="danger"
           icon="delete"
-          label="Eliminar pestaña"
+          label={DELETE_TAB_LABEL}
           size="sm"
           onClick={() => onDelete?.(tab)}
         />

@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
-import { app, shell } from 'electron';
+import { shell } from 'electron';
 import { getConfig, getWorkspaceById } from '../data/workspaceRepository.js';
-import { getBrowserById } from './browserService.js';
+import { getBrowserById, resolveSystemBrowser } from './browserService.js';
 
 /**
  * Navegadores Chromium: la bandera que fuerza una ventana nueva es la misma
@@ -32,10 +32,11 @@ function resolveBrowser(workspace, preferences) {
 }
 
 /**
- * Bandera de ventana nueva para un ejecutable resuelto desde el sistema (sin id
- * de candidato conocido). Heurística por motor: solo Firefox difiere del estándar
- * Chromium (`--new-window`), que es el motor de todos los demás navegadores reales
- * de Windows. Exacta para los navegadores del catálogo y para los defaults típicos.
+ * Bandera de ventana nueva para un ejecutable resuelto desde el sistema sin id de
+ * candidato (el `resolveSystemBrowser` de browserService devuelve `id: null` si el
+ * default no es del catálogo). Heurística por motor: solo Firefox difiere del
+ * estándar Chromium (`--new-window`), que es el motor de todos los demás
+ * navegadores reales de Windows.
  * @param {string} executablePath
  * @returns {string}
  */
@@ -44,26 +45,11 @@ function getNewWindowFlag(executablePath) {
 }
 
 /**
- * Resuelve el ejecutable del navegador predeterminado del sistema vía el handler
- * registrado del protocolo `https:` (`app.getApplicationInfoForProtocol`). Devuelve
- * `null` si no hay handler o no se pudo resolver (en ese caso el caller cae a
- * `shell.openExternal`).
- * @returns {Promise<{ name: string, path: string } | null>}
- */
-async function resolveSystemBrowser() {
-  try {
-    const info = await app.getApplicationInfoForProtocol('https:');
-    return info?.path ? { name: info.name, path: info.path } : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Abre una URL por spawn de un ejecutable de navegador. Solicita ventana nueva
  * según el `openBehavior`: con `new-window` pasa la bandera del motor (del id si
- * es un candidato conocido, o heurística de motor si vino del sistema); con
- * `active-tab` solo pasa la URL (el navegador la abre en su ventana/tab vigente).
+ * el navegador es un candidato conocido, o heurística de motor si vino del
+ * sistema sin id); con `active-tab` solo pasa la URL (el navegador la abre en su
+ * ventana/tab vigente).
  * Resuelve cuando el proceso se lanza (`spawn`) y rechaza si el spawn falla
  * (`error`), p. ej. un ejecutable que ya no existe.
  * @param {string} url

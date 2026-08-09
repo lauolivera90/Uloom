@@ -10,7 +10,10 @@ import { WORKSPACE_ICONS, WORKSPACE_ICON_PREVIEW_COUNT } from '../api/workspaceI
  * @property {string} description Descripción opcional.
  * @property {(value: string) => void} setDescription Actualiza la descripción.
  * @property {string} selectedIcon Icono seleccionado del catálogo.
- * @property {(icon: string) => void} selectIcon Elige un icono.
+ * @property {(icon: string) => void} selectIcon Elige un icono y cierra el selector.
+ * @property {boolean} showPicker Indica si el selector de icono está visible.
+ * @property {() => void} toggleShowPicker Muestra/oculta el selector de iconos.
+ * @property {string} previewIcon Icono a mostrar en el tile de preview (default 'work').
  * @property {boolean} showAllIcons Indica si el selector muestra todos los iconos.
  * @property {() => void} toggleShowAllIcons Expande/contrae la grilla de iconos.
  * @property {string[]} visibleIcons Iconos visibles según la expansión.
@@ -42,8 +45,10 @@ export function useWorkspaceForm({ initialWorkspace = null, onSubmit }) {
     selected: icon,
     onSelect: setIcon,
   });
-  const { reset: resetPicker, selectIcon, showAllIcons, toggleShowAllIcons, visibleIcons, selectedIcon, ensureVisible } = picker;
+  const { reset: resetPicker, selectIcon, showPicker, toggleShowPicker, showAllIcons, toggleShowAllIcons, visibleIcons, selectedIcon, ensureVisible } = picker;
   const previousIdRef = useRef(null);
+
+  const previewIcon = selectedIcon || 'work';
 
   const syncIcon = useCallback(() => {
     resetPicker();
@@ -92,6 +97,9 @@ export function useWorkspaceForm({ initialWorkspace = null, onSubmit }) {
     setDescription,
     selectedIcon,
     selectIcon,
+    showPicker,
+    toggleShowPicker,
+    previewIcon,
     showAllIcons,
     toggleShowAllIcons,
     visibleIcons,

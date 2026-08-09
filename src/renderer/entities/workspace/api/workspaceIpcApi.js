@@ -101,6 +101,20 @@ export async function getInstalledBrowsers() {
 }
 
 /**
+ * Resuelve el navegador predeterminado del sistema operativo si pertenece al
+ * catálogo conocido (chrome/edge/firefox/brave/opera/vivaldi). Devuelve `null` si
+ * el default no se puede resolver o no es un navegador del catálogo.
+ * @returns {Promise<{ id: string, name: string } | null>}
+ */
+export async function getSystemDefaultBrowser() {
+  const response = await window.uloomApi.getSystemDefaultBrowser();
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
  * Actualiza las preferencias globales por merge parcial (el main combina las
  * claves provistas sobre las existentes).
  * @param {Partial<Preferences>} partial
