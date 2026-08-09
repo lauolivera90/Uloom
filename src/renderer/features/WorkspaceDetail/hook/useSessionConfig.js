@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
-import { useInstalledBrowsers } from '../../../shared/index.js';
 import {
+  useInstalledBrowsers,
   SYSTEM_BROWSER,
   DEFAULT_BROWSER_LABEL,
   getBrowserNameById,

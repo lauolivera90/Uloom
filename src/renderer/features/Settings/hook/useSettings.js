@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
-import { useInstalledBrowsers } from '../../../shared/index.js';
-import { SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
+import { useInstalledBrowsers, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
 
 /**
  * Identificadores de las secciones del navegador de apartados de Configuración.

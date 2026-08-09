@@ -8,6 +8,7 @@ const uloomApi = {
   getInstalledBrowsers: () => ipcRenderer.invoke('browser:list'),
   updatePreferences: (preferences) => ipcRenderer.invoke('config:updatePreferences', preferences),
   getPageMetadata: (url) => ipcRenderer.invoke('page:metadata', url),
+  launchWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:launch', workspaceId),
 };
 
 if (process.contextIsolated) {

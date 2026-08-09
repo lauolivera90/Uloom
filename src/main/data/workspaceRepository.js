@@ -37,6 +37,20 @@ export function readWorkspaces() {
 }
 
 /**
+ * Devuelve un workspace por su id (lectura estricta). Si el id no existe, lanza;
+ * de lo contrario devuelve el workspace normalizado.
+ * @param {string} workspaceId
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function getWorkspaceById(workspaceId) {
+  const workspace = getConfig().workspaces.find((item) => item.id === workspaceId);
+  if (!workspace) {
+    throw new Error('Workspace no encontrado');
+  }
+  return workspace;
+}
+
+/**
  * Agrega un workspace nuevo al archivo de configuración y lo persiste.
  * @param {import('../../renderer/shared/types.js').Workspace} workspace
  * @returns {import('../../renderer/shared/types.js').Workspace}

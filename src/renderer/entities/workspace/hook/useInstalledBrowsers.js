@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getInstalledBrowsers } from '../../entities/workspace/index.js';
+import { getInstalledBrowsers } from '../api/index.js';
 
 let cachedPromise = null;
 

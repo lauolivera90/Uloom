@@ -66,7 +66,7 @@ v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [x] @typedef de formularios: `CreateWorkspaceFormState` y `AddTabFormState` definidos en sus hooks; CreateWorkspaceModal y AddTabModal los referencian por JSDoc (elimina el tipado manual desincronizado del prop `form`).
 [x] Documentar la excepción estructural: la familia `ui/form/` agrupa sus componentes en una carpeta común, a diferencia de `ui/<Widget>/<Widget>.jsx`.
 [x] Líder único de escritura (raza cross-feature detectada por @reviewer en v0.2.2): `useWorkspaceState.mutateWorkspace` serializa todas las escrituras de workspaces (tabs + configuración) sobre el último persistido por id; addTab/deleteTab y useSessionConfig delegan en el líder (este último perdió su cola local).
-[ ] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). Revisar cuando se implemente el launch real (v0.3.0) si se reestructura (p. ej. botón explícito "Abrir").
+[x] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). → Resuelto en v0.3.1 al implementar el launch real: el play quedó cableado como acción explícita (botón funcional, disabled sin pestañas), consolidando el trade-off estructural sin reestructurar la card.
 [x] WorkspaceGrid: el botón nativo "Crear nueva sesión" (grid) reimplementa estilos de Card/Button a mano; migrarlo a widgets (Card clickeable o Button) para cumplir "siempre usar widgets". → Widget CreateTile en widgets/ui/CreateTile. 
 [x] Contraste AA en dark: resuelto en v0.1.5 con la regla "fill vs foreground" — `--primary` (valor base) queda reservado a fills (`bg-primary`) y el foreground de primary (texto/íconos/bordes/rings) pasa a `--primary-hover`, que supera AA en ambos temas. No se tocaron los valores RGB.
 
@@ -86,9 +86,14 @@ Objetivo: traer el favicon y el título real de la URL mientras se escribe (fetc
 Objetivo: Conectar el botón principal con el sistema operativo para ejecutar la apertura masiva de enlaces.
 
 v0.3.1 Disparador Principal
-[ ] Botón "Launch Workspace": Botón prominente en la interfaz de detalle.
+[x] Botón "Launch Workspace": Botón prominente en la interfaz de detalle (header del Detalle, variante primary, cableado a `useLaunchWorkspace`; además el play de sesión de `WorkspaceCard` en el Hub quedó cableado). Deshabilitado mientras se lanza o si la sesión no tiene pestañas.
 
-[ ] Lógica de Apertura IPC: Evento en Node.js/Electron que recorre las URLs de la sesión y las abre mediante shell.openExternal().
+[x] Lógica de Apertura IPC: canal `workspace:launch` en el proceso main que recorre las URLs de la sesión. Implementado con resolución del navegador por 3 niveles (sesión → global → sistema): navegador concreto → spawn del ejecutable con bandera de ventana nueva según `openBehavior` (`--new-window`/`-new-window`); navegador de sistema → `app.getApplicationInfoForProtocol` resuelve su ejecutable y se spawna igual; si no se puede resolver, cae a `shell.openExternal()`.
+
+🟢 v0.3.2 — Pase de UI
+Objetivo: unificar selectores y densidades de la interfaz.
+
+[ ] Selector de ícono de sesión igual al de pestaña: que `WorkspaceFormModal` use el patrón colapsado de `TabFormModal` (tile de preview + botones «Subir icono» disabled / «o» / «Elegir uno» que expande la grilla) en vez del `IconPicker` siempre expandido. Sin favicon (la sesión está por crearse; el preview siempre es un símbolo del catálogo). Plan: extraer `widgets/ui/IconPickerField/IconPickerField.jsx` compartido, centralizar `showPicker`/`toggleShowPicker` en `useIconPicker` (hoy local a `useTabForm`), `previewIcon` (`selectedIcon || 'work'`) en `useWorkspaceForm`, y replicar el botón «Subir icono» (disabled) en la sesión.
 
 🔵 v0.4.0 — Portabilidad de Datos (Import / Export)
 Objetivo: Permitir al usuario respaldar o compartir sus configuraciones de sesiones mediante archivos JSON.

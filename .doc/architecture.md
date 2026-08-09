@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.4)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.3.1)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -36,7 +36,7 @@ Para el proceso principal de Electron, se adopta una **Arquitectura por Capas (L
 
 1. **`preload/` (El Puente)**: Actúa como la barrera de seguridad de Electron (`contextBridge`). Expone una API estrictamente controlada hacia el Frontend (ej. `window.uloomApi.launchWorkspace()`). No transforma datos — reexpone `ipcRenderer.invoke` tal cual.
 2. **`ipc/` (Controladores)**: Son el equivalente a los *endpoints* de una API REST. Escuchan los eventos de `ipcMain` provenientes del frontend, extraen los parámetros, llaman a la capa de Servicios, atrapan cualquier error (ver `rules.md` regla 7) y devuelven la respuesta al frontend con la forma `{ success, data, error }`.
-3. **`services/` (Lógica de Negocio)**: El corazón del backend. Para el MVP, la responsabilidad principal es el `LauncherService`, encargado de recorrer los Web Tabs de un workspace y abrir cada URL con `shell.openExternal()` en el navegador predeterminado del sistema (respetando la configuración de "Ventana Nueva vs Ventana Activa" que soporte el navegador).
+3. **`services/` (Lógica de Negocio)**: El corazón del backend. Para el MVP, la responsabilidad principal es el `LauncherService` (`launcherService.js`), encargado de recorrer los Web Tabs de un workspace y abrir cada URL. Con un navegador concreto (override de sesión o global) spawn del ejecutable respetando el `openBehavior` (ventana nueva con la bandera del motor); con navegador de sistema, `shell.openExternal()`.
 4. **`data/` (Repositorio de Datos)**: Se encarga exclusivamente de la persistencia local. Lee, parsea, valida y escribe el archivo `config.json` del usuario en disco. El resto de la aplicación ignora cómo se guardan los datos, simplemente le pide información al repositorio.
 
 > **Decisión de persistencia:** el MVP usa un repositorio manual por dominio (`src/main/data/configStore.js` para el acceso al archivo y `src/main/data/workspaceRepository.js` para la entidad workspace) que lee/escribe `config.json` directamente en `app.getPath('userData')`. Esto reemplaza la mención de `electron-store` del brief original (que fue removida de las dependencias). Se eligió así para soportar el import/export de sesiones que pide el MVP con control total del formato del archivo.
@@ -99,11 +99,15 @@ uloom/
 │   │   │   ├── index.js           # Orquestador: registra los handlers por dominio
 │   │   │   ├── workspaceHandler.js
 │   │   │   ├── browserHandler.js
-│   │   │   └── preferencesHandler.js
+│   │   │   ├── preferencesHandler.js
+│   │   │   ├── pageHandler.js
+│   │   │   └── launcherHandler.js
 │   │   ├── services/              # Lógica de negocio (por dominio)
 │   │   │   ├── workspaceService.js
 │   │   │   ├── browserService.js
-│   │   │   └── preferencesService.js
+│   │   │   ├── preferencesService.js
+│   │   │   ├── pageService.js
+│   │   │   └── launcherService.js
 │   │   └── data/                  # Persistencia (por dominio)
 │   │       ├── configStore.js          # Acceso al archivo (read/write/defaults)
 │   │       ├── workspaceRepository.js  # CRUD + normalización de workspaces
@@ -177,7 +181,7 @@ Las siguientes ideas aparecían en versiones anteriores de este documento y qued
 
 - Catálogo de Apps (`catalogoApps`), escaneo del Start Menu, apps nativas agregadas manualmente.
 - Campo `catalogoApps` y `appList` en `config.json`.
-- `LauncherService` haciendo *spawn* de ejecutables (`.exe`).
+- `LauncherService` haciendo *spawn* de ejecutables (`.exe`) **de apps nativas**: el spawn de navegadores sí está en alcance (v0.3.1, `launcherService`), pero lanzar aplicaciones arbitrarias quedó fuera.
 - Modal "Add Native Apps".
 
 Si en una fase futura se retoma alguna de estas features, se debe crear una nueva sección versionada en este documento (no mezclarla con la descripción del MVP actual).

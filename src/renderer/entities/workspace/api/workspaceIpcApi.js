@@ -74,6 +74,21 @@ export async function getPageMetadata(url) {
 }
 
 /**
+ * Lanza una sesión en el navegador resuelto: abre todas las pestañas del
+ * workspace en el proceso main (spawn del navegador o openExternal según la
+ * configuración de sesión/global). Lanza si el main responde con error.
+ * @param {string} workspaceId
+ * @returns {Promise<{ opened: number, failed: number }>}
+ */
+export async function launchWorkspace(workspaceId) {
+  const response = await window.uloomApi.launchWorkspace(workspaceId);
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
  * Obtiene la lista de navegadores instalados detectados por el proceso main.
  * @returns {Promise<Array<{ id: string, name: string }>>}
  */

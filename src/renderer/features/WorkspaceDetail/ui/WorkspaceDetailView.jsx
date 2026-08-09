@@ -8,7 +8,7 @@ import {
   PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
-import { WorkspaceFormModal } from '../../../entities/workspace/index.js';
+import { WorkspaceFormModal, useLaunchWorkspace, LAUNCH_EMPTY_TABS_TITLE } from '../../../entities/workspace/index.js';
 import { useTabModal, useTabForm, useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
 import { TabFormModal } from './TabFormModal.jsx';
 import { TabList } from './TabList.jsx';
@@ -44,6 +44,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   } = useDeleteWorkspace(workspace?.id);
   const workspaceEdit = useWorkspaceEdit(workspace);
   const browserConfig = useSessionConfig(workspace?.id, workspace);
+  const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
 
   const handleCancelTab = () => {
     resetTabForm();
@@ -80,7 +81,13 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         icon={workspace.icon || 'work'}
         actions={
           <>
-            <Button variant="primary" icon="play_arrow" disabled title="Disponible en v0.3">
+            <Button
+              variant="primary"
+              icon="play_arrow"
+              disabled={isLaunching || (workspace.tabs?.length ?? 0) === 0}
+              title={(workspace.tabs?.length ?? 0) === 0 ? LAUNCH_EMPTY_TABS_TITLE : undefined}
+              onClick={launch}
+            >
               Launch
             </Button>
             <IconButton variant="warning" icon="edit" label="Editar sesión" onClick={workspaceEdit.open} />

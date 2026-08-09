@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Page, PageHeader } from '../../../widgets/index.js';
-import { useWorkspaceForm, WorkspaceFormModal } from '../../../entities/workspace/index.js';
+import { useWorkspaceForm, WorkspaceFormModal, useLaunchWorkspace } from '../../../entities/workspace/index.js';
 import { useWorkspacesHub } from '../hook/index.js';
 import { WorkspaceGrid } from './WorkspaceGrid.jsx';
 
@@ -37,10 +37,24 @@ export function WorkspacesHubView() {
     [navigate],
   );
 
+  const { launch } = useLaunchWorkspace();
+
+  const handlePlay = useCallback(
+    (workspaceId) => {
+      launch(workspaceId);
+    },
+    [launch],
+  );
+
   return (
     <Page>
       <PageHeader title="Sesiones" description="Elegí una sesión para abrirla o creá una nueva." />
-      <WorkspaceGrid workspaces={workspaces} onCreate={openCreate} onOpen={handleOpenWorkspace} />
+      <WorkspaceGrid
+        workspaces={workspaces}
+        onCreate={openCreate}
+        onOpen={handleOpenWorkspace}
+        onPlay={handlePlay}
+      />
       <WorkspaceFormModal isOpen={isCreateOpen} isSaving={isCreating} form={form} onCancel={handleCancel} />
     </Page>
   );

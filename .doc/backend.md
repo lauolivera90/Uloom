@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.2.4)
+# Backend — Arquitectura (v0.3.1)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,11 +7,12 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4):
+API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 - `uloomApi.createWorkspace(input)` → invoca el canal `workspace:create`.
 - `uloomApi.updateWorkspace(workspace)` → invoca el canal `workspace:update`.
 - `uloomApi.deleteWorkspace(workspaceId)` → invoca el canal `workspace:delete`.
+- `uloomApi.launchWorkspace(workspaceId)` → invoca el canal `workspace:launch`.
 - `uloomApi.getInstalledBrowsers()` → invoca el canal `browser:list`. Devuelve los navegadores instalados detectados.
 - `uloomApi.updatePreferences(partial)` → invoca el canal `config:updatePreferences`.
 - `uloomApi.getPageMetadata(url)` → invoca el canal `page:metadata`. Devuelve `{ title, favicon }` (favicon como data URL; soft-fallback a `null`).
@@ -22,26 +23,28 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`).
 
-Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4):
+Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |
 | `workspace:create` | `{ name, description?, icon? }` | `Workspace` (creado) |
 | `workspace:update` | `Workspace` (completo) | `Workspace` (persistido) |
 | `workspace:delete` | `workspaceId` | `null` |
+| `workspace:launch` | `workspaceId` | `{ opened, failed }` (URLs abiertas / fallidas) |
 | `page:metadata` | `url` | `{ title, favicon }` (favicon data URL; soft-fallback a `null`) |
 | `browser:list` | — | `Array<{ id, name }>` (navegadores instalados) |
 | `config:updatePreferences` | `Partial<Preferences>` | `Preferences` (merge persistido) |
 
 ### 3. `src/main/services/` (Lógica de Negocio)
 - `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `updateWorkspace()` (delega; update estricto) y `deleteWorkspace()` (delega; baja estricta).
-- `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`.
+- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre cada `tab.url`. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto vía `app.getApplicationInfoForProtocol('https:')` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`), pasando la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera se deduce del motor por el ejecutable) cuando `openBehavior === 'new-window'`, o solo la URL en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` (único caso sin control de ventana nueva). Devuelve `{ opened, failed }`; lanza solo ante errores estructurales (sesión inexistente o navegador configurado no instalado). Los fallos de spawn por URL se cuentan, no abortan el lote.
+- `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn.
 - `preferencesService.js`: `getPreferences()` y `updatePreferences(partial)` (merge parcial, delega en el repositorio).
 - `pageService.js`: `fetchPageMetadata(url)` — trae el `<title>` y el favicon del sitio con `net.fetch` (session default, `AbortController` de 4s, cap 1MB al HTML y ~32KB al favicon, favicon como **data URL**). Regex tolerante al orden de atributos para `<link rel="icon">`, resuelve URLs absolutas y cae a `/favicon.ico` si no hay link. **Soft-fallback**: cualquier fallo devuelve `null` en los campos, no lanza.
 
 ### 4. `src/main/data/` (Repositorios)
 - `configStore.js`: única capa que toca el archivo. `readConfig()` valida la raíz (existencia, `workspaces` array, corrupción → default) y normaliza `preferences`; los workspaces pasan **crudos** (la normalización de la entidad vive en su repositorio). Expone también `writeConfig()`, `normalizePreferences()` y `defaultConfig()`/`APP_VERSION` (versión del esquema).
-- `workspaceRepository.js`: dueño de la entidad workspace. `normalizeWorkspace()` (rellena `tabs` como array, `openBehavior: 'active-tab'` y `browser: null` — migración de configs viejas), `getConfig()` (config completa con workspaces normalizados), `readWorkspaces()`, `addWorkspace()`, `updateWorkspace()` (update estricto) y `deleteWorkspace()` (baja estricta).
+- `workspaceRepository.js`: dueño de la entidad workspace. `normalizeWorkspace()` (rellena `tabs` como array, `openBehavior: 'active-tab'` y `browser: null` — migración de configs viejas), `getConfig()` (config completa con workspaces normalizados), `readWorkspaces()`, `getWorkspaceById()` (lectura estricta, usado por el Launcher), `addWorkspace()`, `updateWorkspace()` (update estricto) y `deleteWorkspace()` (baja estricta).
 - `preferencesRepository.js`: `getPreferences()` y `updatePreferences(partial)` — merge parcial de preferencias sobre las existentes y reescritura del `config.json`.
 
 ## Flujos
@@ -102,7 +105,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
-- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `getInstalledBrowsers`, `updatePreferences`, `getPageMetadata`.
+- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `updatePreferences`, `getPageMetadata`.
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `OPEN_BEHAVIORS`, `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL` y `getBrowserNameById`.
 - `index.js` es el barrel (exporta toda la API y catálogos).
@@ -119,14 +122,28 @@ La sesión persiste `browser: null` para "Predeterminado" (hereda) o un id de na
 
 ### Navegadores instalados (`browser:list`)
 ```
-useInstalledBrowsers (shared) → getInstalledBrowsers → preload → ipc 'browser:list'
+useInstalledBrowsers (entities, hook de entidad) → getInstalledBrowsers → preload → ipc 'browser:list'
    → browserService.getInstalledBrowsers → probe de rutas del sistema
 ```
 Se consume desde el Detalle (navegador por sesión) y desde Configuración (preferencia global).
 
 ### Preferencia global / herencia
 - `preferences.defaultBrowser` se escribe con `config:updatePreferences` (merge parcial desde Configuración → Preferencias).
-- Resolución (a consumir por el Launcher en v0.3): `navegador_final = sesión.browser ?? (preferences.defaultBrowser !== 'system' ? preferences.defaultBrowser : null)`; `null` = decide el SO.
+- Resolución (implementada por el Launcher en v0.3.1): `navegador_final = sesión.browser ?? (preferences.defaultBrowser !== 'system' ? preferences.defaultBrowser : null)`; `null` = decide el SO (→ `shell.openExternal`).
+
+### Lanzar sesión (`workspace:launch`, v0.3.1)
+```
+Detalle: useLaunchWorkspace.launch()   /   Hub: useLaunchWorkspace.launch(workspaceId)  (entities/hook)
+   → workspaceIpcApi.launchWorkspace(id) → preload → ipc 'workspace:launch' → launcherHandler
+   → launcherService.launchWorkspace(id): getConfig + getWorkspaceById (lectura estricta)
+       → resuelve navegador (sesión → global → sistema)
+       → navegador concreto: spawn(exe, [bandera-ventana-nueva?, url]) detached/unref
+       → navegador de sistema: app.getApplicationInfoForProtocol('https:') → su ejecutable
+           → spawn con bandera de motor deducida del ejecutable; si no resuelve → shell.openExternal
+       → en paralelo con Promise.allSettled
+   → { opened, failed } → el botón se deshabilita mientras isLaunching y si la sesión no tiene tabs
+```
+El `openBehavior` se respeta tanto con el navegador explícito como con el predeterminado del sistema resuelto a ejecutable (bandera del motor); solo si el predeterminado no puede resolverse se cae a `shell.openExternal` y el SO decide. Los spawns fallidos por URL se cuentan en `failed` sin abortar el resto; los errores estructurales (sesión o navegador inexistentes) se convierten en `{ success: false }` y se loguean con `console.error` en el renderer (convención actual, sin toasts aún).
 
 ## Tipos
 Los `@typedef` (`Workspace`, `Tab`, `Config`) viven centralizados en `src/renderer/shared/types.js`. El backend los referencia vía JSDoc `@typedef {import(...)}`.

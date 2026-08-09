@@ -74,3 +74,28 @@ export function getInstalledBrowsers() {
     resolveCandidatePaths(candidate).some((fullPath) => existsSync(fullPath)),
   ).map(({ id, name }) => ({ id, name }));
 }
+
+/**
+ * Devuelve el ejecutable de un navegador por su id, si está instalado. Resuelve la
+ * primera ruta que exista en disco para ese candidato. Solo Windows: en otras
+ * plataformas devuelve null.
+ * @param {string} browserId
+ * @returns {{ id: string, name: string, path: string } | null}
+ */
+export function getBrowserById(browserId) {
+  if (process.platform !== 'win32') {
+    return null;
+  }
+
+  const candidate = BROWSER_CANDIDATES.find((item) => item.id === browserId);
+  if (!candidate) {
+    return null;
+  }
+
+  const executablePath = resolveCandidatePaths(candidate).find((fullPath) => existsSync(fullPath));
+  if (!executablePath) {
+    return null;
+  }
+
+  return { id: candidate.id, name: candidate.name, path: executablePath };
+}

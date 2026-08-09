@@ -14,6 +14,9 @@ export const SYSTEM_BROWSER_LABEL = 'Sistema (predeterminado)';
 /** Etiqueta de la sesión cuya opción hereda el predeterminado global. */
 export const DEFAULT_BROWSER_LABEL = 'Predeterminado';
 
+/** Título de los botones Launch cuando la sesión no tiene pestañas. */
+export const LAUNCH_EMPTY_TABS_TITLE = 'Agregá pestañas para poder lanzar la sesión';
+
 /**
  * Modos de apertura disponibles por sesión.
  * @type {Array<{ value: import('../../../shared/types.js').OpenBehavior, label: string }>}

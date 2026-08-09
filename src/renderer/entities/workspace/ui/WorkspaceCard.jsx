@@ -3,6 +3,7 @@
  */
 
 import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
+import { LAUNCH_EMPTY_TABS_TITLE } from '../api/index.js';
 
 /**
  * Tarjeta de una sesión de trabajo del Hub. Presentacional: muestra icono, nombre,
@@ -46,6 +47,8 @@ export function WorkspaceCard({ workspace, onClick, onPlay }) {
             icon="play_arrow"
             label="Abrir sesión"
             appearOnHover
+            disabled={tabsCount === 0}
+            title={tabsCount === 0 ? LAUNCH_EMPTY_TABS_TITLE : undefined}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.stopPropagation();
