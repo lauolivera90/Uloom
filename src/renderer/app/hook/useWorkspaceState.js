@@ -3,6 +3,7 @@ import {
   getConfig,
   createWorkspace,
   updateWorkspace,
+  deleteWorkspace as deleteWorkspaceIpc,
   updatePreferences,
   SYSTEM_BROWSER,
 } from '../../entities/workspace/index.js';
@@ -25,6 +26,8 @@ import {
  *   mutateWorkspace: (workspaceId: string, mutator: (workspace: import('../../shared/types.js').Workspace) => import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../../shared/types.js').Workspace>,
+ *   updateTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
+ *   deleteWorkspace: (workspaceId: string) => Promise<void>,
  *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
  * }}
  */
@@ -106,6 +109,25 @@ export function useWorkspaceState() {
     [mutateWorkspace],
   );
 
+  const updateTab = useCallback(
+    (workspaceId, tab) =>
+      mutateWorkspace(workspaceId, (workspace) => ({
+        ...workspace,
+        tabs: (workspace.tabs ?? []).map((current) => (current.id === tab.id ? tab : current)),
+      })),
+    [mutateWorkspace],
+  );
+
+  const deleteWorkspace = useCallback((workspaceId) => {
+    const task = writeChainRef.current.then(async () => {
+      await deleteWorkspaceIpc(workspaceId);
+      latestByWorkspaceRef.current.delete(workspaceId);
+      setWorkspaces((prev) => prev.filter((workspace) => workspace.id !== workspaceId));
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
+  }, []);
+
   const updatePreferencesPersisted = useCallback(async (partial) => {
     const saved = await updatePreferences(partial);
     setPreferences(saved);
@@ -119,6 +141,8 @@ export function useWorkspaceState() {
     mutateWorkspace,
     addTab,
     deleteTab,
+    updateTab,
+    deleteWorkspace,
     updatePreferences: updatePreferencesPersisted,
   };
 }

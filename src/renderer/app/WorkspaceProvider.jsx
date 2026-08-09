@@ -13,6 +13,8 @@ const WorkspaceContext = createContext(null);
  *   mutateWorkspace: (workspaceId: string, mutator: (workspace: import('../shared/types.js').Workspace) => import('../shared/types.js').Workspace) => Promise<import('../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../shared/types.js').Tab) => Promise<import('../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../shared/types.js').Workspace>,
+ *   updateTab: (workspaceId: string, tab: import('../shared/types.js').Tab) => Promise<import('../shared/types.js').Workspace>,
+ *   deleteWorkspace: (workspaceId: string) => Promise<void>,
  *   updatePreferences: (partial: Partial<import('../shared/types.js').Preferences>) => Promise<import('../shared/types.js').Preferences>,
  * }}
  */

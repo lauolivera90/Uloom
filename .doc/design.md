@@ -41,12 +41,14 @@ Doc vivo de reglas visuales y de componentes. Se actualiza a medida que crece el
 - **Consumir SIEMPRE desde el barrel** (`widgets`). Nunca re-inventar primitivas (Button, Card, Modal) ni duplicar estilos existentes.
 - **Estructura:** cada widget en `ui/<Widget>/<Widget>.jsx` (o `layout/<Widget>/`); lógica con efectos → hooks en `widgets/hooks/` con JSDoc.
 - **Componentes solo presentan:** sin estado ni efectos en `.jsx` (salvo lógica trivial de UI).
-- **Padding base `p-5`** en contenedores, con override real por `className` (chequeo `includes('p-')`).
+- **Padding base `p-5`** en contenedores, con override real por `className` (chequeo `/(^|\s)p-/`).
+- **Páginas** → widget `Page` (`widgets/layout`, consumido desde el barrel): contenedor raíz estándar `flex flex-col gap-6 p-6`, con override real por `className` (chequeos `/(^|\s)p-/` y `/(^|\s)gap-/`, mismo patrón que `Card`). Toda vista de feature arranca con `<Page>…</Page>`; variantes de espaciado (ej. `gap-4`) se pasan por prop, no se re-declara el contenedor.
+- **Header de página** → widget `PageHeader` (`widgets/layout`): título `h1` (`text-2xl`) con `description` e `icon` líder opcionales a la izquierda (`text-accent`) y bloque `actions` a la derecha (fila `flex items-center gap-2 flex-shrink-0`). Es el header estándar de las vistas; headers compactos fuera de este patrón (ej. estado not-found) quedan fuera de la convención.
 - **Variants:** mapas de clases por `variant` con default sensato (ver `Button`). Variantes del Button: `primary`, `outline`, `ghost`, `warning` (token `tertiary`), `danger` (token `error`). `ConfirmDialog` consume `Modal` (size `sm`) + `Button` desde el barrel.
 
 ### Convención de modales
 
-Todos los modales siguen el mismo layout base (derivado de `CreateWorkspaceModal` y `ConfirmDialog`):
+Todos los modales siguen el mismo layout base (derivado de `WorkspaceFormModal` y `ConfirmDialog`):
 
 - **Formularios** → `Modal size="md"` con título en el header; contenido en `Form` (gap default `5`) con `FormField` (label `text-sm font-medium`, gap `2`) y `TextInput`.
 - **Confirmaciones** → `Modal size="sm"` vía `ConfirmDialog`.

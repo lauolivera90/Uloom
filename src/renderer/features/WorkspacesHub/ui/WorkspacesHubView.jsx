@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateWorkspace, useWorkspacesHub } from '../hook/index.js';
-import { CreateWorkspaceModal } from './CreateWorkspaceModal.jsx';
+import { Page, PageHeader } from '../../../widgets/index.js';
+import { useWorkspaceForm, WorkspaceFormModal } from '../../../entities/workspace/index.js';
+import { useWorkspacesHub } from '../hook/index.js';
 import { WorkspaceGrid } from './WorkspaceGrid.jsx';
 
 /**
@@ -21,7 +22,7 @@ export function WorkspacesHubView() {
     [createWorkspace, closeCreate],
   );
 
-  const form = useCreateWorkspace({ onCreate: handleCreate });
+  const form = useWorkspaceForm({ initialWorkspace: null, onSubmit: handleCreate });
   const { reset } = form;
 
   const handleCancel = useCallback(() => {
@@ -37,15 +38,10 @@ export function WorkspacesHubView() {
   );
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header>
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-text">Sesiones</h1>
-          <p className="text-sm text-text/60">Elegí una sesión para abrirla o creá una nueva.</p>
-        </div>
-      </header>
+    <Page>
+      <PageHeader title="Sesiones" description="Elegí una sesión para abrirla o creá una nueva." />
       <WorkspaceGrid workspaces={workspaces} onCreate={openCreate} onOpen={handleOpenWorkspace} />
-      <CreateWorkspaceModal isOpen={isCreateOpen} isSaving={isCreating} form={form} onCancel={handleCancel} />
-    </div>
+      <WorkspaceFormModal isOpen={isCreateOpen} isSaving={isCreating} form={form} onCancel={handleCancel} />
+    </Page>
   );
 }

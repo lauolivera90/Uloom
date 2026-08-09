@@ -4,11 +4,13 @@ import { IconButton } from '../IconButton/IconButton.jsx';
 /**
  * Selector de icono. Muestra una grilla reducida y permite expandir la lista
  * completa con un botón ghost. Cada celda es un IconButton: ghost si no está
- * seleccionada, primary si sí. Controlado por props, sin estado propio.
+ * seleccionada, primary si sí. Controlado por props, sin estado propio:
+ * `selectedIcon` es el valor efectivo del form; si es `null` (o no pertenece a
+ * `icons`, p. ej. un favicon data-URL/http) no se resalta ningún slot.
  * No incluye label: lo aporta el FormField contenedor.
  * @param {{
  *   icons: string[],
- *   selectedIcon: string,
+ *   selectedIcon: string | null,
  *   showAllIcons: boolean,
  *   onSelect: (icon: string) => void,
  *   onToggleShowAll: () => void,

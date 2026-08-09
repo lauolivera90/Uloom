@@ -1,5 +1,5 @@
 import { useSettings, SETTINGS_SECTION } from '../hook/index.js';
-import { Button, OptionRow, Select } from '../../../widgets/index.js';
+import { Button, OptionRow, Page, PageHeader, Select } from '../../../widgets/index.js';
 import {
   SYSTEM_BROWSER,
   SYSTEM_BROWSER_LABEL,
@@ -36,16 +36,11 @@ export function SettingsView() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header>
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-text">Configuración</h1>
-          <p className="text-sm text-text/60">
-            Preferencias generales y portabilidad de tus sesiones.
-          </p>
-        </div>
-      </header>
-
+    <Page>
+      <PageHeader
+        title="Configuración"
+        description="Preferencias generales y portabilidad de tus sesiones."
+      />
       <nav className="flex gap-2">
         {SECTIONS.map((section) => (
           <Button
@@ -98,6 +93,6 @@ export function SettingsView() {
           </>
         )}
       </div>
-    </div>
+    </Page>
   );
 }

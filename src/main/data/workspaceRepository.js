@@ -66,3 +66,19 @@ export function updateWorkspace(nextWorkspace) {
   writeConfig(config);
   return saved;
 }
+
+/**
+ * Elimina un workspace existente por su id (baja estricta: no tolera ids
+ * ausentes ni huérfanos). Si el id no existe, lanza; de lo contrario escribe.
+ * @param {string} workspaceId
+ * @returns {void}
+ */
+export function deleteWorkspace(workspaceId) {
+  const config = readConfig();
+  const index = config.workspaces.findIndex((workspace) => workspace.id === workspaceId);
+  if (index === -1) {
+    throw new Error('Workspace no encontrado');
+  }
+  config.workspaces.splice(index, 1);
+  writeConfig(config);
+}

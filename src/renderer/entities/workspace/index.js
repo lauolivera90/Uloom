@@ -2,8 +2,10 @@ export {
   getConfig,
   createWorkspace,
   updateWorkspace,
+  deleteWorkspace,
   getInstalledBrowsers,
   updatePreferences,
+  getPageMetadata,
   WORKSPACE_ICONS,
   WORKSPACE_ICON_PREVIEW_COUNT,
   SYSTEM_BROWSER,
@@ -13,4 +15,5 @@ export {
   getBrowserNameById,
   buildBrowserOptions,
 } from './api/index.js';
-export { WorkspaceCard, TabFavicon } from './ui/index.js';
+export { useWorkspaceForm } from './hook/index.js';
+export { WorkspaceCard, TabFavicon, WorkspaceFormModal } from './ui/index.js';

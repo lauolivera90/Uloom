@@ -3,7 +3,11 @@
  * @property {string} id Identificador único de la pestaña.
  * @property {string} url URL del sitio web.
  * @property {string} name Nombre visible de la pestaña.
- * @property {string} [icon] Icono o favicon asociado a la pestaña.
+ * @property {string} [icon] Icono de la pestaña: símbolo del catálogo Material Symbols
+ * o data URL. Puede venir también como favicon remoto http(s) en configs viejas.
+ * @property {string} [favicon] Favicon del sitio como data URL, cacheado por el fetch de
+ * metadatos (`page:metadata`). Solo se actualiza al ejecutarse un fetch nuevo; una elección
+ * manual de `icon` no lo pisa.
  */
 
 /**

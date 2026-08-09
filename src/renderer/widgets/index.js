@@ -18,4 +18,4 @@ export {
   Textarea,
 } from './ui/index.js';
 
-export { MainLayout, Sidebar } from './layout/index.js';
+export { MainLayout, Page, PageHeader } from './layout/index.js';

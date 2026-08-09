@@ -3,21 +3,27 @@ import {
   Button,
   Card,
   ConfirmDialog,
-  Icon,
   IconButton,
+  Page,
+  PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
-import { useAddTab, useAddTabForm, useDeleteTab, useSessionConfig } from '../hook/index.js';
-import { AddTabModal } from './AddTabModal.jsx';
+import { WorkspaceFormModal } from '../../../entities/workspace/index.js';
+import { useTabModal, useTabForm, useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
+import { TabFormModal } from './TabFormModal.jsx';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
 
+const BACK_TO_HUB_LABEL = 'Volver al Hub';
+
 /**
- * Vista del Detalle de Sesión (Lienzo / Command Center), fase v0.2.2: header con
- * nombre, descripción y acciones (Launch deshabilitado, editar/borrar inertes) y
- * dos cards en fila — Administrador de recursos (lista de pestañas con alta y
- * baja) y Configuración (openBehavior/browser por sesión). Si la sesión no
- * existe, muestra un estado de no encontrada.
+ * Vista del Detalle de Sesión (Lienzo / Command Center): header con nombre,
+ * descripción y acciones (Launch disponible en v0.3, editar/borrar sesión) y
+ * dos cards en fila — Administrador de recursos (lista de pestañas con alta/
+ * edición/baja) y Configuración (openBehavior/browser por sesión). Las mutaciones
+ * de pestañas y de la sesión pasan por el líder único de escritura del estado
+ * global (useWorkspaceState.mutateWorkspace). Si la sesión no existe, muestra un
+ * estado de no encontrada.
  * @param {{
  *   workspace: import('../../../shared/types.js').Workspace | null,
  *   isNotFound: boolean,
@@ -25,56 +31,67 @@ import { WorkspaceConfig } from './WorkspaceConfig.jsx';
  */
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
-  const { isAddOpen, openAdd, closeAdd, isSaving, onAddTab } = useAddTab(workspace?.id);
-  const form = useAddTabForm({ onSubmit: onAddTab });
-  const { reset } = form;
-  const { target, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(
-    workspace?.id,
-  );
+  const { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab } = useTabModal(workspace?.id);
+  const tabForm = useTabForm({ initialTab: isOpen ? editingTab : null, onSubmit: onSubmitTab });
+  const { reset: resetTabForm } = tabForm;
+  const { target, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(workspace?.id);
+  const {
+    isConfirmOpen: isDeleteConfirmOpen,
+    isDeleting: isDeletingWorkspace,
+    requestDelete: requestDeleteWorkspace,
+    cancelDelete: cancelDeleteWorkspace,
+    confirmDelete: confirmDeleteWorkspace,
+  } = useDeleteWorkspace(workspace?.id);
+  const workspaceEdit = useWorkspaceEdit(workspace);
   const browserConfig = useSessionConfig(workspace?.id, workspace);
 
-  const handleCancel = () => {
-    reset();
-    closeAdd();
+  const handleCancelTab = () => {
+    resetTabForm();
+    close();
+  };
+
+  const handleDeleteWorkspace = async () => {
+    const deleted = await confirmDeleteWorkspace();
+    if (deleted) {
+      navigate('/');
+    }
   };
 
   if (isNotFound) {
     return (
-      <div className="flex flex-col gap-4 p-6">
+      <Page className="gap-4">
         <header className="flex items-center gap-2">
-          <IconButton variant="ghost" icon="arrow_back" label="Volver al Hub" onClick={() => navigate('/')} />
+          <IconButton variant="ghost" icon="arrow_back" label={BACK_TO_HUB_LABEL} onClick={() => navigate('/')} />
           <h1 className="text-xl font-semibold text-text">Sesión no encontrada</h1>
         </header>
         <p className="text-sm text-text/60">La sesión que buscás no existe o fue eliminada.</p>
         <Button className="w-fit" icon="home" onClick={() => navigate('/')}>
-          Volver al Hub
+          {BACK_TO_HUB_LABEL}
         </Button>
-      </div>
+      </Page>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <Icon icon={workspace.icon || 'work'} className="text-accent" />
-          <div className="flex flex-col gap-1 min-w-0">
-            <h1 className="text-2xl font-semibold text-text truncate">{workspace.name}</h1>
-            {workspace.description && <p className="text-sm text-text/60 truncate">{workspace.description}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button variant="primary" icon="play_arrow" disabled title="Disponible en v0.3">
-            Launch
-          </Button>
-          <IconButton variant="outline" icon="edit" label="Editar sesión" disabled />
-          <IconButton variant="danger" icon="delete" label="Eliminar sesión" disabled />
-          <div className="w-px h-6 bg-border mx-1" />
-          <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
-            Volver
-          </Button>
-        </div>
-      </header>
+    <Page>
+      <PageHeader
+        title={workspace.name}
+        description={workspace.description}
+        icon={workspace.icon || 'work'}
+        actions={
+          <>
+            <Button variant="primary" icon="play_arrow" disabled title="Disponible en v0.3">
+              Launch
+            </Button>
+            <IconButton variant="warning" icon="edit" label="Editar sesión" onClick={workspaceEdit.open} />
+            <IconButton variant="danger" icon="delete" label="Eliminar sesión" onClick={requestDeleteWorkspace} />
+            <div className="w-px h-6 bg-border mx-1" />
+            <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
+              Volver
+            </Button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-[minmax(0,1fr)_40rem] items-start gap-6">
         <section>
@@ -89,7 +106,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
             headerClassName="bg-accent/10"
             bodyClassName="p-0"
           >
-            <TabList tabs={workspace.tabs ?? []} onAddTab={openAdd} onDelete={requestDelete} />
+            <TabList tabs={workspace.tabs ?? []} onAddTab={openAdd} onEdit={openEdit} onDelete={requestDelete} />
           </Card>
         </section>
         <section>
@@ -111,7 +128,21 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
           </Card>
         </section>
       </div>
-      <AddTabModal isOpen={isAddOpen} isSaving={isSaving} form={form} onCancel={handleCancel} />
+
+      <TabFormModal
+        isOpen={isOpen}
+        isSaving={isSaving}
+        isEditing={editingTab !== null}
+        form={tabForm}
+        onCancel={handleCancelTab}
+      />
+      <WorkspaceFormModal
+        isOpen={workspaceEdit.isOpen}
+        isSaving={workspaceEdit.isSaving}
+        isEditing={workspaceEdit.isEditing}
+        form={workspaceEdit.form}
+        onCancel={workspaceEdit.close}
+      />
       <ConfirmDialog
         isOpen={target !== null}
         title="Eliminar pestaña"
@@ -123,6 +154,17 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />
-    </div>
+      <ConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        title="Eliminar sesión"
+        description={`¿Eliminar "${workspace.name}" y todas sus pestañas? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar sesión"
+        cancelLabel="Cancelar"
+        variant="danger"
+        isLoading={isDeletingWorkspace}
+        onConfirm={handleDeleteWorkspace}
+        onCancel={cancelDeleteWorkspace}
+      />
+    </Page>
   );
 }

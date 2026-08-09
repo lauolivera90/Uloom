@@ -1,29 +1,40 @@
 import { useState } from 'react';
+import { getHostname, isDataUrl, isRemoteIcon } from '../../../shared/index.js';
 import { Icon } from '../../../widgets/index.js';
 
-function getHostname(url) {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
-
 /**
- * Icono de una pestaña web. Presentacional: prioriza un icono explícito — data
- * URL (subido) como imagen o nombre de Material Symbol (elegido del catálogo) —
- * y si no hay, intenta el favicon del sitio vía el servicio externo de Google
- * (sin backend ni CORS); si eso falla, cae a un ícono mapamundi decorativo.
+ * Icono de una pestaña web. Presentacional: prioriza el icono explícito (`icon`),
+ * que puede ser un data URL o un nombre de Material Symbol; si no hay icono
+ * explícito, usa el favicon cacheado por `page:metadata` (`favicon`, data URL o
+ * remote http(s)); y si no hay ninguno, intenta el favicon del sitio vía el
+ * servicio externo de Google (sin backend ni CORS); si eso falla, cae a un ícono
+ * mapamundi decorativo.
  * @param {{
  *   url?: string,
  *   icon?: string,
+ *   favicon?: string,
  * }} props
  */
-export function TabFavicon({ url, icon }) {
+export function TabFavicon({ url, icon, favicon }) {
   const [failed, setFailed] = useState(false);
 
-  if (icon?.startsWith('data:')) {
+  const inlineFavicon = favicon && (isDataUrl(favicon) || isRemoteIcon(favicon))
+    ? favicon
+    : null;
+
+  if (isDataUrl(icon) || isRemoteIcon(icon)) {
     return <img src={icon} alt="" className="w-5 h-5 rounded-sm flex-shrink-0" />;
+  }
+
+  if (inlineFavicon && !failed) {
+    return (
+      <img
+        src={inlineFavicon}
+        alt=""
+        className="w-5 h-5 rounded-sm flex-shrink-0"
+        onError={() => setFailed(true)}
+      />
+    );
   }
 
   if (icon) {

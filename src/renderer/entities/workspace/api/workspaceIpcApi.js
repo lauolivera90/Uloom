@@ -45,6 +45,35 @@ export async function updateWorkspace(workspace) {
 }
 
 /**
+ * Elimina un workspace existente por su id (baja estricta). Lanza si el proceso
+ * main responde con error (p. ej. id inexistente).
+ * @param {string} workspaceId
+ * @returns {Promise<null>}
+ */
+export async function deleteWorkspace(workspaceId) {
+  const response = await window.uloomApi.deleteWorkspace(workspaceId);
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
+ * Obtiene los metadatos web de una URL: el <title> del sitio y su favicon como
+ * data URL. Cualquier fallo se resuelve con campos en `null` (soft-fallback del
+ * main; esta capa solo convierte la forma de respuesta).
+ * @param {string} url
+ * @returns {Promise<{ title: string | null, favicon: string | null }>}
+ */
+export async function getPageMetadata(url) {
+  const response = await window.uloomApi.getPageMetadata(url);
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
  * Obtiene la lista de navegadores instalados detectados por el proceso main.
  * @returns {Promise<Array<{ id: string, name: string }>>}
  */

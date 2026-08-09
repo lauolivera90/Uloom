@@ -20,9 +20,9 @@ export function Card({
   const hasHeader = resolvedHeader !== null;
   const hasFooter = footer !== null;
 
-  const headerPadding = headerClassName.includes('p-') ? '' : 'p-5';
-  const bodyPadding = bodyClassName.includes('p-') ? '' : 'p-5';
-  const footerPadding = footerClassName.includes('p-') ? '' : 'p-5';
+  const headerPadding = /(^|\s)p-/.test(headerClassName) ? '' : 'p-5';
+  const bodyPadding = /(^|\s)p-/.test(bodyClassName) ? '' : 'p-5';
+  const footerPadding = /(^|\s)p-/.test(footerClassName) ? '' : 'p-5';
 
   return (
     <div className={`border border-border rounded-xl shadow-sm bg-surface ${className}`} {...props}>

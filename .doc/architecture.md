@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.3)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.2.4)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -17,8 +17,8 @@ Para el desarrollo de la interfaz de usuario con React, adoptamos una **variante
 2. **`widgets/`**: Bloques de interfaz de usuario independientes y complejos (ej. `Sidebar`). Se subdivide en `hooks/` (lógica propia de widgets), `layout/` (widgets de layout) y `ui/` (widgets de UI atómicos), donde cada widget vive en su propia carpeta (ej. `ui/Button/Button.jsx`). `ui/` y `layout/` cuentan con su propio `index.js` que agrega los widgets de su segmento, y un `index.js` en la raíz reexporta ambos segmentos.
    > **Excepción estructural:** la familia `ui/form/` agrupa *todas* las primitivas de formulario (`Form`, `FormField`, `TextInput`, `Select`, `Textarea` y `formStyles.js`) en una carpeta común con su propio `index.js`, a diferencia de `ui/<Widget>/<Widget>.jsx`. Es la única familia (no un widget) sin carpeta propia por componente — decisión deliberada para mantener el namespace de formularios agrupado y su barrel dedicado.
 3. **`features/`**: Cada feature coincide con una page (ej. la página de detalle de workspace tiene su `features/workspace`). Cada carpeta debe contener dos subcarpetas: `hook/` y `ui/`, y contar con un `index.js` general que exporte ambos contenidos.
-4. **`entities/`**: Entidades de negocio centrales. Se dividen en dos subcarpetas: `ui/` y `api/`. Los archivos dentro de `api/` toman el formato `[nombre]IpcApi.js` (comunicación con el proceso main vía `window.uloomApi`), pudiendo existir además una capa `local[Nombre]Api.js` si hay lógica derivada que no necesita cruzar el puente IPC. Ambas se exponen a través de un barrel `index.js` (ver `rules.md` regla 5).
-5. **`shared/`**: Código reutilizable en todo el proyecto. Contiene dos subcarpetas (`hook/` y `ui/`) y un archivo `index.js` general en su raíz que exporta ambas partes.
+4. **`entities/`**: Entidades de negocio centrales. Se dividen en subcarpetas `ui/`, `api/` y — cuando la entidad necesita lógica de formulario reutilizada entre features (como `WorkspaceFormModal`) — `hook/`. Los archivos dentro de `api/` toman el formato `[nombre]IpcApi.js` (comunicación con el proceso main vía `window.uloomApi`), pudiendo existir además una capa `local[Nombre]Api.js` si hay lógica derivada que no necesita cruzar el puente IPC. Todas se exponen a través de un barrel `index.js` (ver `rules.md` regla 5).
+5. **`shared/`**: Código reutilizable en todo el proyecto. Contiene subcarpetas (`hook/` y `ui/`, más `lib/` para funciones puras genéricas como predicates de URLs/favicons) y un archivo `index.js` general en su raíz que exporta todas sus partes.
 
 ### Convenciones de Archivos y Nomenclatura:
 
@@ -153,10 +153,16 @@ uloom/
 │       │       ├── api/
 │       │       │   ├── workspaceIpcApi.js
 │       │       │   └── index.js
+│       │       ├── hook/
+│       │       │   ├── useWorkspaceForm.js
+│       │       │   └── index.js
 │       │       └── ui/
-│       │           └── WorkspaceCard.jsx
+│       │           ├── WorkspaceCard.jsx
+│       │           ├── WorkspaceFormModal.jsx
+│       │           └── TabFavicon.jsx
 │       └── shared/
 │           ├── hook/
+│           ├── lib/
 │           ├── ui/
 │           └── index.js
 │

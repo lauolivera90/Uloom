@@ -8,10 +8,11 @@ import { CreateTile } from '../../../widgets/index.js';
  * @param {{
  *   tabs: import('../../../shared/types.js').Tab[],
  *   onAddTab?: () => void,
+ *   onEdit?: (tab: import('../../../shared/types.js').Tab) => void,
  *   onDelete?: (tab: import('../../../shared/types.js').Tab) => void,
  * }} props
  */
-export function TabList({ tabs, onAddTab, onDelete }) {
+export function TabList({ tabs, onAddTab, onEdit, onDelete }) {
   if (tabs.length === 0) {
     return (
       <div className="p-5">
@@ -24,7 +25,7 @@ export function TabList({ tabs, onAddTab, onDelete }) {
     <ul className="flex flex-col">
       {tabs.map((tab) => (
         <li key={tab.id}>
-          <TabRow tab={tab} onDelete={onDelete} />
+          <TabRow tab={tab} onEdit={onEdit} onDelete={onDelete} />
         </li>
       ))}
     </ul>

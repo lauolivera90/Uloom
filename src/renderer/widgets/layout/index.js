@@ -1,2 +1,3 @@
 export { MainLayout } from './MainLayout/MainLayout.jsx';
-export { Sidebar } from './Sidebar/index.js';
+export { Page } from './Page/Page.jsx';
+export { PageHeader } from './PageHeader/PageHeader.jsx';

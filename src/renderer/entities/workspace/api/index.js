@@ -2,8 +2,10 @@ export {
   getConfig,
   createWorkspace,
   updateWorkspace,
+  deleteWorkspace,
   getInstalledBrowsers,
   updatePreferences,
+  getPageMetadata,
 } from './workspaceIpcApi.js';
 export {
   WORKSPACE_ICONS,

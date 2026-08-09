@@ -1,37 +1,50 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 /**
- * Estado compartido del selector de icono de los formularios: icono seleccionado,
- * expansión de la lista completa y grilla visible. Lo consumen useCreateWorkspace
- * (sesión) y useAddTabForm (pestaña) para no duplicar la lógica del picker. Es
- * genérico: no conoce el catálogo — lo recibe por props (shared no importa de entities).
+ * Estado del selector de icono de los formularios — controlado: el valor
+ * seleccionado pertenece al form (única fuente de verdad, recibido por `selected`)
+ * y este hook solo gestiona la expansión de la lista completa y la grilla visible.
+ * Lo consumen useWorkspaceForm (sesión) y useTabForm (pestaña) para no duplicar la
+ * lógica del picker. Es genérico: no conoce el catálogo — lo recibe por props
+ * (shared no importa de entities). Si `selected` no pertenece a `icons` (p. ej. un
+ * favicon data-URL/http), el widget no resalta ningún slot.
  * @param {{
  *   icons: string[],
  *   previewCount: number,
- *   defaultIcon?: string,
+ *   selected: string | null,
+ *   onSelect: (icon: string) => void,
  * }} props
  * @returns {{
- *   selectedIcon: string,
+ *   selectedIcon: string | null,
  *   selectIcon: (icon: string) => void,
  *   showAllIcons: boolean,
  *   toggleShowAllIcons: () => void,
  *   visibleIcons: string[],
+ *   ensureVisible: (icon: string) => void,
  *   reset: () => void,
  * }}
  */
-export function useIconPicker({ icons, previewCount, defaultIcon = icons[0] }) {
-  const [selectedIcon, setSelectedIcon] = useState(defaultIcon);
+export function useIconPicker({ icons, previewCount, selected, onSelect }) {
   const [showAllIcons, setShowAllIcons] = useState(false);
 
-  const selectIcon = useCallback((icon) => setSelectedIcon(icon), []);
   const toggleShowAllIcons = useCallback(() => setShowAllIcons((prev) => !prev), []);
+  const ensureVisible = useCallback(
+    (icon) => {
+      if (icon && !icons.slice(0, previewCount).includes(icon)) {
+        setShowAllIcons(true);
+      }
+    },
+    [icons, previewCount],
+  );
 
   const reset = useCallback(() => {
-    setSelectedIcon(defaultIcon);
     setShowAllIcons(false);
-  }, [defaultIcon]);
+  }, []);
 
-  const visibleIcons = showAllIcons ? icons : icons.slice(0, previewCount);
+  const visibleIcons = useMemo(
+    () => (showAllIcons ? icons : icons.slice(0, previewCount)),
+    [showAllIcons, icons, previewCount],
+  );
 
-  return { selectedIcon, selectIcon, showAllIcons, toggleShowAllIcons, visibleIcons, reset };
+  return { selectedIcon: selected, selectIcon: onSelect, showAllIcons, toggleShowAllIcons, visibleIcons, ensureVisible, reset };
 }

@@ -47,7 +47,7 @@ v0.2.1 Administración de Pestañas
 
 [x] Asignación de Icono: Icono por defecto (mapamundi) y extracción/asignación del favicon si está disponible.
 
-[ ] Botón para reiniciar el icono de la pestaña (pendiente, junto a la asignación de iconos): cuando se implemente subir favicon / elegir del catálogo, mostrar una acción de reinicio SOLO si el icono fue seteado manualmente; si proviene de la URL de la página (favicon por defecto), NO mostrarla. En `useAddTabForm`: visible cuando icono ≠ default, al presionar → restaurar default (mapamundi) y colapsar el picker.
+[x] Botón para reiniciar el icono de la pestaña → resuelto en v0.2.4 junto al fetch de favicon: el botón de reinicio a default se descartó y quedó solo "Usar icono sugerido" (aplica el favicon; visible si hay favicon y el icono actual es manual).
 
 [x] Eliminar Web Tab: Opción para remover URLs de la lista de la sesión.
 
@@ -69,6 +69,18 @@ v0.2.3 Refactor pendiente (del @reviewer de widgets de formulario)
 [ ] Deuda de accesibilidad WorkspaceCard (trade-off aceptado): role="button" en la card conteniendo el <button> play anida controles interactivos (ARIA). Revisar cuando se implemente el launch real (v0.3.0) si se reestructura (p. ej. botón explícito "Abrir").
 [x] WorkspaceGrid: el botón nativo "Crear nueva sesión" (grid) reimplementa estilos de Card/Button a mano; migrarlo a widgets (Card clickeable o Button) para cumplir "siempre usar widgets". → Widget CreateTile en widgets/ui/CreateTile. 
 [x] Contraste AA en dark: resuelto en v0.1.5 con la regla "fill vs foreground" — `--primary` (valor base) queda reservado a fills (`bg-primary`) y el foreground de primary (texto/íconos/bordes/rings) pasa a `--primary-hover`, que supera AA en ambos temas. No se tocaron los valores RGB.
+
+🟢 v0.2.4 — Auto-metadatos web + Edición/Borrado de Sesión
+Objetivo: traer el favicon y el título real de la URL mientras se escribe (fetch por backend), sugiriendo el nombre en placeholder; y completar el CRUD faltante: editar pestaña y editar/borrar sesión reusando los modales existentes con los datos del objeto.
+
+[x] Obtener el favicon de la página al introducir la URL: fetch real en el backend vía canal `page:metadata` (`pageService` con `net.fetch`, timeout y caps; favicon como data URL) y CSP con `img-src 'self' data: https:`.
+[x] Sugerir el nombre de la pestaña desde la URL: el `<title>` real va al placeholder del campo Nombre; si el usuario ya escribió algo distinto, botón `swap_horiz` al lado del input que reemplaza el contenido.
+[x] Botón restablecer ícono de la pestaña: unificado con "aplicar favicon sugerido" (default = `autoFavicon ?? 'public'`; visible solo si el ícono difiere del default; al presionar restaura default y colapsa el picker). → Refinado en el pase de UI: el botón de reset se eliminó; queda solo "Usar icono sugerido" (`swap_horiz`, separado por `|`), visible cuando `autoFavicon !== null && isIconManual`.
+[x] Editar pestaña: reusa el modal de agregar con los datos del objeto (`useTabForm` + `useTabModal`), conserva el id; `updateTab` en `useWorkspaceState` (map por id vía `mutateWorkspace`).
+[x] Editar sesión: reusa el modal de creación con los datos del objeto (`WorkspaceFormModal`/`useWorkspaceForm` migrados a `entities/workspace`); guarda vía `mutateWorkspace`.
+[x] Borrar sesión: canal `workspace:delete` (repository/service/handler/preload/api) + `deleteWorkspace` serializado en `writeChainRef` + ConfirmDialog "Eliminar sesión" y vuelta al Hub.
+[x] Migrar `CreateWorkspaceModal`/`useCreateWorkspace` a `entities/workspace` como `WorkspaceFormModal`/`useWorkspaceForm` (compartido entre Hub y Detalle sin imports entre features).
+[x] Cache de favicon por pestaña (`Tab.favicon`, data URL base64): evita refetch de `page:metadata` al reabrir edición, persiste sin duplicarlo en `icon` y lo usa `TabFavicon` antes que el fallback de Google.
 
 🟢 v0.3.0 — Motor de Lanzamiento (Disparador IPC)
 Objetivo: Conectar el botón principal con el sistema operativo para ejecutar la apertura masiva de enlaces.

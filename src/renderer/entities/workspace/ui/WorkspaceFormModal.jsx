@@ -7,19 +7,21 @@ import {
   TextInput,
 } from '../../../widgets/index.js';
 
-/** @typedef {import('../hook/useCreateWorkspace.js').CreateWorkspaceFormState} CreateWorkspaceFormState */
+/** @typedef {import('../hook/useWorkspaceForm.js').WorkspaceFormState} WorkspaceFormState */
 
 /**
- * Modal de creación de sesión. Todo el contenido está en columna: nombre, selector
- * de icono y descripción. Recibe el estado del formulario desde el hook.
+ * Modal de sesión compartido entre el Hub (alta) y el Detalle (edición). Todo el
+ * contenido está en columna: nombre, selector de icono y descripción. Los labels
+ * del título y del botón confirmar dependen de `isEditing`.
  * @param {{
  *   isOpen: boolean,
  *   isSaving?: boolean,
- *   form: CreateWorkspaceFormState,
+ *   isEditing?: boolean,
+ *   form: WorkspaceFormState,
  *   onCancel: () => void,
  * }} props
  */
-export function CreateWorkspaceModal({ isOpen, isSaving = false, form, onCancel }) {
+export function WorkspaceFormModal({ isOpen, isSaving = false, isEditing = false, form, onCancel }) {
   const { submit, isNameValid } = form;
   const handleSubmit = () => {
     submit().catch((error) => console.error(error));
@@ -29,15 +31,15 @@ export function CreateWorkspaceModal({ isOpen, isSaving = false, form, onCancel 
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
-      title="Nueva sesión"
+      title={isEditing ? 'Editar sesión' : 'Nueva sesión'}
       size="md"
       footer={
         <ModalFooter
           cancelLabel="Cancelar"
-          confirmLabel="Crear sesión"
+          confirmLabel={isEditing ? 'Guardar cambios' : 'Crear sesión'}
           onCancel={onCancel}
           onConfirm={handleSubmit}
-          confirmIcon="add"
+          confirmIcon={isEditing ? 'save' : 'add'}
           cancelDisabled={isSaving}
           confirmDisabled={!isNameValid || isSaving}
         />

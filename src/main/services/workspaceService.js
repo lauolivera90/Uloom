@@ -3,6 +3,7 @@ import {
   getConfig as getConfigFromRepository,
   addWorkspace,
   updateWorkspace as updateWorkspaceInRepository,
+  deleteWorkspace as deleteWorkspaceInRepository,
 } from '../data/workspaceRepository.js';
 
 /**
@@ -40,4 +41,14 @@ export function createWorkspace({ name, description, icon }) {
  */
 export function updateWorkspace(nextWorkspace) {
   return updateWorkspaceInRepository(nextWorkspace);
+}
+
+/**
+ * Elimina un workspace existente por su id (baja estricta). Delega en el
+ * repositorio y deja subir el error si el id no existe.
+ * @param {string} workspaceId
+ * @returns {void}
+ */
+export function deleteWorkspace(workspaceId) {
+  return deleteWorkspaceInRepository(workspaceId);
 }

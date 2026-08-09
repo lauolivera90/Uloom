@@ -40,7 +40,7 @@ export function Modal({
         } border border-border bg-surface rounded-xl shadow-xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-base ${className}`}
       >
         {hasHeader && (
-          <div className="p-5 border-b border-border/40 flex-shrink-0">
+          <div className="p-5 border-b border-border/40 bg-accent/10 flex-shrink-0 rounded-t-xl">
             <div className="flex items-center gap-2">
               {resolvedHeader ? (
                 <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-import { Icon } from '../../index.js';
+import { Icon } from '../../ui/index.js';
 
 /**
  * Item de navegación del sidebar. Es una fila que ocupa todo el ancho del

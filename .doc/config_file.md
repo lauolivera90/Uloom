@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.2.3)
+# config.json — Estructura (v0.2.4)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
 
@@ -6,7 +6,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.2.3'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.2.4'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
 
@@ -35,13 +35,14 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 | `id` | `string` | Identificador único. |
 | `url` | `string` | URL del sitio web. |
 | `name` | `string` | Nombre visible de la pestaña. |
-| `icon` | `string?` | Icono/favicon de la pestaña. |
+| `icon` | `string?` | Icono de la pestaña: símbolo del catálogo Material Symbols o **data URL** (favicon aplicado explícitamente por el usuario). |
+| `favicon` | `string?` | Favicon del sitio como **data URL**, cacheado por el fetch de metadatos (`page:metadata`). Solo se actualiza al ejecutar un fetch nuevo; una elección manual de `icon` no lo pisa, y `icon` y `favicon` no se duplican (ver `pageService` en `backend.md`). |
 
 ## Default (archivo creado al primer arranque)
 
 ```json
 {
-  "version": "0.2.3",
+  "version": "0.2.4",
   "preferences": {
     "defaultBrowser": "system"
   },
@@ -58,12 +59,14 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 - Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior` y `browser`.
 - La escritura usa pretty-print (indentación de 2 espacios).
 
-## Mutaciones (v0.2.1 · v0.2.2)
+## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4)
 
 - **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'` y `browser` arranca `null`.
 - **Actualizar** (`workspace:update`): **update estricto (no upsert)** — si el `id` no existe en `workspaces`, lanza `Workspace no encontrado` (no inserta). Se reemplaza el workspace completo por su `id`.
+- **Eliminar sesión** (`workspace:delete`): **baja estricta** — si el `id` no existe, lanza `Workspace no encontrado`; se elimina el elemento del array y se persiste.
 - Toda mutación de pestañas o de configuración de sesión (openBehavior/browser) reescribe el **workspace completo**; el orden es siempre `create` → `update`.
 - **Preferencias globales** (`config:updatePreferences`): **merge parcial** — las claves provistas se combinan sobre las existentes (p. ej. cambiar solo `defaultBrowser` deja intactas otras preferencias).
+- **Metadatos web** (`page:metadata`): lectura sin persistencia; el `favicon` resultante se persiste en `Tab.favicon` (data URL) al guardar la pestaña.
 
 ## Tipos centralizados
 
