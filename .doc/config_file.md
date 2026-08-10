@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.3.2)
+# config.json — Estructura (v0.4.1)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
 
@@ -6,7 +6,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.3.2'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.4.1'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
 
@@ -42,7 +42,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 ```json
 {
-  "version": "0.3.2",
+  "version": "0.4.1",
   "preferences": {
     "defaultBrowser": "system"
   },
@@ -59,14 +59,49 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 - Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior` y `browser`.
 - La escritura usa pretty-print (indentación de 2 espacios).
 
-## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4)
+## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1)
 
 - **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'` y `browser` arranca `null`.
 - **Actualizar** (`workspace:update`): **update estricto (no upsert)** — si el `id` no existe en `workspaces`, lanza `Workspace no encontrado` (no inserta). Se reemplaza el workspace completo por su `id`.
 - **Eliminar sesión** (`workspace:delete`): **baja estricta** — si el `id` no existe, lanza `Workspace no encontrado`; se elimina el elemento del array y se persiste.
+- **Eliminar todas las sesiones** (`workspace:clearAll`, v0.4.1): vacía `workspaces` **preservando `preferences`** (el navegador predeterminado global queda intacto). No es estricta: no lanza si la lista ya está vacía.
+- **Limpiar caché de metadatos** (`workspace:clearMetadataCache`, v0.4.1): recorre todas las pestañas y remueve `Tab.favicon` (data URL cacheadas del fetch de `page:metadata`). Devuelve la cantidad de favicons removidos; los favicons se vuelven a obtener al editar la pestaña.
 - Toda mutación de pestañas o de configuración de sesión (openBehavior/browser) reescribe el **workspace completo**; el orden es siempre `create` → `update`.
 - **Preferencias globales** (`config:updatePreferences`): **merge parcial** — las claves provistas se combinan sobre las existentes (p. ej. cambiar solo `defaultBrowser` deja intactas otras preferencias).
 - **Metadatos web** (`page:metadata`): lectura sin persistencia; el `favicon` resultante se persiste en `Tab.favicon` (data URL) al guardar la pestaña.
+
+## Formato de exportación (.json, v0.4.1)
+
+Los archivos exportados (sesión individual o respaldo completo) son **un artefacto distinto de `config.json`** — se escriben en la ruta que elige el usuario en el diálogo nativo de guardado, con pretty-print de 2 espacios. Usan un wrapper con metadatos para que la importación (v0.4.2) pueda identificar y validar el archivo:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `app` | `string` | Identificador de la aplicación emisora (`'uloom'`). |
+| `kind` | `'workspace' \| 'backup'` | Sesión individual o respaldo completo de todas las sesiones. |
+| `schemaVersion` | `string` | Versión del formato de exportación (`'0.4.1'`). |
+| `exportedAt` | `string` | Fecha/hora de exportación en ISO 8601. |
+| `data` | `Workspace[]` | Sesiones exportadas. Individual = `[workspace]`; backup = todas. |
+
+```json
+{
+  "app": "uloom",
+  "kind": "workspace",
+  "schemaVersion": "0.4.1",
+  "exportedAt": "2026-08-09T18:00:00.000Z",
+  "data": [
+    {
+      "id": "…",
+      "name": "…",
+      "tabs": [],
+      "openBehavior": "active-tab",
+      "browser": null
+    }
+  ]
+}
+```
+
+- Nombres sugeridos: sesión individual → `<slug-del-nombre>.json`; respaldo completo → `uloom-backup-YYYY-MM-DD.json`.
+- El respaldo **no incluye `preferences`**: solo sesiones.
 
 ## Tipos centralizados
 

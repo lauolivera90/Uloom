@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { IconButton } from '../../ui/index.js';
+import { Button, IconButton } from '../../ui/index.js';
 import { SidebarItem } from './SidebarItem.jsx';
 
 const NAV_ITEMS = [
@@ -19,17 +19,21 @@ const NAV_ITEMS = [
   },
 ];
 
+const ADD_SESSION_LABEL = 'Agregar sesión';
+
 /**
  * Navegación lateral principal. Colapsable a columna de iconos (w-16); expandida
  * usa w-56. El contenedor no tiene padding: cada hijo (header y nav) controla su
  * propia distancia. El header muestra la marca Uloom y el botón de colapsar con
- * space-between; colapsado solo queda el botón.
+ * space-between; colapsado solo queda el botón. Debajo de la navegación vive la
+ * acción global de crear sesión (`onAddSession`), siempre usable en cualquier ruta.
  * @param {{
  *   collapsed: boolean,
  *   onToggle: () => void,
+ *   onAddSession: () => void,
  * }} props
  */
-export function Sidebar({ collapsed, onToggle }) {
+export function Sidebar({ collapsed, onToggle, onAddSession }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -66,6 +70,15 @@ export function Sidebar({ collapsed, onToggle }) {
           />
         ))}
       </nav>
+      <div className={`mt-auto ${collapsed ? 'flex justify-center px-2' : 'mx-4'}`}>
+        {collapsed ? (
+          <IconButton variant="outline" icon="add" label={ADD_SESSION_LABEL} onClick={onAddSession} />
+        ) : (
+          <Button variant="outline" icon="add" className="w-full" onClick={onAddSession}>
+            {ADD_SESSION_LABEL}
+          </Button>
+        )}
+      </div>
     </aside>
   );
 }

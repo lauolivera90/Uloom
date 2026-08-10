@@ -1,11 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
+import { useConfirmAction } from '../../../shared/index.js';
 
 /**
  * Estado de la baja de una sesión en el Detalle. `isConfirmOpen` controla el
  * ConfirmDialog y `isDeleting` el spinner mientras se persiste. La eliminación es
  * pesimista (espera la respuesta del disco) y se serializa en el líder de
  * escritura global; solo tras éxito devuelve `true` para que la vista navegue.
+ * La máquina de confirmación la aporta el hook genérico `useConfirmAction`
+ * (rules.md §4).
  * @param {string} [workspaceId]
  * @returns {{
  *   isConfirmOpen: boolean,
@@ -17,29 +20,17 @@ import { useWorkspaces } from '../../../app/index.js';
  */
 export function useDeleteWorkspace(workspaceId) {
   const { deleteWorkspace } = useWorkspaces();
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const requestDelete = useCallback(() => setIsConfirmOpen(true), []);
-  const cancelDelete = useCallback(() => {
-    if (isDeleting) return;
-    setIsConfirmOpen(false);
-  }, [isDeleting]);
+  const { isOpen, isRunning, request, cancel, confirm } = useConfirmAction({
+    action: useCallback(() => deleteWorkspace(workspaceId), [workspaceId, deleteWorkspace]),
+    errorMessage: 'Error al eliminar la sesión:',
+  });
 
-  const confirmDelete = useCallback(async () => {
-    if (!workspaceId || isDeleting) return false;
-    setIsDeleting(true);
-    try {
-      await deleteWorkspace(workspaceId);
-      setIsConfirmOpen(false);
-      return true;
-    } catch (error) {
-      console.error(`Error al eliminar la sesión:`, error);
-      return false;
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [workspaceId, deleteWorkspace, isDeleting]);
-
-  return { isConfirmOpen, isDeleting, requestDelete, cancelDelete, confirmDelete };
+  return {
+    isConfirmOpen: isOpen,
+    isDeleting: isRunning,
+    requestDelete: request,
+    cancelDelete: cancel,
+    confirmDelete: confirm,
+  };
 }

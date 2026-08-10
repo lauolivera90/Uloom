@@ -5,6 +5,8 @@ import {
   updateWorkspace,
   deleteWorkspace as deleteWorkspaceIpc,
   updatePreferences,
+  clearMetadataCache as clearMetadataCacheIpc,
+  clearAllWorkspaces as clearAllWorkspacesIpc,
   SYSTEM_BROWSER,
 } from '../../entities/workspace/index.js';
 
@@ -29,6 +31,8 @@ import {
  *   updateTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteWorkspace: (workspaceId: string) => Promise<void>,
  *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
+ *   clearMetadataCache: () => Promise<number>,
+ *   clearAllWorkspaces: () => Promise<number>,
  * }}
  */
 export function useWorkspaceState() {
@@ -134,6 +138,41 @@ export function useWorkspaceState() {
     return saved;
   }, []);
 
+  const clearMetadataCachePersisted = useCallback(() => {
+    const task = writeChainRef.current.then(async () => {
+      const { cleared } = await clearMetadataCacheIpc();
+      const withoutFavicons = new Map(
+        [...latestByWorkspaceRef.current.entries()].map(([id, workspace]) => [
+          id,
+          {
+            ...workspace,
+            tabs: (workspace.tabs ?? []).map((tab) => {
+              const next = { ...tab };
+              delete next.favicon;
+              return next;
+            }),
+          },
+        ]),
+      );
+      latestByWorkspaceRef.current = withoutFavicons;
+      setWorkspaces([...withoutFavicons.values()]);
+      return cleared;
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
+  }, []);
+
+  const clearAllWorkspacesPersisted = useCallback(() => {
+    const task = writeChainRef.current.then(async () => {
+      const { deleted } = await clearAllWorkspacesIpc();
+      latestByWorkspaceRef.current = new Map();
+      setWorkspaces([]);
+      return deleted;
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
+  }, []);
+
   return {
     workspaces,
     preferences,
@@ -144,5 +183,7 @@ export function useWorkspaceState() {
     updateTab,
     deleteWorkspace,
     updatePreferences: updatePreferencesPersisted,
+    clearMetadataCache: clearMetadataCachePersisted,
+    clearAllWorkspaces: clearAllWorkspacesPersisted,
   };
 }

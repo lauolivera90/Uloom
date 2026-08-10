@@ -127,3 +127,29 @@ export async function updatePreferences(partial) {
   }
   return response.data;
 }
+
+/**
+ * Limpia la caché de metadatos web de todas las pestañas (favicons en
+ * `Tab.favicon`). Lanza si el main responde con error.
+ * @returns {Promise<{ cleared: number }>}
+ */
+export async function clearMetadataCache() {
+  const response = await window.uloomApi.clearMetadataCache();
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
+ * Elimina todas las sesiones preservando las preferencias globales. Lanza si el
+ * main responde con error.
+ * @returns {Promise<{ deleted: number }>}
+ */
+export async function clearAllWorkspaces() {
+  const response = await window.uloomApi.clearAllWorkspaces();
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}

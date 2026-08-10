@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.3.2)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.4.1)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -101,13 +101,15 @@ uloom/
 │   │   │   ├── browserHandler.js
 │   │   │   ├── preferencesHandler.js
 │   │   │   ├── pageHandler.js
-│   │   │   └── launcherHandler.js
+│   │   │   ├── launcherHandler.js
+│   │   │   └── portabilityHandler.js
 │   │   ├── services/              # Lógica de negocio (por dominio)
 │   │   │   ├── workspaceService.js
 │   │   │   ├── browserService.js
 │   │   │   ├── preferencesService.js
 │   │   │   ├── pageService.js
-│   │   │   └── launcherService.js
+│   │   │   ├── launcherService.js
+│   │   │   └── portabilityService.js
 │   │   └── data/                  # Persistencia (por dominio)
 │   │       ├── configStore.js          # Acceso al archivo (read/write/defaults)
 │   │       ├── workspaceRepository.js  # CRUD + normalización de workspaces

@@ -8,6 +8,8 @@ export {
   getSystemDefaultBrowser,
   updatePreferences,
   getPageMetadata,
+  clearMetadataCache,
+  clearAllWorkspaces,
 } from './workspaceIpcApi.js';
 export {
   WORKSPACE_ICONS,
@@ -30,4 +32,11 @@ export {
   ADD_TAB_LABEL,
   SAVE_CHANGES_LABEL,
   DELETE_TAB_LABEL,
+  EXPORT_LABEL,
+  IMPORT_LABEL,
+  IRREVERSIBLE_ACTION_HINT,
 } from './workspaceLabels.js';
+export {
+  exportWorkspace,
+  exportAll,
+} from './portabilityIpcApi.js';

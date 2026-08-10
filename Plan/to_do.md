@@ -103,11 +103,25 @@ Objetivo: unificar selectores y densidades de la interfaz.
 Objetivo: Permitir al usuario respaldar o compartir sus configuraciones de sesiones mediante archivos JSON.
 
 v0.4.1 Exportación
-[ ] Exportar Sesión Individual: Botón en la página de Detalle para descargar la sesión actual como archivo .json.
+[x] Exportar Sesión Individual: Botón en la página de Detalle (card "Exportar" debajo de la Configuración) para descargar la sesión actual como archivo .json (wrapper kind 'workspace', diálogo nativo de guardado).
 
-[ ] Exportar Todo: Botón en la página de Opciones para descargar un respaldo completo de todas las sesiones.
+[x] Exportar Todo: Botón en la página de Opciones (fila "Exportar todo" de Sesiones) para descargar un respaldo completo de todas las sesiones (wrapper kind 'backup', no incluye preferences).
+
+Limpieza y UX (ampliación de v0.4.1):
+[x] Borrar caché: opción en Configuración → Sesiones ("Borrar caché") que limpia la caché de metadatos web — favicons cacheados en `Tab.favicon` (data URLs). Canal `workspace:clearMetadataCache` (service/repository; responde `{ cleared }`); el estado global sincroniza tras la operación.
+
+[x] Eliminar todas las sesiones: acción de limpieza total del `config.json` (borrar todos los workspaces) desde Configuración, con `ConfirmDialog` de doble confirmación (dos diálogos secuenciales). Preserva `preferences` (canal `workspace:clearAll`).
+
+[x] Botón directo "Agregar sesión" en el Sidebar: abre el `WorkspaceFormModal` globalmente (hook `useWorkspaceFormModal` + `GlobalCreateWorkspace` en app/), sin pasar por el Hub. Decisión de modelo: **siempre usable** (persiste vía el estado global de la app, la sesión aparece en Hub/Detalle/Configuración desde cualquier ruta).
+
+[x] Botón de búsqueda en el header de Configuración: barra de búsqueda en el `PageHeader` que filtra **todas las opciones de la página** por título o descripción (data-driven `allOptions` en SettingsView; mientras hay query muestra coincidencias de ambas secciones y oculta las tabs de apartado).
 
 v0.4.2 Importación
 [ ] Importar Sesión/Sistema: Selector de archivos en Opciones para cargar un .json y reconstruir las sesiones en el config.json local.
 
 [ ] Sistema de Temas (Claro/Oscuro): Implementar el runtime del toggle — ThemeProvider + hook useTheme en app/shared, persistencia en localStorage (clave `uloom-theme`), default a `prefers-color-scheme`, y script anti-flash en el entry. Los tokens CSS (`--primary`, etc.) y su mapeo en Tailwind ya están definidos; queda pendiente solo el runtime, que depende del boot de React.
+
+v0.4.2 (ampliación) — Shell de la ventana
+[ ] Tamaño de ventana: setear en `src/main.js` (`BrowserWindow`) `width: 1100`, `height: 750`, `minWidth: 800` y `minHeight: 600` — impide que el usuario encoja la app por debajo de esos mínimos (hoy es 800×600 sin mínimos).
+
+[ ] Quitar el menú/toolbar nativo de Electron (File, Edit, View, Window, Help): ocultar/eliminar la barra de menú en `src/main.js` — `autoHideMenuBar: true` en el `BrowserWindow` (se esconde y reaparece con Alt) o `Menu.setApplicationMenu(null)` (se elimina por completo).

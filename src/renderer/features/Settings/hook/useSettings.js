@@ -25,6 +25,8 @@ export const SETTINGS_SECTION = {
  *   systemDefaultId: string | null,
  *   defaultBrowser: string,
  *   setDefaultBrowser: (value: string) => Promise<void>,
+ *   searchQuery: string,
+ *   setSearchQuery: (value: string) => void,
  * }}
  */
 export function useSettings() {
@@ -33,6 +35,7 @@ export function useSettings() {
   const { systemDefaultId } = useSystemDefaultBrowser();
   const [activeSection, setActiveSection] = useState(SETTINGS_SECTION.preferences);
   const [theme, setTheme] = useState('light');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -61,5 +64,7 @@ export function useSettings() {
     systemDefaultId,
     defaultBrowser,
     setDefaultBrowser,
+    searchQuery,
+    setSearchQuery,
   };
 }

@@ -10,6 +10,10 @@ const uloomApi = {
   updatePreferences: (preferences) => ipcRenderer.invoke('config:updatePreferences', preferences),
   getPageMetadata: (url) => ipcRenderer.invoke('page:metadata', url),
   launchWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:launch', workspaceId),
+  exportWorkspace: (workspaceId) => ipcRenderer.invoke('portability:exportWorkspace', workspaceId),
+  exportAll: () => ipcRenderer.invoke('portability:exportAll'),
+  clearMetadataCache: () => ipcRenderer.invoke('workspace:clearMetadataCache'),
+  clearAllWorkspaces: () => ipcRenderer.invoke('workspace:clearAll'),
 };
 
 if (process.contextIsolated) {

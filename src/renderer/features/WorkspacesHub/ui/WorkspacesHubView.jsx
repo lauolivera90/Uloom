@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Page, PageHeader } from '../../../widgets/index.js';
-import { useWorkspaceForm, WorkspaceFormModal, useLaunchWorkspace, useTabForm, TabFormModal } from '../../../entities/workspace/index.js';
+import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, TabFormModal } from '../../../entities/workspace/index.js';
 import { useWorkspacesHub } from '../hook/index.js';
 import { WorkspaceGrid } from './WorkspaceGrid.jsx';
 
@@ -12,39 +12,16 @@ import { WorkspaceGrid } from './WorkspaceGrid.jsx';
  */
 export function WorkspacesHubView() {
   const navigate = useNavigate();
-  const {
-    workspaces,
-    isCreateOpen,
-    openCreate,
-    closeCreate,
-    isCreating,
-    createWorkspace,
-    tabModal,
-    openAddTab,
-  } = useWorkspacesHub();
+  const { workspaces, createModal, tabModal, openAddTab } = useWorkspacesHub();
 
-  const handleCreate = useCallback(
-    async (workspace) => {
-      await createWorkspace(workspace);
-      closeCreate();
-    },
-    [createWorkspace, closeCreate],
-  );
-
-  const form = useWorkspaceForm({ initialWorkspace: null, onSubmit: handleCreate });
-  const { reset } = form;
   const tabForm = useTabForm({ initialTab: null, onSubmit: tabModal.onSubmitTab });
   const { reset: resetTabForm } = tabForm;
-
-  const handleCancel = useCallback(() => {
-    reset();
-    closeCreate();
-  }, [reset, closeCreate]);
+  const { close: closeTabModal } = tabModal;
 
   const handleCancelTab = useCallback(() => {
     resetTabForm();
-    tabModal.close();
-  }, [resetTabForm, tabModal]);
+    closeTabModal();
+  }, [resetTabForm, closeTabModal]);
 
   const handleOpenWorkspace = useCallback(
     (workspaceId) => {
@@ -67,12 +44,17 @@ export function WorkspacesHubView() {
       <PageHeader title="Sesiones" description="Elegí una sesión para abrirla o creá una nueva." />
       <WorkspaceGrid
         workspaces={workspaces}
-        onCreate={openCreate}
+        onCreate={createModal.open}
         onOpen={handleOpenWorkspace}
         onPlay={handlePlay}
         onAddTab={openAddTab}
       />
-      <WorkspaceFormModal isOpen={isCreateOpen} isSaving={isCreating} form={form} onCancel={handleCancel} />
+      <WorkspaceFormModal
+        isOpen={createModal.isOpen}
+        isSaving={createModal.isSaving}
+        form={createModal.form}
+        onCancel={createModal.close}
+      />
       <TabFormModal
         isOpen={tabModal.isOpen}
         isSaving={tabModal.isSaving}

@@ -96,3 +96,42 @@ export function deleteWorkspace(workspaceId) {
   config.workspaces.splice(index, 1);
   writeConfig(config);
 }
+
+/**
+ * Limpia la caché de metadatos web de todas las pestañas: elimina el favicon
+ * cacheado (`Tab.favicon`, data URL del fetch de `page:metadata`) de cada tab.
+ * Devuelve la cantidad de favicons removidos.
+ * @returns {number}
+ */
+export function clearMetadataCache() {
+  const config = readConfig();
+  let cleared = 0;
+  config.workspaces = config.workspaces.map((workspace) => ({
+    ...workspace,
+    tabs: workspace.tabs.map((tab) => {
+      if (tab.favicon) {
+        cleared += 1;
+        const next = { ...tab };
+        delete next.favicon;
+        return next;
+      }
+      return tab;
+    }),
+  }));
+  writeConfig(config);
+  return cleared;
+}
+
+/**
+ * Elimina todas las sesiones del archivo de configuración preservando las
+ * `preferences` globales (el navegador predeterminado queda intacto).
+ * Devuelve la cantidad de workspaces removidos.
+ * @returns {number}
+ */
+export function deleteAllWorkspaces() {
+  const config = readConfig();
+  const deleted = config.workspaces.length;
+  config.workspaces = [];
+  writeConfig(config);
+  return deleted;
+}

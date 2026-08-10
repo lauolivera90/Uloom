@@ -1,14 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
-import { useWorkspaceForm } from '../../../entities/workspace/index.js';
+import { useWorkspaceFormModal } from '../../../entities/workspace/index.js';
 
 /**
  * Estado del modal de edición de sesión en el Detalle: apertura/cierre y la
  * persistencia a través del líder único de escritura (mergea solo name/description/
- * icon sobre el workspace existente, preservando tabs/openBehavior/browser). El
- * form lo aporta el hook genérico de entities (`useWorkspaceForm`), precargado
- * con el workspace actual. `open` resetea el form para que cada reapertura
- * re-inicialice desde el workspace vigente (evita quedar una edición atrás).
+ * icon sobre el workspace existente, preservando tabs/openBehavior/browser). La
+ * máquina del modal la aporta el hook genérico `useWorkspaceFormModal`
+ * (entities, rules.md §4), precargado con el workspace actual.
  * @param {import('../../../shared/types.js').Workspace | null} workspace
  * @returns {{
  *   form: import('../../../entities/workspace/hook/useWorkspaceForm.js').WorkspaceFormState,
@@ -21,34 +20,16 @@ import { useWorkspaceForm } from '../../../entities/workspace/index.js';
  */
 export function useWorkspaceEdit(workspace) {
   const { mutateWorkspace } = useWorkspaces();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = useCallback(
     async (data) => {
       if (!workspace) return;
-      setIsSaving(true);
-      try {
-        await mutateWorkspace(workspace.id, (current) => ({ ...current, ...data }));
-        setIsOpen(false);
-      } finally {
-        setIsSaving(false);
-      }
+      await mutateWorkspace(workspace.id, (current) => ({ ...current, ...data }));
     },
     [workspace, mutateWorkspace],
   );
 
-  const form = useWorkspaceForm({ initialWorkspace: workspace, onSubmit: handleSubmit });
-  const { reset } = form;
+  const modal = useWorkspaceFormModal({ workspace, onSubmit: handleSubmit });
 
-  const open = useCallback(() => {
-    reset();
-    setIsOpen(true);
-  }, [reset]);
-  const close = useCallback(() => {
-    reset();
-    setIsOpen(false);
-  }, [reset]);
-
-  return { form, isOpen, isEditing: workspace !== null, isSaving, open, close };
+  return { ...modal, isEditing: workspace !== null };
 }

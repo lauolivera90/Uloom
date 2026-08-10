@@ -3,6 +3,7 @@ import { registerBrowserHandlers } from './browserHandler.js';
 import { registerPreferencesHandlers } from './preferencesHandler.js';
 import { registerPageHandlers } from './pageHandler.js';
 import { registerLauncherHandlers } from './launcherHandler.js';
+import { registerPortabilityHandlers } from './portabilityHandler.js';
 
 /**
  * Registra todos los handlers de IPC del proceso main, agrupados por dominio.
@@ -14,4 +15,5 @@ export function registerIpcHandlers() {
   registerPreferencesHandlers();
   registerPageHandlers();
   registerLauncherHandlers();
+  registerPortabilityHandlers();
 }

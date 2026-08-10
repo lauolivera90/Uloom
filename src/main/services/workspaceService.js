@@ -4,6 +4,8 @@ import {
   addWorkspace,
   updateWorkspace as updateWorkspaceInRepository,
   deleteWorkspace as deleteWorkspaceInRepository,
+  clearMetadataCache as clearMetadataCacheInRepository,
+  deleteAllWorkspaces as deleteAllWorkspacesInRepository,
 } from '../data/workspaceRepository.js';
 
 /**
@@ -51,4 +53,22 @@ export function updateWorkspace(nextWorkspace) {
  */
 export function deleteWorkspace(workspaceId) {
   return deleteWorkspaceInRepository(workspaceId);
+}
+
+/**
+ * Limpia la caché de metadatos web de todas las pestañas (favicons en
+ * `Tab.favicon`). Delega en el repositorio y devuelve la cantidad removida.
+ * @returns {number}
+ */
+export function clearMetadataCache() {
+  return clearMetadataCacheInRepository();
+}
+
+/**
+ * Elimina todas las sesiones preservando las preferencias globales. Delega en el
+ * repositorio y devuelve la cantidad de workspaces removidos.
+ * @returns {number}
+ */
+export function deleteAllWorkspaces() {
+  return deleteAllWorkspacesInRepository();
 }

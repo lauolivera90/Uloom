@@ -1,10 +1,18 @@
 import { ipcMain } from 'electron';
-import { getConfig, createWorkspace, updateWorkspace, deleteWorkspace } from '../services/workspaceService.js';
+import {
+  getConfig,
+  createWorkspace,
+  updateWorkspace,
+  deleteWorkspace,
+  clearMetadataCache,
+  deleteAllWorkspaces,
+} from '../services/workspaceService.js';
 
 /**
  * Registra los canales del dominio workspace: lectura de la configuración completa
- * (`config:get`) y CRUD de sesiones (`workspace:create`, `workspace:update`,
- * `workspace:delete`). Todo handler envuelve en try/catch y responde con la forma
+ * (`config:get`), CRUD de sesiones (`workspace:create`, `workspace:update`,
+ * `workspace:delete`) y limpieza (`workspace:clearMetadataCache`,
+ * `workspace:clearAll`). Todo handler envuelve en try/catch y responde con la forma
  * { success, data, error }.
  */
 export function registerWorkspaceHandlers() {
@@ -39,6 +47,24 @@ export function registerWorkspaceHandlers() {
     try {
       deleteWorkspace(workspaceId);
       return { success: true, data: null, error: null };
+    } catch (error) {
+      return { success: false, data: null, error: error.message };
+    }
+  });
+
+  ipcMain.handle('workspace:clearMetadataCache', () => {
+    try {
+      const cleared = clearMetadataCache();
+      return { success: true, data: { cleared }, error: null };
+    } catch (error) {
+      return { success: false, data: null, error: error.message };
+    }
+  });
+
+  ipcMain.handle('workspace:clearAll', () => {
+    try {
+      const deleted = deleteAllWorkspaces();
+      return { success: true, data: { deleted }, error: null };
     } catch (error) {
       return { success: false, data: null, error: error.message };
     }

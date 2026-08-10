@@ -16,6 +16,8 @@ const WorkspaceContext = createContext(null);
  *   updateTab: (workspaceId: string, tab: import('../shared/types.js').Tab) => Promise<import('../shared/types.js').Workspace>,
  *   deleteWorkspace: (workspaceId: string) => Promise<void>,
  *   updatePreferences: (partial: Partial<import('../shared/types.js').Preferences>) => Promise<import('../shared/types.js').Preferences>,
+ *   clearMetadataCache: () => Promise<number>,
+ *   clearAllWorkspaces: () => Promise<number>,
  * }}
  */
 export function useWorkspaces() {

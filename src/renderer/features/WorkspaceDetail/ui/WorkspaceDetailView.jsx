@@ -8,10 +8,11 @@ import {
   PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
-import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL } from '../../../entities/workspace/index.js';
+import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
 import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
+import { WorkspaceExportCard } from './WorkspaceExportCard.jsx';
 import { useWorkspaces } from '../../../app/index.js';
 
 const BACK_TO_HUB_LABEL = 'Volver al Hub';
@@ -40,7 +41,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   });
   const tabForm = useTabForm({ initialTab: isOpen ? editingTab : null, onSubmit: onSubmitTab });
   const { reset: resetTabForm } = tabForm;
-  const { target, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(workspace?.id);
+  const { target: deleteTabTarget, isOpen: isDeleteTabOpen, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(workspace?.id);
   const {
     isConfirmOpen: isDeleteConfirmOpen,
     isDeleting: isDeletingWorkspace,
@@ -51,6 +52,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   const workspaceEdit = useWorkspaceEdit(workspace);
   const browserConfig = useSessionConfig(workspace?.id, workspace);
   const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
+  const { isExporting, exportSession } = useExportWorkspace(workspace?.id);
 
   const handleCancelTab = () => {
     resetTabForm();
@@ -112,7 +114,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)_40rem] items-start gap-6">
-        <section>
+        <section className="flex flex-col gap-6">
           <Card
             header={
               <ResourceCardHeader title="Administrador de recursos" icon="tab">
@@ -127,7 +129,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
             <TabList tabs={workspace.tabs ?? []} onAddTab={openAdd} onEdit={openEdit} onDelete={requestDelete} />
           </Card>
         </section>
-        <section>
+        <section className="flex flex-col gap-6">
           <Card
             header={<ResourceCardHeader title="Configuración" icon="settings" />}
             headerClassName="bg-accent/10"
@@ -145,6 +147,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
               error={browserConfig.error}
             />
           </Card>
+          <WorkspaceExportCard isExporting={isExporting} onExport={exportSession} />
         </section>
       </div>
 
@@ -163,9 +166,9 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         onCancel={workspaceEdit.close}
       />
       <ConfirmDialog
-        isOpen={target !== null}
+        isOpen={isDeleteTabOpen}
         title={DELETE_TAB_LABEL}
-        description={`¿Eliminar "${target?.name ?? ''}" de esta sesión?`}
+        description={`¿Eliminar "${deleteTabTarget?.name ?? ''}" de esta sesión?`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="danger"
@@ -176,7 +179,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       <ConfirmDialog
         isOpen={isDeleteConfirmOpen}
         title="Eliminar sesión"
-        description={`¿Eliminar "${workspace.name}" y todas sus pestañas? Esta acción no se puede deshacer.`}
+        description={`¿Eliminar "${workspace.name}" y todas sus pestañas? ${IRREVERSIBLE_ACTION_HINT}`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="danger"
