@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useWorkspaces } from '../../../app/index.js';
+import { useWorkspaces, useTheme } from '../../../app/index.js';
 import { useInstalledBrowsers, useSystemDefaultBrowser, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
 
 /**
@@ -11,10 +11,10 @@ export const SETTINGS_SECTION = {
 };
 
 /**
- * Estado de Configuración: sección activa, tema (día/noche) ilustrado y el
- * navegador predeterminado GLOBAL, que sí es funcional — persiste en las
- * preferencias de la app y lo heredan las sesiones "Predeterminado". El tema
- * sigue siendo maqueta (el runtime llega en una fase futura).
+ * Estado de Configuración: sección activa, el tema global (día/noche, funcional
+ * vía `useTheme` con persistencia en localStorage) y el navegador predeterminado
+ * GLOBAL, que también es funcional — persiste en las preferencias de la app y lo
+ * heredan las sesiones "Predeterminado".
  * @returns {{
  *   activeSection: string,
  *   setActiveSection: (section: string) => void,
@@ -31,15 +31,11 @@ export const SETTINGS_SECTION = {
  */
 export function useSettings() {
   const { preferences, updatePreferences } = useWorkspaces();
+  const { theme, toggleTheme } = useTheme();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
   const { systemDefaultId } = useSystemDefaultBrowser();
   const [activeSection, setActiveSection] = useState(SETTINGS_SECTION.preferences);
-  const [theme, setTheme] = useState('light');
   const [searchQuery, setSearchQuery] = useState('');
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  }, []);
 
   const defaultBrowser = preferences?.defaultBrowser ?? SYSTEM_BROWSER;
 

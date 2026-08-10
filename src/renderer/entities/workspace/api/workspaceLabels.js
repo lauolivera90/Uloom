@@ -16,7 +16,7 @@ export const DELETE_TAB_LABEL = 'Eliminar pestaña';
 /** Acción de bajar una sesión o el respaldo completo como archivo `.json`. */
 export const EXPORT_LABEL = 'Exportar';
 
-/** Acción de importar sesiones desde un archivo `.json` (placeholder en v0.4.1). */
+/** Acción de importar sesiones desde un archivo `.json`. */
 export const IMPORT_LABEL = 'Importar';
 
 /** Advertencia de que una acción destructiva no se puede deshacer. */

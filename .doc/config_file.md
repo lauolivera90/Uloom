@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.4.1)
+# config.json — Estructura (v0.4.2)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
 
@@ -6,7 +6,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.4.1'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.4.2'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
 
@@ -42,7 +42,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 ```json
 {
-  "version": "0.4.1",
+  "version": "0.4.2",
   "preferences": {
     "defaultBrowser": "system"
   },
@@ -102,6 +102,17 @@ Los archivos exportados (sesión individual o respaldo completo) son **un artefa
 
 - Nombres sugeridos: sesión individual → `<slug-del-nombre>.json`; respaldo completo → `uloom-backup-YYYY-MM-DD.json`.
 - El respaldo **no incluye `preferences`**: solo sesiones.
+
+## Importación de sesiones (.json, v0.4.2)
+
+El flujo inverso (`portability:import`) abre el diálogo nativo de apertura, valida el wrapper exportado y reconstruye el catálogo local. Reglas:
+
+- **Validación del archivo:** debe tener `app: 'uloom'`, `kind` en `workspace | backup`, `schemaVersion` como string y `data` como array de workspaces con `name` string. Cualquier otro archivo se rechaza con `{ success: false }` y no toca el `config.json`.
+- **Semántica por `kind`:**
+  - `workspace` (sesión individual) → **agrega** la sesión al catálogo actual sin modificar lo existente. Si el id importado colisiona con una sesión local, el importado recibe un `id` nuevo (randomUUID) — nunca pisa una sesión del usuario.
+  - `backup` (respaldo completo) → **reemplaza** el catálogo completo por las sesiones importadas, preservando `preferences` (el navegador predeterminado global queda intacto).
+- Los workspaces importados se **normalizan** al persistir (tabs array, `openBehavior` y `browser` con defaults) igual que cualquier lectura.
+- Cancelar el diálogo de apertura no es un error: devuelve `{ canceled: true }` y no toca el `config.json`.
 
 ## Tipos centralizados
 

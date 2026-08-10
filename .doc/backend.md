@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.4.1)
+# Backend — Arquitectura (v0.4.2)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,7 +7,7 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1):
+API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 - `uloomApi.createWorkspace(input)` → invoca el canal `workspace:create`.
 - `uloomApi.updateWorkspace(workspace)` → invoca el canal `workspace:update`.
@@ -21,14 +21,15 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 - `uloomApi.exportAll()` → invoca el canal `portability:exportAll`. Respaldo completo de todas las sesiones; resuelve `{ canceled, filePath }`.
 - `uloomApi.clearMetadataCache()` → invoca el canal `workspace:clearMetadataCache`. Resuelve `{ cleared }`.
 - `uloomApi.clearAllWorkspaces()` → invoca el canal `workspace:clearAll`. Vacía `workspaces` preservando `preferences`; resuelve `{ deleted }`.
+- `uloomApi.importFromFile()` → invoca el canal `portability:import`. Abre el diálogo de apertura, valida el `.json` y reconstruye sesiones; resuelve `{ canceled, imported }`.
 
 ### 2. `src/main/ipc/` (Controladores)
-`registerIpcHandlers()` (en `ipc/index.js`) delega el registro en handlers por dominio: `workspaceHandler.js` (canales del dominio workspace), `browserHandler.js`, `preferencesHandler.js`, `pageHandler.js`, `launcherHandler.js` y `portabilityHandler.js` (exportación). Todo handler:
+`registerIpcHandlers()` (en `ipc/index.js`) delega el registro en handlers por dominio: `workspaceHandler.js` (canales del dominio workspace), `browserHandler.js`, `preferencesHandler.js`, `pageHandler.js`, `launcherHandler.js` y `portabilityHandler.js` (exportación e importación). Todo handler:
 - Llama al servicio correspondiente.
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`).
 
-Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1):
+Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |
@@ -44,10 +45,11 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 | `config:updatePreferences` | `Partial<Preferences>` | `Preferences` (merge persistido) |
 | `portability:exportWorkspace` | `workspaceId` | `{ canceled: boolean, filePath?: string }` |
 | `portability:exportAll` | — | `{ canceled: boolean, filePath?: string }` |
+| `portability:import` | — | `{ canceled: boolean, imported?: Workspace[] }` — lista final del catálogo persistido |
 
 ### 3. `src/main/services/` (Lógica de Negocio)
 - `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `updateWorkspace()` (delega; update estricto), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
-- `portabilityService.js` (nuevo en v0.4.1): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error.
+- `portabilityService.js` (nuevo en v0.4.1, + import en v0.4.2): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error. `importFromFile()` — abre `dialog.showOpenDialog` (filtro `.json`, cancel ≠ error → `{ canceled: true }`), lee y valida el wrapper (`app: 'uloom'`, `kind` en `workspace|backup`, `schemaVersion` string, `data` array de workspaces con `name` string), normaliza cada sesión y delega la escritura en `workspaceRepository.importWorkspaces` con `replace: kind === 'backup'`. Devuelve `{ canceled, imported }` (lista final persistida).
 - `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre cada `tab.url`. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`), pasando la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) cuando `openBehavior === 'new-window'`, o solo la URL en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` (único caso sin control de ventana nueva). Devuelve `{ opened, failed }`; lanza solo ante errores estructurales (sesión inexistente o navegador configurado no instalado). Los fallos de spawn por URL se cuentan, no abortan el lote.
 - `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn. `resolveSystemBrowser()` — **resolución única y compartida** del navegador predeterminado del SO (`app.getApplicationInfoForProtocol('https:')`): devuelve `{ id, name, path }` con `id: null` si el default no es del catálogo (mapeo por basename del ejecutable), o `null` si no es Windows o no se pudo resolver. Lo usan el launcher (spawn) y la UI. `getSystemDefaultBrowser()` — envuelve `resolveSystemBrowser()` y devuelve `{ id, name }` del catálogo o `null` (para el ícono del selector).
 - `preferencesService.js`: `getPreferences()` y `updatePreferences(partial)` (merge parcial, delega en el repositorio).
@@ -55,7 +57,7 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 
 ### 4. `src/main/data/` (Repositorios)
 - `configStore.js`: única capa que toca el archivo. `readConfig()` valida la raíz (existencia, `workspaces` array, corrupción → default) y normaliza `preferences`; los workspaces pasan **crudos** (la normalización de la entidad vive en su repositorio). Expone también `writeConfig()`, `normalizePreferences()` y `defaultConfig()`/`APP_VERSION` (versión del esquema).
-- `workspaceRepository.js`: dueño de la entidad workspace. `normalizeWorkspace()` (rellena `tabs` como array, `openBehavior: 'active-tab'` y `browser: null` — migración de configs viejas), `getConfig()` (config completa con workspaces normalizados), `readWorkspaces()`, `getWorkspaceById()` (lectura estricta, usado por el Launcher), `addWorkspace()`, `updateWorkspace()` (update estricto), `deleteWorkspace()` (baja estricta), `clearMetadataCache()` (remueve `Tab.favicon` de todas las pestañas y persiste; devuelve la cantidad) y `deleteAllWorkspaces()` (vacía `workspaces` preservando `preferences`; devuelve la cantidad).
+- `workspaceRepository.js`: dueño de la entidad workspace. `normalizeWorkspace()` (rellena `tabs` como array, `openBehavior: 'active-tab'` y `browser: null` — migración de configs viejas), `getConfig()` (config completa con workspaces normalizados), `readWorkspaces()`, `getWorkspaceById()` (lectura estricta, usado por el Launcher), `addWorkspace()`, `updateWorkspace()` (update estricto), `deleteWorkspace()` (baja estricta), `clearMetadataCache()` (remueve `Tab.favicon` de todas las pestañas y persiste; devuelve la cantidad), `deleteAllWorkspaces()` (vacía `workspaces` preservando `preferences`; devuelve la cantidad) e `importWorkspaces(workspaces, { replace })` (v0.4.2: normaliza la lista; con `replace: true` deja las sesiones locales fuera — restauración de respaldo, preserva `preferences`; con `replace: false` agrega las importadas regenarando el id de las que colisionen con una sesión local; persiste y devuelve la lista final).
 - `preferencesRepository.js`: `getPreferences()` y `updatePreferences(partial)` — merge parcial de preferencias sobre las existentes y reescritura del `config.json`.
 
 ## Flujos
@@ -117,7 +119,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
 - `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
-- `portabilityIpcApi.js` (nuevo en v0.4.1): `exportWorkspace(workspaceId)` y `exportAll()` — misma conversión de `{ success: false }` en throw; devuelven `{ canceled, filePath }` (cancelar el diálogo no es un error).
+- `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error).
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `OPEN_BEHAVIORS`, `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL` y `getBrowserNameById`.
 - `index.js` es el barrel (exporta toda la API y catálogos).
@@ -181,6 +183,25 @@ Detalle: useExportWorkspace.exportSession()   /   Configuración: usePortability
    → { canceled, filePath } (cancel ≠ error; `canceled: true`)
 ```
 El renderer solo dispara la acción y loguea errores con `console.error`; el diálogo nativo vive en el proceso main.
+
+### Importar sesiones (`portability:import`, v0.4.2)
+```
+Configuración → Sesiones: usePortability.importSessions
+   → useWorkspaces.importWorkspaces (serializado en writeChainRef del estado global)
+   → entities/workspace/api/portabilityIpcApi.importFromFile
+   → preload → ipc 'portability:import' → portabilityHandler
+   → portabilityService.importFromFile()
+        → dialog.showOpenDialog (filtro .json; cancel ≠ error → { canceled: true })
+        → lee el archivo y valida el wrapper (app 'uloom', kind workspace|backup,
+          schemaVersion string, data array de workspaces con name)
+        → workspaceRepository.importWorkspaces(workspaces, { replace: kind === 'backup' })
+             → replace: catálogo = lista importada (restauración de respaldo, preserva preferences)
+             → append: agrega las importadas; id colisionante → randomUUID nuevo
+        → { canceled, imported } (lista final persistida)
+   → éxito: useWorkspaceState rehidrata el catálogo y el ref de última escritura con `imported`
+   → error de validación del archivo: { success: false } → throw → console.error en la vista
+```
+Semántica por `kind`: `workspace` (sesión individual) **agrega** sin tocar lo existente; `backup` (respaldo completo) **reemplaza** todas las sesiones locales preservando `preferences`.
 
 ### Limpieza (v0.4.1)
 ```

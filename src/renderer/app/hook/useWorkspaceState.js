@@ -7,8 +7,22 @@ import {
   updatePreferences,
   clearMetadataCache as clearMetadataCacheIpc,
   clearAllWorkspaces as clearAllWorkspacesIpc,
+  importFromFile as importFromFileIpc,
   SYSTEM_BROWSER,
 } from '../../entities/workspace/index.js';
+
+/**
+ * Reemplaza el catálogo del estado global a partir de una lista persistida y
+ * reconstruye el ref de última escritura por id. Lo usan el load inicial y la
+ * importación de sesiones (que ya devuelve la lista final desde el main).
+ * @param {import('react').Dispatch<import('react').SetStateAction<import('../../shared/types.js').Workspace[]>>} setWorkspaces
+ * @param {import('react').MutableRefObject<Map<string, import('../../shared/types.js').Workspace>>} latestByWorkspaceRef
+ * @param {import('../../shared/types.js').Workspace[]} workspaceList
+ */
+function hydrateCatalog(setWorkspaces, latestByWorkspaceRef, workspaceList) {
+  setWorkspaces(workspaceList);
+  latestByWorkspaceRef.current = new Map(workspaceList.map((workspace) => [workspace.id, workspace]));
+}
 
 /**
  * Estado de la lista de sesiones y preferencias globales compartidos por la app,
@@ -33,6 +47,7 @@ import {
  *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
  *   clearMetadataCache: () => Promise<number>,
  *   clearAllWorkspaces: () => Promise<number>,
+ *   importWorkspaces: () => Promise<{ imported: number }>,
  * }}
  */
 export function useWorkspaceState() {
@@ -52,11 +67,8 @@ export function useWorkspaceState() {
       try {
         const config = await getConfig();
         if (!cancelled) {
-          setWorkspaces(config.workspaces ?? []);
           setPreferences(config.preferences ?? { defaultBrowser: SYSTEM_BROWSER });
-          latestByWorkspaceRef.current = new Map(
-            (config.workspaces ?? []).map((workspace) => [workspace.id, workspace]),
-          );
+          hydrateCatalog(setWorkspaces, latestByWorkspaceRef, config.workspaces ?? []);
         }
       } catch (error) {
         console.error(error);
@@ -173,6 +185,19 @@ export function useWorkspaceState() {
     return task;
   }, []);
 
+  const importWorkspacesFromFile = useCallback(() => {
+    const task = writeChainRef.current.then(async () => {
+      const { canceled, imported } = await importFromFileIpc();
+      if (canceled || !imported) {
+        return { imported: 0 };
+      }
+      hydrateCatalog(setWorkspaces, latestByWorkspaceRef, imported);
+      return { imported: imported.length };
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
+  }, []);
+
   return {
     workspaces,
     preferences,
@@ -185,5 +210,6 @@ export function useWorkspaceState() {
     updatePreferences: updatePreferencesPersisted,
     clearMetadataCache: clearMetadataCachePersisted,
     clearAllWorkspaces: clearAllWorkspacesPersisted,
+    importWorkspaces: importWorkspacesFromFile,
   };
 }

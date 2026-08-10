@@ -27,9 +27,9 @@ const SECTIONS = [
  * Página de Configuración: navegador de apartados (Preferencias / Sesiones) con
  * las opciones como datos (`allOptions`) y un buscador en el header que filtra
  * TODAS las opciones de la página por título o descripción, sin importar la
- * sección activa. El navegador predeterminado y las acciones de Sesiones
- * (exportar todo, borrar caché y eliminar todas las sesiones) son funcionales;
- * el tema sigue siendo maqueta (runtime en v0.4.2) y el import es placeholder.
+ * sección activa. El tema (toggle global con runtime), el navegador
+ * predeterminado y las acciones de Sesiones (importar, exportar todo, borrar
+ * caché y eliminar todas las sesiones) son funcionales.
  */
 export function SettingsView() {
   const {
@@ -46,6 +46,8 @@ export function SettingsView() {
     setSearchQuery,
   } = useSettings();
   const {
+    isImporting,
+    importSessions,
     isExportingAll,
     exportAll,
     isClearingCache,
@@ -113,7 +115,11 @@ export function SettingsView() {
       key: 'import',
       label: 'Importar',
       description: 'Carga un archivo `.json` y reconstruye tus sesiones.',
-      control: <Button variant="outline" icon="upload">{IMPORT_LABEL}</Button>,
+      control: (
+        <Button variant="outline" icon="upload" disabled={isImporting} onClick={importSessions}>
+          {IMPORT_LABEL}
+        </Button>
+      ),
     },
     {
       section: SETTINGS_SECTION.sessions,

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readConfig, writeConfig } from './configStore.js';
 
 /**
@@ -134,4 +135,40 @@ export function deleteAllWorkspaces() {
   config.workspaces = [];
   writeConfig(config);
   return deleted;
+}
+
+/**
+ * Importa sesiones al catálogo local a partir de una lista ya validada por el
+ * service de portabilidad. Con `replace: true` (restauración de respaldo) deja
+ * las sesiones locales fuera y escribe como catálogo la lista importada,
+ * preservando `preferences`. Con `replace: false` (sesión individual) agrega las
+ * sesiones importadas a las existentes, regenerando el id de cualquier importada
+ * que colisione con una sesión local (nunca pisa una sesión del usuario).
+ * Devuelve la lista final persistida.
+ * @param {import('../../renderer/shared/types.js').Workspace[]} workspaces
+ * @param {{ replace: boolean }} options Si `true`, reemplaza el catálogo; si no, agrega.
+ * @returns {import('../../renderer/shared/types.js').Workspace[]}
+ */
+export function importWorkspaces(workspaces, { replace }) {
+  const config = readConfig();
+  const imported = workspaces.map(normalizeWorkspace);
+
+  if (replace) {
+    config.workspaces = imported;
+  } else {
+    const existingIds = new Set(config.workspaces.map((workspace) => workspace.id));
+    const merged = imported.map((workspace) => {
+      if (!existingIds.has(workspace.id)) {
+        existingIds.add(workspace.id);
+        return workspace;
+      }
+      const fresh = { ...workspace, id: randomUUID() };
+      existingIds.add(fresh.id);
+      return fresh;
+    });
+    config.workspaces.push(...merged);
+  }
+
+  writeConfig(config);
+  return replace ? imported : config.workspaces;
 }

@@ -39,4 +39,5 @@ export {
 export {
   exportWorkspace,
   exportAll,
+  importFromFile,
 } from './portabilityIpcApi.js';

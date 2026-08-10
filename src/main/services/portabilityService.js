@@ -1,6 +1,10 @@
 import { dialog } from 'electron';
 import fs from 'node:fs';
-import { getConfig, getWorkspaceById } from '../data/workspaceRepository.js';
+import {
+  getConfig,
+  getWorkspaceById,
+  importWorkspaces,
+} from '../data/workspaceRepository.js';
 
 const APP_ID = 'uloom';
 const SCHEMA_VERSION = '0.4.1';
@@ -73,8 +77,8 @@ export async function exportWorkspace(workspaceId) {
 
 /**
  * Exporta un respaldo completo de todas las sesiones a un archivo `.json`
- * (wrapper kind 'backup'). No incluye `preferences` (el import de v0.4.2
- * reconstruye sesiones).
+ * (wrapper kind 'backup'). No incluye `preferences` (el import reconstruye
+ * sesiones).
  * @returns {Promise<{ canceled: boolean, filePath?: string }>}
  */
 export async function exportAll() {
@@ -83,4 +87,61 @@ export async function exportAll() {
   const today = new Date().toISOString().slice(0, 10);
   const defaultPath = `uloom-backup-${today}.json`;
   return saveJsonToDisk(payload, defaultPath, 'Exportar todo');
+}
+
+/**
+ * Valida el contenido de un archivo de portabilidad: debe ser un JSON con el
+ * wrapper de Uloom (`app: 'uloom'`, `kind: 'workspace' | 'backup'`,
+ * `schemaVersion` string) y `data` como array de workspaces con `name` string.
+ * Los workspaces se normalizan (tabs/openBehavior/browser) antes de persistir.
+ * @param {string} raw Contenido crudo del archivo seleccionado.
+ * @returns {{ kind: 'workspace' | 'backup', workspaces: import('../../renderer/shared/types.js').Workspace[] }}
+ */
+function parseImportPayload(raw) {
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    throw new Error('El archivo no es un JSON válido');
+  }
+
+  if (!payload || payload.app !== APP_ID) {
+    throw new Error('No es un archivo de sesiones de Uloom');
+  }
+  if (payload.kind !== 'workspace' && payload.kind !== 'backup') {
+    throw new Error('Tipo de archivo no reconocido (se espera workspace o backup)');
+  }
+  if (typeof payload.schemaVersion !== 'string') {
+    throw new Error('El archivo no indica una versión de esquema válida');
+  }
+  if (!Array.isArray(payload.data) || payload.data.some((item) => !item || typeof item.name !== 'string')) {
+    throw new Error('El archivo no contiene sesiones válidas');
+  }
+
+  return { kind: payload.kind, workspaces: payload.data };
+}
+
+/**
+ * Importa sesiones desde un archivo `.json` elegido con el diálogo nativo de
+ * apertura. Un `kind: 'workspace'` (sesión individual) agrega la sesión al
+ * catálogo sin tocar lo existente; un `kind: 'backup'` (respaldo completo)
+ * reemplaza todas las sesiones locales preservando `preferences`. Devuelve
+ * `{ canceled, imported }` con la lista final persistida; cancelar el diálogo
+ * no es un error. Si el archivo no es un wrapper de Uloom válido, lanza.
+ * @returns {Promise<{ canceled: boolean, imported?: import('../../renderer/shared/types.js').Workspace[] }>}
+ */
+export async function importFromFile() {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    title: 'Importar sesiones',
+    properties: ['openFile'],
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  });
+  if (canceled || filePaths.length === 0) {
+    return { canceled: true };
+  }
+
+  const raw = fs.readFileSync(filePaths[0], 'utf-8');
+  const { kind, workspaces } = parseImportPayload(raw);
+  const imported = importWorkspaces(workspaces, { replace: kind === 'backup' });
+  return { canceled: false, imported };
 }

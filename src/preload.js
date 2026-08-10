@@ -12,6 +12,7 @@ const uloomApi = {
   launchWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:launch', workspaceId),
   exportWorkspace: (workspaceId) => ipcRenderer.invoke('portability:exportWorkspace', workspaceId),
   exportAll: () => ipcRenderer.invoke('portability:exportAll'),
+  importFromFile: () => ipcRenderer.invoke('portability:import'),
   clearMetadataCache: () => ipcRenderer.invoke('workspace:clearMetadataCache'),
   clearAllWorkspaces: () => ipcRenderer.invoke('workspace:clearAll'),
 };

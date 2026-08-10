@@ -25,6 +25,7 @@ export {
   buildBrowserOptions,
   exportWorkspace,
   exportAll,
+  importFromFile,
   clearMetadataCache,
   clearAllWorkspaces,
 } from './api/index.js';

@@ -1,6 +1,12 @@
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { WorkspacesHub, WorkspaceDetail, Settings } from '../pages/index.js';
-import { WorkspaceProvider, useSidebar, useWorkspaces, GlobalCreateWorkspace } from './index.js';
+import {
+  WorkspaceProvider,
+  ThemeProvider,
+  useSidebar,
+  useWorkspaces,
+  GlobalCreateWorkspace,
+} from './index.js';
 import { useWorkspaceFormModal } from '../entities/workspace/index.js';
 import { MainLayout } from '../widgets/index.js';
 
@@ -47,10 +53,12 @@ export function App() {
   const { collapsed, toggle } = useSidebar();
 
   return (
-    <WorkspaceProvider>
-      <HashRouter>
-        <AppShell collapsed={collapsed} onToggle={toggle} />
-      </HashRouter>
-    </WorkspaceProvider>
+    <ThemeProvider>
+      <WorkspaceProvider>
+        <HashRouter>
+          <AppShell collapsed={collapsed} onToggle={toggle} />
+        </HashRouter>
+      </WorkspaceProvider>
+    </ThemeProvider>
   );
 }

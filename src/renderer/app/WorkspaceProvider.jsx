@@ -18,6 +18,7 @@ const WorkspaceContext = createContext(null);
  *   updatePreferences: (partial: Partial<import('../shared/types.js').Preferences>) => Promise<import('../shared/types.js').Preferences>,
  *   clearMetadataCache: () => Promise<number>,
  *   clearAllWorkspaces: () => Promise<number>,
+ *   importWorkspaces: () => Promise<{ imported: number }>,
  * }}
  */
 export function useWorkspaces() {
