@@ -16,6 +16,11 @@
  */
 
 /**
+ * @typedef {'es' | 'en'} Language
+ * Idioma de la interfaz soportado por la app.
+ */
+
+/**
  * @typedef {Object} Workspace
  * @property {string} id Identificador único del workspace.
  * @property {string} name Nombre de la sesión de trabajo.

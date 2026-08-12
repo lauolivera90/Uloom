@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { launchWorkspace } from '../api/index.js';
+import { useI18n } from '../../../shared/index.js';
 
 /**
  * Lanza una sesión en el navegador resuelto (sesión → global → sistema). Vivía
@@ -19,12 +20,13 @@ import { launchWorkspace } from '../api/index.js';
 export function useLaunchWorkspace(workspaceId) {
   const [isLaunching, setIsLaunching] = useState(false);
   const [error, setError] = useState(null);
+  const { t } = useI18n();
 
   const launch = useCallback(
     async (id) => {
       const targetId = typeof id === 'string' ? id : workspaceId;
       if (!targetId) {
-        setError('Sesión no definida');
+        setError(t('launch.sessionUndefined'));
         return null;
       }
       setIsLaunching(true);
@@ -43,7 +45,7 @@ export function useLaunchWorkspace(workspaceId) {
         setIsLaunching(false);
       }
     },
-    [workspaceId],
+    [workspaceId, t],
   );
 
   return { isLaunching, error, launch };

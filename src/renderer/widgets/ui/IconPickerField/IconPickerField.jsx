@@ -2,7 +2,7 @@ import { Button } from '../Button/Button.jsx';
 import { Icon } from '../Icon/Icon.jsx';
 import { IconButton } from '../IconButton/IconButton.jsx';
 import { IconPicker } from '../IconPicker/IconPicker.jsx';
-import { isDataUrl } from '../../../shared/index.js';
+import { isDataUrl, useI18n } from '../../../shared/index.js';
 
 /**
  * Selector de icono colapsado para los formularios de sesión y pestaña (patrón
@@ -38,6 +38,8 @@ export function IconPickerField({
   showSuggestedIcon = false,
   useSuggestedIcon,
 }) {
+  const { t } = useI18n();
+
   return (
     <>
       <div className="flex items-center gap-3">
@@ -49,16 +51,16 @@ export function IconPickerField({
           )}
         </div>
         <div className="flex flex-row items-center gap-2">
-          <Button variant="outline" icon="upload" disabled title="Próximamente">
-            Subir icono
+          <Button variant="outline" icon="upload" disabled title={t('common.comingSoon')}>
+            {t('iconPicker.upload')}
           </Button>
-          <span className="text-sm text-text/60">o</span>
+          <span className="text-sm text-text/60">{t('iconPicker.or')}</span>
           <Button
             variant="ghost"
             icon={showPicker ? 'expand_less' : 'expand_more'}
             onClick={toggleShowPicker}
           >
-            Elegir uno
+            {t('iconPicker.choose')}
           </Button>
           {showSuggestedIcon && useSuggestedIcon && (
             <>
@@ -68,8 +70,8 @@ export function IconPickerField({
               <IconButton
                 variant="ghost"
                 icon="swap_horiz"
-                label="Usar icono sugerido"
-                title="Usar icono sugerido"
+                label={t('iconPicker.useSuggested')}
+                title={t('iconPicker.useSuggested')}
                 onClick={useSuggestedIcon}
               />
             </>

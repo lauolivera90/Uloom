@@ -8,6 +8,7 @@ import {
   PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
 import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
@@ -15,7 +16,7 @@ import { WorkspaceConfig } from './WorkspaceConfig.jsx';
 import { WorkspaceExportCard } from './WorkspaceExportCard.jsx';
 import { useWorkspaces } from '../../../app/index.js';
 
-const BACK_TO_HUB_LABEL = 'Volver al Hub';
+const BACK_TO_HUB_LABEL = 'detail.backToHub';
 
 /**
  * Vista del Detalle de Sesión (Lienzo / Command Center): header con nombre,
@@ -33,6 +34,7 @@ const BACK_TO_HUB_LABEL = 'Volver al Hub';
  */
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { addTab, updateTab } = useWorkspaces();
   const { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab } = useTabModal({
     workspaceId: workspace?.id,
@@ -70,12 +72,12 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
     return (
       <Page className="gap-4">
         <header className="flex items-center gap-2">
-          <IconButton variant="ghost" icon="arrow_back" label={BACK_TO_HUB_LABEL} onClick={() => navigate('/')} />
-          <h1 className="text-xl font-semibold text-text">Sesión no encontrada</h1>
+          <IconButton variant="ghost" icon="arrow_back" label={t(BACK_TO_HUB_LABEL)} onClick={() => navigate('/')} />
+          <h1 className="text-xl font-semibold text-text">{t('detail.notFound')}</h1>
         </header>
-        <p className="text-sm text-text/60">La sesión que buscás no existe o fue eliminada.</p>
+        <p className="text-sm text-text/60">{t('detail.notFoundDescription')}</p>
         <Button className="w-fit" icon="home" onClick={() => navigate('/')}>
-          {BACK_TO_HUB_LABEL}
+          {t(BACK_TO_HUB_LABEL)}
         </Button>
       </Page>
     );
@@ -91,7 +93,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
           <>
             {(workspace.tabs?.length ?? 0) === 0 ? (
               <Button variant="primary" icon="add" onClick={openAdd}>
-                {ADD_TAB_LABEL}
+                {t(ADD_TAB_LABEL)}
               </Button>
             ) : (
               <Button
@@ -100,26 +102,26 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
                 disabled={isLaunching}
                 onClick={launch}
               >
-                Lanzar
+                {t('detail.launch')}
               </Button>
             )}
-            <IconButton variant="warning" icon="edit" label="Editar sesión" onClick={workspaceEdit.open} />
-            <IconButton variant="danger" icon="delete" label="Eliminar sesión" onClick={requestDeleteWorkspace} />
+            <IconButton variant="warning" icon="edit" label={t('detail.editSession')} onClick={workspaceEdit.open} />
+            <IconButton variant="danger" icon="delete" label={t('detail.deleteSession')} onClick={requestDeleteWorkspace} />
             <div className="w-px h-6 bg-border/40 mx-1" />
             <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
-              Volver
+              {t('detail.back')}
             </Button>
           </>
         }
       />
 
-      <div className="grid grid-cols-[minmax(0,1fr)_40rem] items-start gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_32rem] xl:grid-cols-[minmax(0,1fr)_40rem] items-start gap-6">
         <section className="flex flex-col gap-6">
           <Card
             header={
-              <ResourceCardHeader title="Administrador de recursos" icon="tab">
+              <ResourceCardHeader title={t('detail.resourcesManager')} icon="tab">
                 <Button variant="outline" icon="add" className="bg-surface" onClick={openAdd}>
-                  Agregar
+                  {t('detail.add')}
                 </Button>
               </ResourceCardHeader>
             }
@@ -131,7 +133,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         </section>
         <section className="flex flex-col gap-6">
           <Card
-            header={<ResourceCardHeader title="Configuración" icon="settings" />}
+            header={<ResourceCardHeader title={t('common.settings')} icon="settings" />}
             headerClassName="bg-accent/10"
           >
             <WorkspaceConfig
@@ -167,10 +169,10 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       />
       <ConfirmDialog
         isOpen={isDeleteTabOpen}
-        title={DELETE_TAB_LABEL}
-        description={`¿Eliminar "${deleteTabTarget?.name ?? ''}" de esta sesión?`}
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
+        title={t(DELETE_TAB_LABEL)}
+        description={t('detail.deleteTabConfirm', { name: deleteTabTarget?.name ?? '' })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         variant="danger"
         isLoading={isDeleting}
         onConfirm={confirmDelete}
@@ -178,10 +180,10 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       />
       <ConfirmDialog
         isOpen={isDeleteConfirmOpen}
-        title="Eliminar sesión"
-        description={`¿Eliminar "${workspace.name}" y todas sus pestañas? ${IRREVERSIBLE_ACTION_HINT}`}
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
+        title={t('detail.deleteSession')}
+        description={t('detail.deleteSessionConfirm', { name: workspace.name, hint: t(IRREVERSIBLE_ACTION_HINT) })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         variant="danger"
         isLoading={isDeletingWorkspace}
         onConfirm={handleDeleteWorkspace}

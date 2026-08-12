@@ -1,5 +1,6 @@
 import { TabRow } from './TabRow.jsx';
 import { CreateTile } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 
 /**
  * Lista de recursos web de la sesión. Presentacional: si no hay pestañas muestra
@@ -13,10 +14,17 @@ import { CreateTile } from '../../../widgets/index.js';
  * }} props
  */
 export function TabList({ tabs, onAddTab, onEdit, onDelete }) {
+  const { t } = useI18n();
+
   if (tabs.length === 0) {
     return (
       <div className="p-5">
-        <CreateTile className='w-full' label="Sin pestañas aquí" description="Agrega algunas" onClick={onAddTab} />
+        <CreateTile
+          className="w-full"
+          label={t('tabList.empty')}
+          description={t('tabList.emptyAction')}
+          onClick={onAddTab}
+        />
       </div>
     );
   }

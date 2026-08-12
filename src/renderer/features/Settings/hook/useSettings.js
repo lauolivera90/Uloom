@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useWorkspaces, useTheme } from '../../../app/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { useInstalledBrowsers, useSystemDefaultBrowser, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
 
 /**
@@ -20,6 +21,8 @@ export const SETTINGS_SECTION = {
  *   setActiveSection: (section: string) => void,
  *   theme: 'light' | 'dark',
  *   toggleTheme: () => void,
+ *   language: import('../../../shared/types.js').Language,
+ *   setLanguage: (language: import('../../../shared/types.js').Language) => void,
  *   browsers: Array<{ id: string, name: string }>,
  *   isLoadingBrowsers: boolean,
  *   systemDefaultId: string | null,
@@ -32,6 +35,7 @@ export const SETTINGS_SECTION = {
 export function useSettings() {
   const { preferences, updatePreferences } = useWorkspaces();
   const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage } = useI18n();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
   const { systemDefaultId } = useSystemDefaultBrowser();
   const [activeSection, setActiveSection] = useState(SETTINGS_SECTION.preferences);
@@ -55,6 +59,8 @@ export function useSettings() {
     setActiveSection,
     theme,
     toggleTheme,
+    language,
+    setLanguage,
     browsers,
     isLoadingBrowsers,
     systemDefaultId,

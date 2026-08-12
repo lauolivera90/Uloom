@@ -1,5 +1,6 @@
 import { OptionRow, Select } from '../../../widgets/index.js';
-import { OPEN_BEHAVIORS, buildBrowserOptions, BrowserIcon } from '../../../entities/workspace/index.js';
+import { useI18n } from '../../../shared/index.js';
+import { buildOpenBehaviors, buildBrowserOptions, BrowserIcon } from '../../../entities/workspace/index.js';
 
 /**
  * Configuración de lanzamiento de una sesión (card "Configuración" del Detalle):
@@ -31,22 +32,23 @@ export function WorkspaceConfig({
   isSaving,
   error,
 }) {
+  const { t } = useI18n();
   const browserOptions = buildBrowserOptions(browsers);
 
   const sessionConfig = [
     {
       key: 'openBehavior',
-      label: 'Comportamiento de apertura',
-      description: 'Define cómo se abren las pestañas al lanzar la sesión.',
+      label: t('detail.openBehavior'),
+      description: t('detail.openBehaviorDescription'),
       value: openBehavior,
-      options: OPEN_BEHAVIORS,
+      options: buildOpenBehaviors(t),
       disabled: isSaving,
       onChange: onOpenBehaviorChange,
     },
     {
       key: 'browser',
-      label: 'Navegador de uso',
-      description: 'Elige el navegador en el que se abren sus pestañas.',
+      label: t('detail.browser'),
+      description: t('detail.browserDescription'),
       control: (
         <div className="flex items-center gap-2">
           <BrowserIcon browserId={resolvedBrowserId} />

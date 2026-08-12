@@ -1,5 +1,6 @@
 import { WorkspaceCard } from '../../../entities/workspace/index.js';
 import { CreateTile } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 
 /**
  * @typedef {import('../../../shared/types.js').Workspace} Workspace
@@ -17,6 +18,8 @@ import { CreateTile } from '../../../widgets/index.js';
  * }} props
  */
 export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }) {
+  const { t } = useI18n();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
       {workspaces.map((workspace) => (
@@ -28,7 +31,7 @@ export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }
           onAddTab={onAddTab}
         />
       ))}
-      <CreateTile label="Crear nueva sesión" onClick={onCreate} />
+      <CreateTile label={t('hub.createNew')} onClick={onCreate} />
     </div>
   );
 }

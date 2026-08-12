@@ -24,7 +24,8 @@ export {
   SYSTEM_BROWSER_LABEL,
   DEFAULT_BROWSER_LABEL,
   LAUNCH_EMPTY_TABS_TITLE,
-  OPEN_BEHAVIORS,
+  OPEN_BEHAVIOR_OPTIONS,
+  buildOpenBehaviors,
   getBrowserNameById,
   buildBrowserOptions,
 } from './workspaceLaunch.js';

@@ -1,4 +1,5 @@
 import { Button, Card, OptionRow, ResourceCardHeader } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { EXPORT_LABEL } from '../../../entities/workspace/index.js';
 
 /**
@@ -11,17 +12,19 @@ import { EXPORT_LABEL } from '../../../entities/workspace/index.js';
  * }} props
  */
 export function WorkspaceExportCard({ isExporting, onExport }) {
+  const { t } = useI18n();
+
   return (
     <Card
-      header={<ResourceCardHeader title="Exportar" icon="file_download" />}
+      header={<ResourceCardHeader title={t(EXPORT_LABEL)} icon="file_download" />}
       headerClassName="bg-accent/10"
     >
       <OptionRow
-        label="Exportar esta sesión"
-        description="Baja un archivo `.json` con esta sesión para respaldarla o compartirla."
+        label={t('detail.exportSession')}
+        description={t('detail.exportSessionDescription')}
         control={
           <Button variant="outline" icon="download" disabled={isExporting} onClick={onExport}>
-            {EXPORT_LABEL}
+            {t(EXPORT_LABEL)}
           </Button>
         }
       />

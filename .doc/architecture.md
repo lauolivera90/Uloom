@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.4.2)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.4.3)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -120,11 +120,18 @@ uloom/
 │   └── renderer/                  # FRONTEND (React - FSD simplificado)
 │       ├── index.jsx
 │       ├── app/
-│       │   └── pages/
-│       │       ├── WorkspaceHub.jsx
-│       │       ├── WorkspaceDetail.jsx
-│       │       ├── Settings.jsx
+│       │   ├── ThemeProvider.jsx       # Tema claro/oscuro (runtime + persistencia)
+│       │   ├── LanguageProvider.jsx    # Idioma es/en (runtime + persistencia); consume `useI18n` de shared
+│       │   ├── WorkspaceProvider.jsx
+│       │   ├── GlobalCreateWorkspace.jsx
+│       │   ├── App.jsx
+│       │   └── hook/
+│       │       ├── useTheme.js
+│       │       ├── useLanguage.js
+│       │       ├── useWorkspaceState.js
+│       │       ├── useSidebar.js
 │       │       └── index.js
+│       ├── pages/
 │       ├── widgets/
 │       │   ├── hooks/
 │       │   │   ├── useScrollLock.js
@@ -168,7 +175,19 @@ uloom/
 │       │           └── TabFavicon.jsx
 │       └── shared/
 │           ├── hook/
+│           │   ├── useI18n.js        # Context + consumidor `t()` del idioma activo
+│           │   ├── useCachedQuery.js
+│           │   ├── useIconPicker.js
+│           │   ├── useConfirmAction.js
+│           │   └── index.js
 │           ├── lib/
+│           │   ├── i18n/             # Diccionarios es/en + resolver de traducción
+│           │   │   ├── es.js
+│           │   │   ├── en.js
+│           │   │   ├── dictionaries.js
+│           │   │   ├── translate.js
+│           │   │   └── index.js
+│           │   └── url.js
 │           ├── ui/
 │           └── index.js
 │

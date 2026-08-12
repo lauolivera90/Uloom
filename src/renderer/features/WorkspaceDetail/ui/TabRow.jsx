@@ -1,4 +1,5 @@
 import { IconButton } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { TabFavicon, DELETE_TAB_LABEL } from '../../../entities/workspace/index.js';
 
 /**
@@ -12,6 +13,8 @@ import { TabFavicon, DELETE_TAB_LABEL } from '../../../entities/workspace/index.
  * }} props
  */
 export function TabRow({ tab, onEdit, onDelete }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex items-center gap-3 px-5 py-3 hover:bg-primary/10 group transition duration-fast">
       <TabFavicon url={tab.url} icon={tab.icon} favicon={tab.favicon} />
@@ -20,11 +23,11 @@ export function TabRow({ tab, onEdit, onDelete }) {
         <span className="block text-xs text-text/60 truncate">{tab.url}</span>
       </div>
       <div className="flex items-center gap-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition duration-fast flex-shrink-0">
-        <IconButton variant="warning" icon="edit" label="Editar pestaña" size="sm" onClick={() => onEdit?.(tab)} />
+        <IconButton variant="warning" icon="edit" label={t('tabRow.editTab')} size="sm" onClick={() => onEdit?.(tab)} />
         <IconButton
           variant="danger"
           icon="delete"
-          label={DELETE_TAB_LABEL}
+          label={t(DELETE_TAB_LABEL)}
           size="sm"
           onClick={() => onDelete?.(tab)}
         />

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Page, PageHeader } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, TabFormModal } from '../../../entities/workspace/index.js';
 import { useWorkspacesHub } from '../hook/index.js';
 import { WorkspaceGrid } from './WorkspaceGrid.jsx';
@@ -13,6 +14,7 @@ import { WorkspaceGrid } from './WorkspaceGrid.jsx';
 export function WorkspacesHubView() {
   const navigate = useNavigate();
   const { workspaces, createModal, tabModal, openAddTab } = useWorkspacesHub();
+  const { t } = useI18n();
 
   const tabForm = useTabForm({ initialTab: null, onSubmit: tabModal.onSubmitTab });
   const { reset: resetTabForm } = tabForm;
@@ -41,7 +43,7 @@ export function WorkspacesHubView() {
 
   return (
     <Page>
-      <PageHeader title="Sesiones" description="Elegí una sesión para abrirla o creá una nueva." />
+      <PageHeader title={t('hub.title')} description={t('hub.description')} />
       <WorkspaceGrid
         workspaces={workspaces}
         onCreate={createModal.open}

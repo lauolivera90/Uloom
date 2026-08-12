@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.4.2)
+# config.json — Estructura (v0.4.3)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
 
@@ -6,7 +6,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.4.2'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.4.3'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
 
@@ -42,7 +42,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 ```json
 {
-  "version": "0.4.2",
+  "version": "0.4.3",
   "preferences": {
     "defaultBrowser": "system"
   },

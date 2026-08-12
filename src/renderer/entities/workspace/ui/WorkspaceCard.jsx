@@ -3,6 +3,7 @@
  */
 
 import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
 
 /**
@@ -21,6 +22,7 @@ import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
  */
 export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
   const tabsCount = workspace.tabs?.length ?? 0;
+  const { t } = useI18n();
 
   return (
     <Card
@@ -40,19 +42,19 @@ export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
       footer={
         <>
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium text-text/60">Recursos</span>
+            <span className="text-xs font-medium text-text/60">{t('workspaceCard.resources')}</span>
             <span className="flex items-center gap-2 text-xs text-text/60">
               <Icon icon="tab" size={16} className="text-text/60" />
-              {`${tabsCount} ${tabsCount === 1 ? 'pestaña' : 'pestañas'}`}
+              {t('workspaceCard.tabsCount', { count: tabsCount })}
             </span>
           </div>
           {tabsCount === 0 ? (
             <IconButton
               variant="primary"
               icon="add"
-              label={ADD_TAB_LABEL}
+              label={t(ADD_TAB_LABEL)}
               appearOnHover
-              title={LAUNCH_EMPTY_TABS_TITLE}
+              title={t(LAUNCH_EMPTY_TABS_TITLE)}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => {
                 event.stopPropagation();
@@ -63,7 +65,7 @@ export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
             <IconButton
               variant="primary"
               icon="play_arrow"
-              label="Abrir sesión"
+              label={t('workspaceCard.openSession')}
               appearOnHover
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => {

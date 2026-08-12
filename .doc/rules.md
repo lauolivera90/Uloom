@@ -131,11 +131,16 @@ Los hooks internos (usados por un solo hook/componente) y componentes JSX quedan
 
 **Regla:** Si creás o modificás una función exportada, actualizá su JSDoc en el mismo cambio. Si el cambio afecta un campo de `Workspace`, `Tab`, `App` o `CatalogApp`, se actualiza el `@typedef` centralizado, no una copia local.
 
-9. Preparación liviana para i18n futuro (sin implementar i18n en el MVP)
+9. Internacionalización (español / inglés)
 
-El MVP no soporta múltiples idiomas (ver límites del proyecto) y no debe implementarse ninguna infraestructura de traducción ahora (nada de useTranslation, librerías i18n, ni wrappers que simulen traducción). Los textos van hardcodeados en español, directo en el JSX. Solo dos hábitos, sin costo extra hoy:
+La app soporta dos idiomas (es/en) desde v0.4.3. Los textos visibles NO van hardcodeados en el JSX: viven como claves en los diccionarios `shared/lib/i18n/es.js` y `en.js` (única fuente de verdad), y los componentes los resuelven con `useI18n()` → `t(clave, { params })`. Reglas:
 
-No concatenar fragmentos de texto con variables en medio. Usar un template literal con la oración completa: `{`Tenés ${tabs.length} pestañas en este workspace`}` en vez de mezclar <p>Tenés {tabs.length} pestañas</p>. Esto es solo para que el texto quede como una unidad completa, no fragmentado.
-No duplicar el mismo label/string en múltiples archivos (ej. "Guardar", "Cancelar", "Eliminar"). Si se repite, centralizarlo en un componente de shared/ui/, igual que cualquier otro caso de duplicación (regla 4).
+- Toda cadena visible de UI va con `t('dominio.clave')`; ningún string de usuario final queda literal en JSX.
+- No concatenar fragmentos de texto con variables en medio: usar parámetros `t('detail.deleteTabConfirm', { name })` con placeholders `{name}` en el diccionario. La oración completa vive en el diccionario.
+- Plurales: el valor del diccionario puede ser `{ one, other }`; `t()` elige `one` con `count === 1` y `other` con el resto.
+- No duplicar el mismo label en múltiples archivos (ej. "Guardar", "Cancelar", "Eliminar"): usar una clave compartida del diccionario. Las constantes de labels de `entities/workspace` (`workspaceLabels.js`, `workspaceLaunch.js`) exportan CLAVES (ej. `DELETE_TAB_LABEL = 'labels.deleteTab'`); los consumidores llaman `t(DELETE_TAB_LABEL)`.
+- Los strings de logs (`console.error`) y mensajes de error internos del backend NO se traducen (convención dev-facing; el renderer muestra errores localizados en el lindero, ej. `detail.saveError`).
+- No se traduce: datos del usuario (nombres de sesiones/tabs), nombres de navegadores (vienen del SO) y la marca "Uloom".
+- El idioma se persiste en `localStorage['uloom-language']` (misma estrategia que `uloom-theme`) y el default lo resuelve `navigator.language`. El `LanguageProvider` (app/) provee `{ language, t, setLanguage }`; el contexto y `useI18n` viven en `shared/` para que los widgets lo consuman sin crear ciclos de capas.
 
-No crear ninguna otra estructura anticipando i18n. Cuando llegue el momento de agregar soporte multi-idioma, será un cambio mecánico y acotado a los archivos .jsx de UI, no a hooks ni al backend.
+Contexto histórico: antes de v0.4.3 esta regla ordenaba NO implementar i18n y dejar los textos en español; la preparación (oraciones enteras en template literals, labels centralizados) dejó el barrido mecánico. Se reemplaza por esta regla.

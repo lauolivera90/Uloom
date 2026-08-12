@@ -125,3 +125,85 @@ v0.4.2 (ampliación) — Shell de la ventana
 [x] Tamaño de ventana: setear en `src/main.js` (`BrowserWindow`) `width: 1100`, `height: 750`, `minWidth: 800` y `minHeight: 600` — impide que el usuario encoja la app por debajo de esos mínimos (hoy es 800×600 sin mínimos).
 
 [x] Quitar el menú/toolbar nativo de Electron (File, Edit, View, Window, Help): ocultar/eliminar la barra de menú en `src/main.js` — `autoHideMenuBar: true` en el `BrowserWindow` (se esconde y reaparece con Alt). `src/main.js`: además se eliminó el `openDevTools()` automático.
+
+🟣 v0.4.3 — Pase de UI y estabilidad
+Objetivo: pulir el layout y auditar la app.
+
+[x] Grid del Detalle de Sesión: arreglar el grid de `WorkspaceDetail` (actualmente `grid-cols-[minmax(0,1fr)_40rem]`) y revisar **cómo se deciden los anchos** de las columnas — el ancho fijo de la columna derecha y el reparto del espacio deben quedar definidos y consistentes.
+
+[x] Auditoría general de la app: auditar toda la app en busca de errores (consolas, lints, comportamientos) y resolverlos.
+
+[x] Header de modal y confirm modal: cambiar el color de texto del header de `Modal` y `ConfirmDialog` a uno similar al de las cards del Detalle de Sesión (mismo tratamiento visual de los headers de card).
+
+🟢 v0.4.4 — Feedback visual
+Objetivo: feedback visual para errores y acciones.
+
+[ ] Control de errores en importación de sesiones: feedback visual en caso de errores al importar (archivo inválido, JSON corrupto, tipo no soportado, fallo de persistencia) — hoy los errores solo se loguean con `console.error`.
+
+[ ] Sistema de toast: crear un toast/notificación para feedback visual y revisar dónde aplicarlo (importación y otras acciones que hoy solo loguean errores con `console.error`).
+
+🟢 v0.4.5 - Responsive
+[ ] Responsive parcial en toda la página: establecer responsive parcial (ajustes de layout a anchos menores) en Hub, Detalle y Configuración — mínimo viable, sin rediseño completo.
+
+[ ] Hacer que la sidebar si la pantalla es pequeña, siempre aparezca como minimizada, pero si hacemos hover sobre la sidebar, esta se expande pero superpuesta por el contenido, no quitando espacio en la pantalla.
+
+🟠 v0.5.0 — Identidad y personalización
+Objetivo: Selector de idioma, tema con paleta personalizable, duplicación de sesiones y reutilización de tabs frecuentes.
+
+v0.5.1 Internacionalización
+[x] Selector de idioma: opción en Configuración para elegir entre español e inglés, con persistencia (misma estrategia que el tema). Exige centralizar primero los strings (hoy hardcodeados en español; `rules.md` §9 los fija en español). → Implementado como adelanto desde v0.4.3: strings centralizados en `shared/lib/i18n` (diccionarios `es.js`/`en.js`, resolver `t()` con plurales e interpolación), `LanguageProvider` + `useLanguage` (persistencia en `localStorage['uloom-language']`, default por `navigator.language`, `documentElement.lang` sincronizado) y selector "Idioma" en Configuración → Preferencias; las constantes de labels de `entities/workspace` pasaron a exportar claves.
+
+v0.5.2 Temas personalizados
+[ ] Selector de paleta de colores: ampliar el sistema de temas más allá de claro/oscuro, permitiendo elegir entre paletas predefinidas (o personalizar colores). Requiere revisar el sistema de tokens actual antes de sumar paletas nuevas.
+
+v0.5.3 Gestión de sesiones avanzada
+[ ] Duplicar sesión: clonar una sesión existente (tabs, configuración de lanzamiento) generando un nuevo id, con nombre sugerido tipo "Copia de [nombre]".
+
+v0.5.4 Historial de pestañas
+[ ] Historial/reutilización de tabs al agregar: sección en el modal de agregar pestaña con las últimas tabs agregadas o las más usadas entre sesiones, para reutilizarlas sin reescribir la URL. Requiere un registro liviano de tabs usadas (URL + nombre + frecuencia/última vez), separado de las sesiones.
+
+🟤 v0.6.0 — Organización del Hub
+Objetivo: mejorar cómo se encuentran y organizan las sesiones a medida que crecen en cantidad.
+
+v0.6.1 Hub — Quick wins
+[ ] Favoritos/pinned: marcar sesiones para que aparezcan primero en el Hub.
+[ ] Búsqueda/filtro de sesiones en el Hub: extender el patrón de búsqueda ya usado en Configuración al Hub principal.
+
+v0.6.2 Hub — Datos de uso y ordenamiento
+[ ] Última vez lanzada: guardar y mostrar timestamp del último `workspace:launch` por sesión. (Toca esquema de datos.)
+[ ] Orden de sesiones: por criterio (alfabético, más usada, última vez lanzada) u orden manual. Depende del timestamp del item anterior.
+
+v0.6.3 Hub — Agrupación y plantillas
+[ ] Carpetas o grupos de sesiones: agrupación manual (ej. "Trabajo", "Personal", "Clientes"). (Toca esquema de datos.)
+[ ] Plantillas de sesión: crear una sesión nueva a partir de una plantilla predefinida o guardada por el usuario.
+
+⚫ v0.7.0 — Gestión avanzada de Pestañas
+Objetivo: dar más control granular sobre las tabs dentro de una sesión.
+
+v0.7.1 Tabs avanzadas
+[ ] Reordenar tabs: drag and drop dentro de una sesión.
+[ ] Deshabilitar tab sin borrarla: toggle activo/inactivo para lanzar solo un subconjunto.
+[ ] Tags o categorías por tab: ej. "referencia", "trabajo activo".
+[ ] Detección de tabs duplicadas: aviso al agregar una URL ya existente en la sesión.
+[ ] Editar tabs en lote: cambiar navegador u openBehavior de varias tabs a la vez.
+
+🔷 v0.8.0 — Lanzamiento avanzado
+Objetivo: opciones más finas sobre cómo se lanzan las sesiones.
+
+v0.8.1 Motor de lanzamiento — mejoras
+[ ] Lanzamiento parcial: elegir qué tabs lanzar de una sesión en vez de todas.
+[ ] Delay entre aperturas: intervalo configurable entre tab y tab para sesiones grandes.
+[ ] Reintento automático: reintentar una tab antes de reportarla como failed.
+
+🔶 v0.9.0 — Confiabilidad de datos
+Objetivo: resguardar los datos del usuario ante operaciones destructivas.
+
+v0.9.1 Backups
+[ ] Auto-backup periódico: respaldo automático de config.json (por ejemplo, antes de cada import de tipo kind:backup, que reemplaza el catálogo completo).
+
+🟣 Backlog sin versión asignada — Ideas a evaluar
+Objetivo: no comprometidas a una versión todavía; requieren evaluar costo/beneficio antes de asignarles un número.
+
+[ ] Atajos de teclado configurables dentro de la app (no globales del SO) para lanzar sesiones favoritas.
+[ ] Modo "solo lectura"/vista previa de una sesión sin lanzarla (lista de tabs y metadata).
+[ ] Multi-perfil de usuario dentro de la misma app (si varias personas comparten la PC).

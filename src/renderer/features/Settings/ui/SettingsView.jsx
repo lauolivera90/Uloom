@@ -8,6 +8,7 @@ import {
   Select,
   TextInput,
 } from '../../../widgets/index.js';
+import { useI18n, SUPPORTED_LANGUAGES } from '../../../shared/index.js';
 import {
   SYSTEM_BROWSER,
   SYSTEM_BROWSER_LABEL,
@@ -19,24 +20,28 @@ import {
 } from '../../../entities/workspace/index.js';
 
 const SECTIONS = [
-  { id: SETTINGS_SECTION.preferences, label: 'Preferencias' },
-  { id: SETTINGS_SECTION.sessions, label: 'Sesiones' },
+  { id: SETTINGS_SECTION.preferences, labelKey: 'settings.preferences' },
+  { id: SETTINGS_SECTION.sessions, labelKey: 'settings.sessions' },
 ];
 
 /**
  * Página de Configuración: navegador de apartados (Preferencias / Sesiones) con
  * las opciones como datos (`allOptions`) y un buscador en el header que filtra
  * TODAS las opciones de la página por título o descripción, sin importar la
- * sección activa. El tema (toggle global con runtime), el navegador
- * predeterminado y las acciones de Sesiones (importar, exportar todo, borrar
- * caché y eliminar todas las sesiones) son funcionales.
+ * sección activa. El idioma (selector global con persistencia en localStorage),
+ * el tema (toggle global con runtime), el navegador predeterminado y las
+ * acciones de Sesiones (importar, exportar todo, borrar caché y eliminar todas
+ * las sesiones) son funcionales.
  */
 export function SettingsView() {
+  const { t } = useI18n();
   const {
     activeSection,
     setActiveSection,
     theme,
     toggleTheme,
+    language,
+    setLanguage,
     browsers,
     isLoadingBrowsers,
     systemDefaultId,
@@ -62,8 +67,13 @@ export function SettingsView() {
   } = usePortability();
   const isLight = theme === 'light';
 
+  const languageOptions = SUPPORTED_LANGUAGES.map((code) => ({
+    value: code,
+    label: code === 'es' ? 'Español' : 'English',
+  }));
+
   const defaultBrowserOptions = [
-    { value: SYSTEM_BROWSER, label: SYSTEM_BROWSER_LABEL },
+    { value: SYSTEM_BROWSER, label: t(SYSTEM_BROWSER_LABEL) },
     ...buildBrowserOptions(browsers),
   ];
 
@@ -73,20 +83,33 @@ export function SettingsView() {
   const allOptions = [
     {
       section: SETTINGS_SECTION.preferences,
+      key: 'language',
+      label: t('settings.language'),
+      description: t('settings.languageDescription'),
+      control: (
+        <Select
+          value={language}
+          onChange={(event) => setLanguage(event.target.value)}
+          options={languageOptions}
+        />
+      ),
+    },
+    {
+      section: SETTINGS_SECTION.preferences,
       key: 'theme',
-      label: 'Tema',
-      description: 'Elige tu tema de preferencia.',
+      label: t('settings.theme'),
+      description: t('settings.themeDescription'),
       control: (
         <Button variant="outline" icon={isLight ? 'light_mode' : 'dark_mode'} onClick={toggleTheme}>
-          {isLight ? 'Claro' : 'Oscuro'}
+          {isLight ? t('settings.light') : t('settings.dark')}
         </Button>
       ),
     },
     {
       section: SETTINGS_SECTION.preferences,
       key: 'defaultBrowser',
-      label: 'Navegador predeterminado',
-      description: 'Navegador que usan las sesiones al lanzarse.',
+      label: t('settings.defaultBrowser'),
+      description: t('settings.defaultBrowserDescription'),
       control: (
         <div className="flex items-center gap-2">
           <BrowserIcon browserId={defaultBrowserIconId} />
@@ -102,30 +125,30 @@ export function SettingsView() {
     {
       section: SETTINGS_SECTION.sessions,
       key: 'exportAll',
-      label: 'Exportar todo',
-      description: 'Baja un archivo `.json` con todas tus sesiones.',
+      label: t('settings.exportAll'),
+      description: t('settings.exportAllDescription'),
       control: (
         <Button variant="outline" icon="download" disabled={isExportingAll} onClick={exportAll}>
-          {EXPORT_LABEL}
+          {t(EXPORT_LABEL)}
         </Button>
       ),
     },
     {
       section: SETTINGS_SECTION.sessions,
       key: 'import',
-      label: 'Importar',
-      description: 'Carga un archivo `.json` y reconstruye tus sesiones.',
+      label: t(IMPORT_LABEL),
+      description: t('settings.importDescription'),
       control: (
         <Button variant="outline" icon="upload" disabled={isImporting} onClick={importSessions}>
-          {IMPORT_LABEL}
+          {t(IMPORT_LABEL)}
         </Button>
       ),
     },
     {
       section: SETTINGS_SECTION.sessions,
       key: 'clearCache',
-      label: 'Borrar caché',
-      description: 'Limpia los favicons cacheados de tus pestañas.',
+      label: t('settings.clearCache'),
+      description: t('settings.clearCacheDescription'),
       control: (
         <Button
           variant="outline"
@@ -133,18 +156,18 @@ export function SettingsView() {
           disabled={isClearingCache}
           onClick={clearCache}
         >
-          Borrar
+          {t('settings.clear')}
         </Button>
       ),
     },
     {
       section: SETTINGS_SECTION.sessions,
       key: 'deleteAll',
-      label: 'Eliminar todas las sesiones',
-      description: `Borra todas tus sesiones. ${IRREVERSIBLE_ACTION_HINT}`,
+      label: t('settings.deleteAll'),
+      description: t('settings.deleteAllDescription', { hint: t(IRREVERSIBLE_ACTION_HINT) }),
       control: (
         <Button variant="danger" icon="delete_sweep" onClick={requestDeleteAll}>
-          Eliminar todo
+          {t('settings.deleteAllButton')}
         </Button>
       ),
     },
@@ -162,16 +185,16 @@ export function SettingsView() {
   return (
     <Page>
       <PageHeader
-        title="Configuración"
-        description="Preferencias generales y portabilidad de tus sesiones."
+        title={t('common.settings')}
+        description={t('settings.headerDescription')}
         actions={
           <TextInput
             type="search"
             icon="search"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Buscar en Configuración"
-            aria-label="Buscar en Configuración"
+            placeholder={t('settings.searchPlaceholder')}
+            aria-label={t('settings.searchPlaceholder')}
             className="w-64"
           />
         }
@@ -185,7 +208,7 @@ export function SettingsView() {
               variant={activeSection === section.id ? 'primary' : 'ghost'}
               onClick={() => setActiveSection(section.id)}
             >
-              {section.label}
+              {t(section.labelKey)}
             </Button>
           ))}
         </nav>
@@ -193,9 +216,7 @@ export function SettingsView() {
 
       <div className="mt-5 divide-y divide-border/40">
         {visibleOptions.length === 0 ? (
-          <p className="py-5 text-sm text-text/60">
-            No hay opciones que coincidan con tu búsqueda.
-          </p>
+          <p className="py-5 text-sm text-text/60">{t('settings.noResults')}</p>
         ) : (
           visibleOptions.map((option) => (
             <OptionRow
@@ -210,18 +231,18 @@ export function SettingsView() {
 
       <ConfirmDialog
         isOpen={isDeleteOpen}
-        title="Eliminar todas las sesiones"
-        description={`Se borrarán todas tus sesiones del catálogo. ${IRREVERSIBLE_ACTION_HINT}`}
-        confirmLabel="Continuar"
+        title={t('settings.deleteAll')}
+        description={t('settings.deleteAllDialog1', { hint: t(IRREVERSIBLE_ACTION_HINT) })}
+        confirmLabel={t('settings.continue')}
         variant="danger"
         onConfirm={confirmFirstStep}
         onCancel={cancelDeleteAll}
       />
       <ConfirmDialog
         isOpen={isSecondConfirmOpen}
-        title="Confirmar eliminación total"
-        description={`¿Seguro que querés eliminar de forma definitiva todas tus sesiones? ${IRREVERSIBLE_ACTION_HINT}`}
-        confirmLabel="Eliminar todo"
+        title={t('settings.confirmDeleteAll')}
+        description={t('settings.deleteAllDialog2', { hint: t(IRREVERSIBLE_ACTION_HINT) })}
+        confirmLabel={t('settings.deleteAllButton')}
         variant="danger"
         isLoading={isDeleting}
         onConfirm={confirmDeleteAll}

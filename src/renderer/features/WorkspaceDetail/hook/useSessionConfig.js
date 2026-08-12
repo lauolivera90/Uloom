@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
+import { useI18n } from '../../../shared/index.js';
 import {
   useInstalledBrowsers,
   useSystemDefaultBrowser,
@@ -34,6 +35,7 @@ import {
  */
 export function useSessionConfig(workspaceId, workspace) {
   const { mutateWorkspace, preferences } = useWorkspaces();
+  const { t } = useI18n();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
   const { systemDefaultId, systemDefaultName } = useSystemDefaultBrowser();
 
@@ -44,31 +46,34 @@ export function useSessionConfig(workspaceId, workspace) {
   const browserOverride = workspace?.browser ? workspace.browser : null;
   const globalDefault = preferences?.defaultBrowser ?? SYSTEM_BROWSER;
 
-  const persist = (mutator, label) => {
+  const persist = (mutator) => {
     if (!workspaceId) return;
     setIsSaving(true);
     setError(null);
     return mutateWorkspace(workspaceId, mutator).catch((err) => {
-      console.error(`Error al persistir ${label} de sesión:`, err);
-      setError(err.message);
+      console.error('Error al persistir la configuración de sesión:', err);
+      setError(t('detail.saveError'));
     }).finally(() => setIsSaving(false));
   };
 
   const setOpenBehavior = (value) =>
-    persist((base) => ({ ...base, openBehavior: value }), 'el comportamiento de apertura');
+    persist((base) => ({ ...base, openBehavior: value }));
 
   const setBrowser = (value) => {
     const next = value ? value : null;
-    return persist((base) => ({ ...base, browser: next }), 'el navegador');
+    return persist((base) => ({ ...base, browser: next }));
   };
 
+  const defaultLabel = t(DEFAULT_BROWSER_LABEL);
+  const systemLabel = t('launch.system');
+
   const resolvedBrowserLabel = isLoadingBrowsers
-    ? DEFAULT_BROWSER_LABEL
+    ? defaultLabel
     : globalDefault === SYSTEM_BROWSER
       ? systemDefaultId
-        ? `${DEFAULT_BROWSER_LABEL} (${systemDefaultName ?? getBrowserNameById(systemDefaultId, browsers)})`
-        : `${DEFAULT_BROWSER_LABEL} (Sistema)`
-      : `${DEFAULT_BROWSER_LABEL} (${getBrowserNameById(globalDefault, browsers)})`;
+        ? `${defaultLabel} (${systemDefaultName ?? getBrowserNameById(systemDefaultId, browsers)})`
+        : `${defaultLabel} (${systemLabel})`
+      : `${defaultLabel} (${getBrowserNameById(globalDefault, browsers)})`;
 
   const resolvedBrowserId = browserOverride ?? (globalDefault === SYSTEM_BROWSER ? (systemDefaultId ?? null) : globalDefault);
 

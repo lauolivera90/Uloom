@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.4.2)
+# Backend — Arquitectura (v0.4.3)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -121,7 +121,8 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 - `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
 - `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error).
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
-- `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `OPEN_BEHAVIORS`, `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL` y `getBrowserNameById`.
+- `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL`, `LAUNCH_EMPTY_TABS_TITLE` y `OPEN_BEHAVIOR_OPTIONS` (con `labelKey`), más los builders `buildOpenBehaviors(t)` (resuelve `labelKey` con el traductor del idioma activo), `getBrowserNameById` y `buildBrowserOptions`. Los labels son claves del diccionario i18n (`shared/lib/i18n`): los consumidores resuelven el texto con `t(clave)` (v0.4.3).
+- `workspaceLabels.js` expone las claves i18n de acciones compartidas entre Hub y Detalle: `ADD_TAB_LABEL`, `SAVE_CHANGES_LABEL`, `DELETE_TAB_LABEL`, `EXPORT_LABEL`, `IMPORT_LABEL` e `IRREVERSIBLE_ACTION_HINT` (valores del diccionario `labels.*`).
 - `index.js` es el barrel (exporta toda la API y catálogos).
 
 ## Flujos (v0.2.2 + líder único en v0.2.3)

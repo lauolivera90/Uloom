@@ -1,4 +1,5 @@
 import { useScrollLock } from '../../hooks/useScrollLock.js';
+import { useI18n } from '../../../shared/index.js';
 import { IconButton } from '../IconButton/IconButton.jsx';
 
 const SIZE_CLASSES = {
@@ -20,6 +21,7 @@ export function Modal({
   hideCloseButton = false,
 }) {
   useScrollLock(isOpen);
+  const { t } = useI18n();
 
   if (!isOpen) return null;
 
@@ -45,7 +47,7 @@ export function Modal({
               {resolvedHeader ? (
                 <div className="flex-1 min-w-0">
                   {typeof resolvedHeader === 'string' ? (
-                    <h2 className="text-lg font-semibold text-text">{resolvedHeader}</h2>
+                    <h2 className="text-lg font-semibold text-accent">{resolvedHeader}</h2>
                   ) : (
                     resolvedHeader
                   )}
@@ -57,7 +59,7 @@ export function Modal({
                 <IconButton
                   variant="ghost"
                   icon="close"
-                  label="Cerrar"
+                  label={t('modal.close')}
                   onClick={onClose}
                   className="flex-shrink-0"
                 />

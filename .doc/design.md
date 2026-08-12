@@ -44,6 +44,7 @@ Doc vivo de reglas visuales y de componentes. Se actualiza a medida que crece el
 - **Padding base `p-5`** en contenedores, con override real por `className` (chequeo `/(^|\s)p-/`).
 - **Páginas** → widget `Page` (`widgets/layout`, consumido desde el barrel): contenedor raíz estándar `flex flex-col gap-6 p-6`, con override real por `className` (chequeos `/(^|\s)p-/` y `/(^|\s)gap-/`, mismo patrón que `Card`). Toda vista de feature arranca con `<Page>…</Page>`; variantes de espaciado (ej. `gap-4`) se pasan por prop, no se re-declara el contenedor.
 - **Header de página** → widget `PageHeader` (`widgets/layout`): título `h1` (`text-2xl`) con `description` e `icon` líder opcionales a la izquierda (`text-accent`) y bloque `actions` a la derecha (fila `flex items-center gap-2 flex-shrink-0`). Es el header estándar de las vistas; headers compactos fuera de este patrón (ej. estado not-found) quedan fuera de la convención.
+- **Grid del Detalle de Sesión** → 2 columnas solo desde `lg`: `grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] items-start gap-6`. La columna izquierda es absorbente (`minmax(0,1fr)`, lista de recursos) y la derecha es **fija en `24rem`** (cards Configuración/Exportar). Por debajo de `lg` apila en una sola columna. El ancho de la columna derecha se decide por contenido (rows `OptionRow` con `Select`); si cambiara ese contenido, se revisa este `24rem`, no se agrega otra columna ad-hoc.
 - **Variants:** mapas de clases por `variant` con default sensato (ver `Button`). Variantes del Button: `primary`, `outline`, `ghost`, `warning` (token `tertiary`), `danger` (token `error`). `ConfirmDialog` consume `Modal` (size `sm`) + `Button` desde el barrel.
 
 ### Convención de modales
@@ -52,6 +53,7 @@ Todos los modales siguen el mismo layout base (derivado de `WorkspaceFormModal` 
 
 - **Formularios** → `Modal size="md"` con título en el header; contenido en `Form` (gap default `5`) con `FormField` (label `text-sm font-medium`, gap `2`) y `TextInput`.
 - **Confirmaciones** → `Modal size="sm"` vía `ConfirmDialog`.
+- **Header del modal** → el título del header va en `text-accent` (igual que los headers de card del Detalle, `ResourceCardHeader`), sobre el fondo `bg-accent/10`. No se usan iconos líder en los headers de modal: solo el título.
 - **Footer** → widget `ModalFooter`: par de botones que reparten el ancho con `flex-1` (`Cancelar`, `variant="outline"`, ícono `arrow_back` + acción principal con `confirmVariant` según semántica, ícono de acción y spinner cuando `isLoading`). El confirmar va `disabled` si la validación del form no pasa (`confirmDisabled`).
 - **Cierre** → el botón `×` del header cierra y cancela; la vista llama `reset()` del form al cancelar.
 

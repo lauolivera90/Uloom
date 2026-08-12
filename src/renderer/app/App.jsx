@@ -3,6 +3,7 @@ import { WorkspacesHub, WorkspaceDetail, Settings } from '../pages/index.js';
 import {
   WorkspaceProvider,
   ThemeProvider,
+  LanguageProvider,
   useSidebar,
   useWorkspaces,
   GlobalCreateWorkspace,
@@ -53,12 +54,14 @@ export function App() {
   const { collapsed, toggle } = useSidebar();
 
   return (
-    <ThemeProvider>
-      <WorkspaceProvider>
-        <HashRouter>
-          <AppShell collapsed={collapsed} onToggle={toggle} />
-        </HashRouter>
-      </WorkspaceProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <WorkspaceProvider>
+          <HashRouter>
+            <AppShell collapsed={collapsed} onToggle={toggle} />
+          </HashRouter>
+        </WorkspaceProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }

@@ -7,6 +7,7 @@ import {
   TextInput,
   IconButton,
 } from '../../../widgets/index.js';
+import { useI18n } from '../../../shared/index.js';
 import { ADD_TAB_LABEL, SAVE_CHANGES_LABEL } from '../api/index.js';
 
 /** @typedef {import('../hook/useTabForm.js').TabFormState} TabFormState */
@@ -30,6 +31,7 @@ import { ADD_TAB_LABEL, SAVE_CHANGES_LABEL } from '../api/index.js';
  */
 export function TabFormModal({ isOpen, isSaving = false, isEditing = false, form, onCancel }) {
   const { submit, isUrlValid } = form;
+  const { t } = useI18n();
   const handleSubmit = () => {
     submit().catch((error) => console.error(error));
   };
@@ -38,11 +40,11 @@ export function TabFormModal({ isOpen, isSaving = false, isEditing = false, form
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
-      title={isEditing ? 'Editar pestaña' : ADD_TAB_LABEL}
+      title={t(isEditing ? 'tabForm.editTitle' : ADD_TAB_LABEL)}
       size="md"
       footer={
         <ModalFooter
-          confirmLabel={isEditing ? SAVE_CHANGES_LABEL : ADD_TAB_LABEL}
+          confirmLabel={t(isEditing ? SAVE_CHANGES_LABEL : ADD_TAB_LABEL)}
           onCancel={onCancel}
           onConfirm={handleSubmit}
           confirmIcon={isEditing ? 'save' : 'add'}
@@ -52,7 +54,7 @@ export function TabFormModal({ isOpen, isSaving = false, isEditing = false, form
       }
     >
       <Form onSubmit={handleSubmit}>
-        <FormField label="Icono">
+        <FormField label={t('common.icon')}>
           <IconPickerField
             previewIcon={form.previewIcon}
             showPicker={form.showPicker}
@@ -67,36 +69,34 @@ export function TabFormModal({ isOpen, isSaving = false, isEditing = false, form
           />
         </FormField>
 
-        <FormField label="Nombre" htmlFor="tab-name">
+        <FormField label={t('common.name')} htmlFor="tab-name">
           <div className="flex items-center gap-2">
             <TextInput
               id="tab-name"
               type="text"
               value={form.name}
               onChange={(event) => form.setName(event.target.value)}
-              placeholder={
-                form.suggestedName || 'Nombre de la página'
-              }
+              placeholder={form.suggestedName || t('tabForm.namePlaceholder')}
               className="flex-1"
             />
             <IconButton
               variant="ghost"
               icon="swap_horiz"
-              label="Usar nombre sugerido"
-              title="Usar nombre sugerido"
+              label={t('tabForm.useSuggestedName')}
+              title={t('tabForm.useSuggestedName')}
               onClick={form.useSuggestedName}
               className={`flex-shrink-0 ${form.showSuggestionSwap ? '' : 'invisible'}`}
             />
           </div>
         </FormField>
 
-        <FormField label="URL" required htmlFor="tab-url">
+        <FormField label={t('common.url')} required htmlFor="tab-url">
           <TextInput
             id="tab-url"
             type="text"
             value={form.url}
             onChange={(event) => form.setUrl(event.target.value)}
-            placeholder="https://ejemplo.com"
+            placeholder={t('tabForm.urlPlaceholder')}
           />
         </FormField>
       </Form>

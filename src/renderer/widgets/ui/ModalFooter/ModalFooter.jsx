@@ -1,4 +1,5 @@
 import { Button } from '../Button/Button.jsx';
+import { useI18n } from '../../../shared/index.js';
 
 /**
  * Par de acciones del footer de un modal: botón de cancelar (outline) a la
@@ -18,8 +19,8 @@ import { Button } from '../Button/Button.jsx';
  * }} props
  */
 export function ModalFooter({
-  cancelLabel = 'Cancelar',
-  confirmLabel = 'Confirmar',
+  cancelLabel,
+  confirmLabel,
   onCancel,
   onConfirm,
   confirmVariant = 'primary',
@@ -28,6 +29,10 @@ export function ModalFooter({
   confirmDisabled = false,
   isLoading = false,
 }) {
+  const { t } = useI18n();
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
+  const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
+
   return (
     <div>
       <Button
@@ -37,7 +42,7 @@ export function ModalFooter({
         disabled={isLoading || cancelDisabled}
         icon="arrow_back"
       >
-        {cancelLabel}
+        {resolvedCancelLabel}
       </Button>
       <Button
         variant={confirmVariant}
@@ -52,7 +57,7 @@ export function ModalFooter({
             className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
           />
         )}
-        {confirmLabel}
+        {resolvedConfirmLabel}
       </Button>
     </div>
   );

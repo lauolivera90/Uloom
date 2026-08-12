@@ -1,5 +1,6 @@
 import { Button } from '../Button/Button.jsx';
 import { IconButton } from '../IconButton/IconButton.jsx';
+import { useI18n } from '../../../shared/index.js';
 
 /**
  * Selector de icono. Muestra una grilla reducida y permite expandir la lista
@@ -17,9 +18,11 @@ import { IconButton } from '../IconButton/IconButton.jsx';
  * }} props
  */
 export function IconPicker({ icons, selectedIcon, showAllIcons, onSelect, onToggleShowAll }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex flex-col gap-3">
-      <div role="radiogroup" aria-label="Icono" className="grid grid-cols-7 gap-2">
+      <div role="radiogroup" aria-label={t('iconPicker.label')} className="grid grid-cols-7 gap-2">
         {icons.map((icon) => {
           const isSelected = icon === selectedIcon;
           return (
@@ -40,7 +43,7 @@ export function IconPicker({ icons, selectedIcon, showAllIcons, onSelect, onTogg
         icon={showAllIcons ? 'expand_less' : 'expand_more'}
         onClick={onToggleShowAll}
       >
-        Mostrar todos los iconos
+        {t('iconPicker.showAll')}
       </Button>
     </div>
   );
