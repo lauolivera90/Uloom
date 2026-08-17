@@ -1,15 +1,19 @@
 import { useCallback, useState } from 'react';
+import { useI18n } from './useI18n.js';
+import { useToast } from './useToast.js';
 
 /**
  * Máquina de estados genérica de una confirmación destructiva/importante con
  * `ConfirmDialog`: apertura, cancelación con guard mientras corre y ejecución
  * pesimista de la acción con cierre solo ante éxito. Centraliza el patrón que
  * repetían `useDeleteWorkspace`, `useDeleteTab` y el delete-all de
- * `usePortability` (rules.md §4). Los errores se loguean con `console.error`
- * (convención del proyecto, sin toasts) y `confirm` devuelve `false` sin lanzar.
+ * `usePortability` (rules.md §4). Los errores se loguean con `console.error` y
+ * emiten un toast de error localizado (`errorKey`) cuando se provee; `confirm`
+ * devuelve `false` sin lanzar.
  * @param {{
  *   action: () => Promise<unknown>,
  *   errorMessage?: string,
+ *   errorKey?: string,
  * }} props
  * @returns {{
  *   isOpen: boolean,
@@ -19,9 +23,11 @@ import { useCallback, useState } from 'react';
  *   confirm: () => Promise<boolean>,
  * }}
  */
-export function useConfirmAction({ action, errorMessage = 'Error' }) {
+export function useConfirmAction({ action, errorMessage = 'Error', errorKey }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const { t } = useI18n();
+  const { toast } = useToast();
 
   const request = useCallback(() => setIsOpen(true), []);
 
@@ -39,11 +45,14 @@ export function useConfirmAction({ action, errorMessage = 'Error' }) {
       return true;
     } catch (error) {
       console.error(errorMessage, error);
+      if (errorKey) {
+        toast({ variant: 'error', message: t(errorKey) });
+      }
       return false;
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, action, errorMessage]);
+  }, [isRunning, action, errorMessage, errorKey, toast, t]);
 
   return { isOpen, isRunning, request, cancel, confirm };
 }

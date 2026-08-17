@@ -32,13 +32,18 @@ export async function exportAll() {
  * catálogo; una sesión individual (`kind: 'workspace'`) se agrega a las
  * existentes. `canceled: true` significa que el usuario canceló el diálogo (no
  * es un error); ante un archivo inválido el main responde `{ success: false }` y
- * esta capa lo convierte en throw.
+ * esta capa lo convierte en throw, adjuntando el `code` de error de portabilidad
+ * (para que el caller mapee el fallo a un mensaje localizado).
  * @returns {Promise<{ canceled: boolean, imported?: import('../../shared/types.js').Workspace[] }>}
  */
 export async function importFromFile() {
   const response = await window.uloomApi.importFromFile();
   if (!response.success) {
-    throw new Error(response.error);
+    const error = new Error(response.error);
+    if (response.code) {
+      error.code = response.code;
+    }
+    throw error;
   }
   return response.data;
 }

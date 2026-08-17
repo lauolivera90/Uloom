@@ -10,6 +10,7 @@ import {
   importFromFile as importFromFileIpc,
   SYSTEM_BROWSER,
 } from '../../entities/workspace/index.js';
+import { useI18n, useToast } from '../../shared/index.js';
 
 /**
  * Reemplaza el catálogo del estado global a partir de una lista persistida y
@@ -47,7 +48,7 @@ function hydrateCatalog(setWorkspaces, latestByWorkspaceRef, workspaceList) {
  *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
  *   clearMetadataCache: () => Promise<number>,
  *   clearAllWorkspaces: () => Promise<number>,
- *   importWorkspaces: () => Promise<{ imported: number }>,
+ *   importWorkspaces: () => Promise<{ canceled: boolean, imported: number }>,
  * }}
  */
 export function useWorkspaceState() {
@@ -56,6 +57,8 @@ export function useWorkspaceState() {
   const latestByWorkspaceRef = useRef(new Map());
   const writeChainRef = useRef(Promise.resolve());
   const [preferences, setPreferences] = useState({ defaultBrowser: SYSTEM_BROWSER });
+  const { t } = useI18n();
+  const { toast } = useToast();
 
   useEffect(() => {
     workspacesRef.current = workspaces;
@@ -72,13 +75,16 @@ export function useWorkspaceState() {
         }
       } catch (error) {
         console.error(error);
+        if (!cancelled) {
+          toast({ variant: 'error', message: t('load.error') });
+        }
       }
     }
     load();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [toast, t]);
 
   const mutateWorkspace = useCallback(async (workspaceId, mutator) => {
     const task = writeChainRef.current.then(async () => {
@@ -188,11 +194,11 @@ export function useWorkspaceState() {
   const importWorkspacesFromFile = useCallback(() => {
     const task = writeChainRef.current.then(async () => {
       const { canceled, imported } = await importFromFileIpc();
-      if (canceled || !imported) {
-        return { imported: 0 };
+      if (canceled) {
+        return { canceled: true, imported: 0 };
       }
       hydrateCatalog(setWorkspaces, latestByWorkspaceRef, imported);
-      return { imported: imported.length };
+      return { canceled: false, imported: imported.length };
     });
     writeChainRef.current = task.catch(() => undefined);
     return task;

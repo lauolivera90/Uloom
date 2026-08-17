@@ -138,9 +138,9 @@ Objetivo: pulir el layout y auditar la app.
 🟢 v0.4.4 — Feedback visual
 Objetivo: feedback visual para errores y acciones.
 
-[ ] Control de errores en importación de sesiones: feedback visual en caso de errores al importar (archivo inválido, JSON corrupto, tipo no soportado, fallo de persistencia) — hoy los errores solo se loguean con `console.error`.
+[x] Control de errores en importación de sesiones: feedback visual en caso de errores al importar (archivo inválido, JSON corrupto, tipo no soportado, fallo de persistencia) — hoy los errores solo se loguean con `console.error`. → Resuelto en v0.4.4 con códigos de error estructurados (`PORTABILITY_ERROR_CODES` en portabilityService, propagados por el handler IPC y adjuntados al throw por portabilityIpcApi) que `usePortability` mapea a mensajes localizados (toast de error por caso + fallback genérico); el éxito confirma con conteo (`import.success`, plural).
 
-[ ] Sistema de toast: crear un toast/notificación para feedback visual y revisar dónde aplicarlo (importación y otras acciones que hoy solo loguean errores con `console.error`).
+[x] Sistema de toast: crear un toast/notificación para feedback visual y revisar dónde aplicarlo (importación y otras acciones que hoy solo loguean errores con `console.error`). → Resuelto en v0.4.4: `shared/hook/useToast` (context) + `app/ToastProvider` (estado + timers) + widgets `Toast`/`ToastViewport` (variantes solo tokens, bottom-right, auto-cierre 4s, tope 4). Aplicado en import, exportAll, clearCache, deleteAll, delete tab/session, launch (error + parcial), export sesión, forms de sesión/pestaña, navegador predeterminado y load inicial. Sin toast en soft-fallbacks internos (`useTabForm` metadata, `useCachedQuery`) ni en `useSessionConfig` (error inline existente).
 
 🟢 v0.4.5 - Responsive
 [ ] Responsive parcial en toda la página: establecer responsive parcial (ajustes de layout a anchos menores) en Hub, Detalle y Configuración — mínimo viable, sin rediseño completo.

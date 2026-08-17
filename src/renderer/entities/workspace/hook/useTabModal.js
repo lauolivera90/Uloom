@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useI18n, useToast } from '../../../shared/index.js';
 
 /**
  * Estado del modal de pestaña (alta y edición): apertura/cierre y la acción de
@@ -7,8 +8,8 @@ import { useCallback, useState } from 'react';
  * que entities dependa de app y cerrando el ciclo de imports). `editingTab`
  * distingue el modo: `null` = alta, un objeto = edición (su id se conserva al
  * guardar). La persistencia es pesimista (await del disco); el modal se cierra
- * solo al confirmar con éxito y en caso de error el error se propaga
- * (console.error en la vista).
+ * solo al confirmar con éxito y en caso de error se emite un toast localizado y
+ * el error se re-lanza (console.error en la vista).
  * @param {{
  *   workspaceId?: string | null,
  *   addTab: (workspaceId: string, tab: import('../../../shared/types.js').Tab) => Promise<unknown>,
@@ -28,6 +29,8 @@ export function useTabModal({ workspaceId, addTab, updateTab }) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTab, setEditingTab] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { t } = useI18n();
+  const { toast } = useToast();
 
   const openAdd = useCallback(() => {
     setEditingTab(null);
@@ -50,11 +53,14 @@ export function useTabModal({ workspaceId, addTab, updateTab }) {
           await addTab(workspaceId, tab);
         }
         setIsOpen(false);
+      } catch (error) {
+        toast({ variant: 'error', message: t('save.error') });
+        throw error;
       } finally {
         setIsSaving(false);
       }
     },
-    [workspaceId, addTab, updateTab, editingTab],
+    [workspaceId, addTab, updateTab, editingTab, toast, t],
   );
 
   return { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab };

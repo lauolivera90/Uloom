@@ -4,6 +4,7 @@ import {
   WorkspaceProvider,
   ThemeProvider,
   LanguageProvider,
+  ToastProvider,
   useSidebar,
   useWorkspaces,
   GlobalCreateWorkspace,
@@ -56,11 +57,13 @@ export function App() {
   return (
     <LanguageProvider>
       <ThemeProvider>
-        <WorkspaceProvider>
-          <HashRouter>
-            <AppShell collapsed={collapsed} onToggle={toggle} />
-          </HashRouter>
-        </WorkspaceProvider>
+        <ToastProvider>
+          <WorkspaceProvider>
+            <HashRouter>
+              <AppShell collapsed={collapsed} onToggle={toggle} />
+            </HashRouter>
+          </WorkspaceProvider>
+        </ToastProvider>
       </ThemeProvider>
     </LanguageProvider>
   );

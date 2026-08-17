@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.4.3)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.4.4)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -122,12 +122,14 @@ uloom/
 │       ├── app/
 │       │   ├── ThemeProvider.jsx       # Tema claro/oscuro (runtime + persistencia)
 │       │   ├── LanguageProvider.jsx    # Idioma es/en (runtime + persistencia); consume `useI18n` de shared
+│       │   ├── ToastProvider.jsx       # Notificaciones toast (estado + viewport); consume `useToast` de shared
 │       │   ├── WorkspaceProvider.jsx
 │       │   ├── GlobalCreateWorkspace.jsx
 │       │   ├── App.jsx
 │       │   └── hook/
 │       │       ├── useTheme.js
 │       │       ├── useLanguage.js
+│       │       ├── useToastState.js    # Estado de la lista de toasts + timers de auto-cierre
 │       │       ├── useWorkspaceState.js
 │       │       ├── useSidebar.js
 │       │       └── index.js
@@ -147,6 +149,10 @@ uloom/
 │       │   │   │   └── Modal.jsx
 │       │   │   ├── ModalFooter/
 │       │   │   │   └── ModalFooter.jsx
+│       │   │   ├── Toast/
+│       │   │   │   └── Toast.jsx          # Notificación individual (v0.4.4)
+│       │   │   ├── ToastViewport/
+│       │   │   │   └── ToastViewport.jsx  # Contenedor flotante de toasts (v0.4.4)
 │       │   │   ├── form/                # Excepción familia: agrupada, no por widget
 │       │   │   │   ├── Form.jsx
 │       │   │   │   ├── FormField.jsx
@@ -176,6 +182,7 @@ uloom/
 │       └── shared/
 │           ├── hook/
 │           │   ├── useI18n.js        # Context + consumidor `t()` del idioma activo
+│           │   ├── useToast.js       # Context + consumidor de notificaciones toast (v0.4.4)
 │           │   ├── useCachedQuery.js
 │           │   ├── useIconPicker.js
 │           │   ├── useConfirmAction.js

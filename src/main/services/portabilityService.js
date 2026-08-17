@@ -10,6 +10,35 @@ const APP_ID = 'uloom';
 const SCHEMA_VERSION = '0.4.1';
 
 /**
+ * Códigos de error del dominio portabilidad. Se adjuntan a los `Error` lanzados
+ * por la importación para que el frontend mapee cada fallo a un mensaje
+ * localizado (regla 7 de rules.md); el handler IPC los propaga en la respuesta.
+ * @type {Record<string, string>}
+ */
+export const PORTABILITY_ERROR_CODES = {
+  INVALID_JSON: 'INVALID_JSON',
+  NOT_ULOOLM_FILE: 'NOT_ULOOLM_FILE',
+  UNSUPPORTED_KIND: 'UNSUPPORTED_KIND',
+  INVALID_SCHEMA_VERSION: 'INVALID_SCHEMA_VERSION',
+  INVALID_WORKSPACES: 'INVALID_WORKSPACES',
+  READ_ERROR: 'READ_ERROR',
+  PERSIST_ERROR: 'PERSIST_ERROR',
+};
+
+/**
+ * Crea un `Error` de portabilidad con `code` adjunto para que las capas superiores
+ * (handler IPC → API del renderer → hooks) propaguen el identificador del fallo.
+ * @param {keyof typeof PORTABILITY_ERROR_CODES} code
+ * @param {string} message Mensaje dev-facing (no se traduce, convención rules.md §9).
+ * @returns {Error}
+ */
+function createPortabilityError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+/**
  * Transforma un nombre en un nombre de archivo seguro: elimina caracteres inválidos
  * de Windows (`/\:*?"<>|`), colapsa espacios y guiones, y recorta puntos/espacios finales.
  * @param {string} name
@@ -102,20 +131,20 @@ function parseImportPayload(raw) {
   try {
     payload = JSON.parse(raw);
   } catch {
-    throw new Error('El archivo no es un JSON válido');
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.INVALID_JSON, 'El archivo no es un JSON válido');
   }
 
   if (!payload || payload.app !== APP_ID) {
-    throw new Error('No es un archivo de sesiones de Uloom');
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.NOT_ULOOLM_FILE, 'No es un archivo de sesiones de Uloom');
   }
   if (payload.kind !== 'workspace' && payload.kind !== 'backup') {
-    throw new Error('Tipo de archivo no reconocido (se espera workspace o backup)');
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.UNSUPPORTED_KIND, 'Tipo de archivo no reconocido (se espera workspace o backup)');
   }
   if (typeof payload.schemaVersion !== 'string') {
-    throw new Error('El archivo no indica una versión de esquema válida');
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.INVALID_SCHEMA_VERSION, 'El archivo no indica una versión de esquema válida');
   }
   if (!Array.isArray(payload.data) || payload.data.some((item) => !item || typeof item.name !== 'string')) {
-    throw new Error('El archivo no contiene sesiones válidas');
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.INVALID_WORKSPACES, 'El archivo no contiene sesiones válidas');
   }
 
   return { kind: payload.kind, workspaces: payload.data };
@@ -140,8 +169,19 @@ export async function importFromFile() {
     return { canceled: true };
   }
 
-  const raw = fs.readFileSync(filePaths[0], 'utf-8');
+  let raw;
+  try {
+    raw = fs.readFileSync(filePaths[0], 'utf-8');
+  } catch {
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.READ_ERROR, 'No se pudo leer el archivo seleccionado');
+  }
+
   const { kind, workspaces } = parseImportPayload(raw);
-  const imported = importWorkspaces(workspaces, { replace: kind === 'backup' });
+  let imported;
+  try {
+    imported = importWorkspaces(workspaces, { replace: kind === 'backup' });
+  } catch {
+    throw createPortabilityError(PORTABILITY_ERROR_CODES.PERSIST_ERROR, 'No se pudieron guardar las sesiones importadas');
+  }
   return { canceled: false, imported };
 }

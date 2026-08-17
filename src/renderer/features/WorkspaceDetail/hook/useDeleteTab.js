@@ -34,6 +34,7 @@ export function useDeleteTab(workspaceId) {
   const { isOpen, isRunning, request, cancel, confirm } = useConfirmAction({
     action,
     errorMessage,
+    errorKey: 'deleteTab.error',
   });
 
   const confirmDelete = useCallback(async () => {

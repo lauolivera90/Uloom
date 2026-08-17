@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useWorkspaces, useTheme } from '../../../app/index.js';
-import { useI18n } from '../../../shared/index.js';
+import { useI18n, useToast } from '../../../shared/index.js';
 import { useInstalledBrowsers, useSystemDefaultBrowser, SYSTEM_BROWSER } from '../../../entities/workspace/index.js';
 
 /**
@@ -35,7 +35,8 @@ export const SETTINGS_SECTION = {
 export function useSettings() {
   const { preferences, updatePreferences } = useWorkspaces();
   const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage } = useI18n();
+  const { language, setLanguage, t } = useI18n();
+  const { toast } = useToast();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
   const { systemDefaultId } = useSystemDefaultBrowser();
   const [activeSection, setActiveSection] = useState(SETTINGS_SECTION.preferences);
@@ -49,9 +50,10 @@ export function useSettings() {
         await updatePreferences({ defaultBrowser: value });
       } catch (error) {
         console.error(error);
+        toast({ variant: 'error', message: t('save.preferencesError') });
       }
     },
-    [updatePreferences],
+    [updatePreferences, toast, t],
   );
 
   return {

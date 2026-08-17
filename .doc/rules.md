@@ -144,3 +144,14 @@ La app soporta dos idiomas (es/en) desde v0.4.3. Los textos visibles NO van hard
 - El idioma se persiste en `localStorage['uloom-language']` (misma estrategia que `uloom-theme`) y el default lo resuelve `navigator.language`. El `LanguageProvider` (app/) provee `{ language, t, setLanguage }`; el contexto y `useI18n` viven en `shared/` para que los widgets lo consuman sin crear ciclos de capas.
 
 Contexto histórico: antes de v0.4.3 esta regla ordenaba NO implementar i18n y dejar los textos en español; la preparación (oraciones enteras en template literals, labels centralizados) dejó el barrido mecánico. Se reemplaza por esta regla.
+
+## 10. Feedback visual (toasts)
+
+Los toasts existen para feedback de acciones, pero no toda acción merece uno. La política completa (con los casos aplicados) vive en `.doc/design.md` §3 (bullet Toast); acá queda la regla anclada:
+
+- **Principio:** se emite un toast solo en cambios o resultados que el usuario **no puede ver desde la vista actual**. Si la UI ya refleja el resultado (item que aparece/desaparece, modal que cierra, toggle/select que cambia), NO hay toast.
+- **Éxito:** solo cuando el resultado no es visible en la vista o es una operación bulk/cross-context (import, exportAll, exportSession, clearCache, deleteAll). Nunca sobre cambios in-place (crear/editar/borrar sesiones y pestañas, tema, idioma, navegador predeterminado).
+- **Error:** siempre se justifica (infrecuentes y explican el porqué); imprescindibles en acciones externas/asíncronas (launch, import).
+- **Warning:** resultados parciales (ej. `launch.partialFailure`).
+- **Feedback alternativo:** error inline para fallos contextuales (form); no duplicar toast + inline.
+- Los mensajes del toast siempre llegan resueltos por `t()` (regla §9); los mensajes dev-facing del backend no se traducen.

@@ -129,4 +129,46 @@ export const en = {
   'settings.deleteAllDialog1': 'All your sessions will be deleted from the catalog. {hint}',
   'settings.deleteAllDialog2':
     'Are you sure you want to permanently delete all your sessions? {hint}',
+
+  // toast
+  'toast.dismiss': 'Dismiss notification',
+
+  // import (portability feedback)
+  'import.success': { one: 'Imported {count} session', other: 'Imported {count} sessions' },
+  'import.errorInvalidJson': 'The file is not valid JSON.',
+  'import.errorNotUloom': 'This is not a Uloom sessions file.',
+  'import.errorUnsupportedKind': 'Unrecognized file type.',
+  'import.errorInvalidSchema': 'The file does not specify a valid schema version.',
+  'import.errorInvalidSessions': 'The file does not contain valid sessions.',
+  'import.errorRead': 'The selected file could not be read.',
+  'import.errorPersist': 'The imported sessions could not be saved.',
+  'import.errorGeneric': 'The file could not be imported.',
+
+  // export
+  'export.success': 'Backup exported',
+  'export.error': 'The backup could not be exported',
+  'exportSession.success': 'Session exported',
+  'exportSession.error': 'The session could not be exported',
+
+  // cache
+  'cache.success': 'Metadata cache cleared',
+  'cache.error': 'The metadata cache could not be cleared',
+
+  // delete (destructive removals)
+  'deleteAll.success': 'All sessions were deleted',
+  'deleteAll.error': 'The sessions could not be deleted',
+  'deleteTab.error': 'The tab could not be deleted',
+  'deleteWorkspace.error': 'The session could not be deleted',
+
+  // launch
+  'launch.error': 'The session could not be launched',
+  'launch.partialFailure': {
+    one: '{failed} tab could not be opened',
+    other: '{failed} tabs could not be opened',
+  },
+
+  // save / load (general persistence errors)
+  'save.error': 'Could not save.',
+  'save.preferencesError': 'The default browser could not be saved.',
+  'load.error': 'The sessions could not be loaded.',
 };

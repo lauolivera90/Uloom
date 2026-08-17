@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.4.3)
+# Backend — Arquitectura (v0.4.4)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -27,7 +27,7 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 `registerIpcHandlers()` (en `ipc/index.js`) delega el registro en handlers por dominio: `workspaceHandler.js` (canales del dominio workspace), `browserHandler.js`, `preferencesHandler.js`, `pageHandler.js`, `launcherHandler.js` y `portabilityHandler.js` (exportación e importación). Todo handler:
 - Llama al servicio correspondiente.
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
-- Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`).
+- Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`); desde v0.4.4 el handler `portability:import` suma `code?: string` a la respuesta de error (el código del fallo de portabilidad, ver `PORTABILITY_ERROR_CODES`) para que el frontend lo mapee a un mensaje localizado.
 
 Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2):
 | Canal | Params | Respuesta `data` |
@@ -49,8 +49,8 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 
 ### 3. `src/main/services/` (Lógica de Negocio)
 - `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `updateWorkspace()` (delega; update estricto), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
-- `portabilityService.js` (nuevo en v0.4.1, + import en v0.4.2): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error. `importFromFile()` — abre `dialog.showOpenDialog` (filtro `.json`, cancel ≠ error → `{ canceled: true }`), lee y valida el wrapper (`app: 'uloom'`, `kind` en `workspace|backup`, `schemaVersion` string, `data` array de workspaces con `name` string), normaliza cada sesión y delega la escritura en `workspaceRepository.importWorkspaces` con `replace: kind === 'backup'`. Devuelve `{ canceled, imported }` (lista final persistida).
-- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre cada `tab.url`. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`), pasando la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) cuando `openBehavior === 'new-window'`, o solo la URL en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` (único caso sin control de ventana nueva). Devuelve `{ opened, failed }`; lanza solo ante errores estructurales (sesión inexistente o navegador configurado no instalado). Los fallos de spawn por URL se cuentan, no abortan el lote.
+- `portabilityService.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos de error en v0.4.4): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error. `importFromFile()` — abre `dialog.showOpenDialog` (filtro `.json`, cancel ≠ error → `{ canceled: true }`), lee y valida el wrapper (`app: 'uloom'`, `kind` en `workspace|backup`, `schemaVersion` string, `data` array de workspaces con `name` string), normaliza cada sesión y delega la escritura en `workspaceRepository.importWorkspaces` con `replace: kind === 'backup'`. Devuelve `{ canceled, imported }` (lista final persistida). **Códigos de error (v0.4.4):** toda falla de importación adjunta un `code` al `Error` (constante `PORTABILITY_ERROR_CODES`): `INVALID_JSON`, `NOT_ULOOLM_FILE`, `UNSUPPORTED_KIND`, `INVALID_SCHEMA_VERSION`, `INVALID_WORKSPACES`, `READ_ERROR` (lectura del archivo) y `PERSIST_ERROR` (escritura del catálogo). El handler IPC los propaga y el frontend mapea cada código a un mensaje localizado en su toast.
+- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre **todas** las `tab.url` en **un solo spawn** del ejecutable. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`) con todas las URLs como argumentos: con `openBehavior === 'new-window'` antepone la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) y el conjunto se abre en una sola ventana (cada URL como pestaña); en `active-tab` pasa solo las URLs (pestañas en la ventana vigente). Un solo spawn evita que cada pestaña abra una ventana propia en `new-window` y la race de spawns paralelos en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` por URL (único caso sin control de ventana nueva, y el único que puede devolver fallos parciales). Devuelve `{ opened, failed }` (todo o nada en el spawn); lanza ante errores estructurales (sesión inexistente, navegador configurado no instalado o spawn que falla).
 - `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn. `resolveSystemBrowser()` — **resolución única y compartida** del navegador predeterminado del SO (`app.getApplicationInfoForProtocol('https:')`): devuelve `{ id, name, path }` con `id: null` si el default no es del catálogo (mapeo por basename del ejecutable), o `null` si no es Windows o no se pudo resolver. Lo usan el launcher (spawn) y la UI. `getSystemDefaultBrowser()` — envuelve `resolveSystemBrowser()` y devuelve `{ id, name }` del catálogo o `null` (para el ícono del selector).
 - `preferencesService.js`: `getPreferences()` y `updatePreferences(partial)` (merge parcial, delega en el repositorio).
 - `pageService.js`: `fetchPageMetadata(url)` — trae el `<title>` y el favicon del sitio con `net.fetch` (session default, `AbortController` de 4s, cap 1MB al HTML y ~32KB al favicon, favicon como **data URL**). Regex tolerante al orden de atributos para `<link rel="icon">`, resuelve URLs absolutas y cae a `/favicon.ico` si no hay link. **Soft-fallback**: cualquier fallo devuelve `null` en los campos, no lanza.
@@ -119,7 +119,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
 - `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
-- `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error).
+- `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos en v0.4.4): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error). Desde v0.4.4, `importFromFile` adjunta el `code` de error del backend al `Error` lanzado (cuando la respuesta lo trae) para que el hook mapee el fallo a un mensaje localizado.
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL`, `LAUNCH_EMPTY_TABS_TITLE` y `OPEN_BEHAVIOR_OPTIONS` (con `labelKey`), más los builders `buildOpenBehaviors(t)` (resuelve `labelKey` con el traductor del idioma activo), `getBrowserNameById` y `buildBrowserOptions`. Los labels son claves del diccionario i18n (`shared/lib/i18n`): los consumidores resuelven el texto con `t(clave)` (v0.4.3).
 - `workspaceLabels.js` expone las claves i18n de acciones compartidas entre Hub y Detalle: `ADD_TAB_LABEL`, `SAVE_CHANGES_LABEL`, `DELETE_TAB_LABEL`, `EXPORT_LABEL`, `IMPORT_LABEL` e `IRREVERSIBLE_ACTION_HINT` (valores del diccionario `labels.*`).
@@ -164,13 +164,12 @@ Detalle: useLaunchWorkspace.launch()   /   Hub: useLaunchWorkspace.launch(worksp
    → workspaceIpcApi.launchWorkspace(id) → preload → ipc 'workspace:launch' → launcherHandler
    → launcherService.launchWorkspace(id): getConfig + getWorkspaceById (lectura estricta)
        → resuelve navegador (sesión → global → sistema)
-       → navegador concreto: spawn(exe, [bandera-ventana-nueva?, url]) detached/unref
+       → UN spawn(exe, [bandera-ventana-nueva?] + urls...) detached/unref con todas las URLs
 → navegador de sistema: browserService.resolveSystemBrowser → su ejecutable
-            → spawn con bandera por id (catálogo) o heurística de motor; si no resuelve → shell.openExternal
-       → en paralelo con Promise.allSettled
+            → mismo spawn único con bandera por id (catálogo) o heurística de motor; si no resuelve → shell.openExternal por URL
    → { opened, failed } → el botón se deshabilita mientras isLaunching y si la sesión no tiene tabs
 ```
-El `openBehavior` se respeta tanto con el navegador explícito como con el predeterminado del sistema resuelto a ejecutable (bandera del motor); solo si el predeterminado no puede resolverse se cae a `shell.openExternal` y el SO decide. Los spawns fallidos por URL se cuentan en `failed` sin abortar el resto; los errores estructurales (sesión o navegador inexistentes) se convierten en `{ success: false }` y se loguean con `console.error` en el renderer (convención actual, sin toasts aún).
+El `openBehavior` se respeta tanto con el navegador explícito como con el predeterminado del sistema resuelto a ejecutable (bandera del motor): `new-window` abre el conjunto completo en una sola ventana nueva y `active-tab` como pestañas en la ventana vigente; solo si el predeterminado no puede resolverse se cae a `shell.openExternal` por URL y el SO decide. En el spawn el resultado es todo o nada (éxito → `opened = N`; fallo → throw → `{ success: false }`); `failed > 0` solo puede darlo el fallback de `openExternal` (fallos parciales por URL). Los errores estructurales (sesión o navegador inexistentes) se convierten en `{ success: false }`. Desde v0.4.4 el renderer emite feedback visual: error → toast de error (`launch.error`) y `failed > 0` → toast de advertencia con la cantidad (`launch.partialFailure`).
 
 ### Exportar sesión / todo (`portability:*`, v0.4.1)
 ```
@@ -183,9 +182,9 @@ Detalle: useExportWorkspace.exportSession()   /   Configuración: usePortability
         → fs.writeFileSync (pretty-print 2)
    → { canceled, filePath } (cancel ≠ error; `canceled: true`)
 ```
-El renderer solo dispara la acción y loguea errores con `console.error`; el diálogo nativo vive en el proceso main.
+El renderer solo dispara la acción; el diálogo nativo vive en el proceso main. Desde v0.4.4 la exportación emite toast de éxito (`export.success` / `exportSession.success`) cuando el usuario no cancela el diálogo y toast de error localizado ante un fallo.
 
-### Importar sesiones (`portability:import`, v0.4.2)
+### Importar sesiones (`portability:import`, v0.4.2, + feedback en v0.4.4)
 ```
 Configuración → Sesiones: usePortability.importSessions
    → useWorkspaces.importWorkspaces (serializado en writeChainRef del estado global)
@@ -200,7 +199,11 @@ Configuración → Sesiones: usePortability.importSessions
              → append: agrega las importadas; id colisionante → randomUUID nuevo
         → { canceled, imported } (lista final persistida)
    → éxito: useWorkspaceState rehidrata el catálogo y el ref de última escritura con `imported`
-   → error de validación del archivo: { success: false } → throw → console.error en la vista
+        → toast de éxito con el conteo importado (import.success; el hook del estado devuelve
+          { canceled, imported } para distinguir la cancelación del éxito real)
+   → error de validación del archivo: { success: false, error, code } → throw (portabilityIpcApi
+        adjunta `code` al Error) → usePortability mapea code → clave i18n → toast de error
+        (fallback a import.errorGeneric); el console.error queda como log dev
 ```
 Semántica por `kind`: `workspace` (sesión individual) **agrega** sin tocar lo existente; `backup` (respaldo completo) **reemplaza** todas las sesiones locales preservando `preferences`.
 

@@ -131,4 +131,46 @@ export const es = {
   'settings.deleteAllDialog1': 'Se borrarán todas tus sesiones del catálogo. {hint}',
   'settings.deleteAllDialog2':
     '¿Seguro que querés eliminar de forma definitiva todas tus sesiones? {hint}',
+
+  // toast
+  'toast.dismiss': 'Cerrar notificación',
+
+  // import (feedback de portabilidad)
+  'import.success': { one: 'Se importó {count} sesión', other: 'Se importaron {count} sesiones' },
+  'import.errorInvalidJson': 'El archivo no es un JSON válido.',
+  'import.errorNotUloom': 'No es un archivo de sesiones de Uloom.',
+  'import.errorUnsupportedKind': 'Tipo de archivo no reconocido.',
+  'import.errorInvalidSchema': 'El archivo no indica una versión de esquema válida.',
+  'import.errorInvalidSessions': 'El archivo no contiene sesiones válidas.',
+  'import.errorRead': 'No se pudo leer el archivo seleccionado.',
+  'import.errorPersist': 'No se pudieron guardar las sesiones importadas.',
+  'import.errorGeneric': 'No se pudo importar el archivo.',
+
+  // export
+  'export.success': 'Respaldo exportado',
+  'export.error': 'No se pudo exportar el respaldo',
+  'exportSession.success': 'Sesión exportada',
+  'exportSession.error': 'No se pudo exportar la sesión',
+
+  // cache
+  'cache.success': 'Caché de metadatos borrada',
+  'cache.error': 'No se pudo borrar la caché de metadatos',
+
+  // delete (bajas destructivas)
+  'deleteAll.success': 'Todas las sesiones fueron eliminadas',
+  'deleteAll.error': 'No se pudieron eliminar las sesiones',
+  'deleteTab.error': 'No se pudo eliminar la pestaña',
+  'deleteWorkspace.error': 'No se pudo eliminar la sesión',
+
+  // launch
+  'launch.error': 'No se pudo lanzar la sesión',
+  'launch.partialFailure': {
+    one: '{failed} pestaña no se pudo abrir',
+    other: '{failed} pestañas no se pudieron abrir',
+  },
+
+  // save / load (errores de persistencia generales)
+  'save.error': 'No se pudo guardar.',
+  'save.preferencesError': 'No se pudo guardar el navegador predeterminado.',
+  'load.error': 'No se pudieron cargar las sesiones.',
 };

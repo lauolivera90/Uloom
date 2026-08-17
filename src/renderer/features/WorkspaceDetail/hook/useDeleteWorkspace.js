@@ -24,6 +24,7 @@ export function useDeleteWorkspace(workspaceId) {
   const { isOpen, isRunning, request, cancel, confirm } = useConfirmAction({
     action: useCallback(() => deleteWorkspace(workspaceId), [workspaceId, deleteWorkspace]),
     errorMessage: 'Error al eliminar la sesión:',
+    errorKey: 'deleteWorkspace.error',
   });
 
   return {

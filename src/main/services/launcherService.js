@@ -45,21 +45,25 @@ function getNewWindowFlag(executablePath) {
 }
 
 /**
- * Abre una URL por spawn de un ejecutable de navegador. Solicita ventana nueva
- * según el `openBehavior`: con `new-window` pasa la bandera del motor (del id si
- * el navegador es un candidato conocido, o heurística de motor si vino del
- * sistema sin id); con `active-tab` solo pasa la URL (el navegador la abre en su
- * ventana/tab vigente).
+ * Abre todas las URLs de una sesión en UN spawn del ejecutable de navegador.
+ * Según el `openBehavior`: con `new-window` pasa la bandera de ventana nueva del
+ * motor (del id si el navegador es un candidato conocido, o heurística de motor
+ * si vino del sistema sin id) seguida de todas las URLs como argumentos (el
+ * navegador abre el conjunto en una sola ventana nueva, cada URL como pestaña);
+ * con `active-tab` pasa solo las URLs (el navegador las abre como pestañas en su
+ * ventana/tab vigente). Un solo spawn evita que cada pestaña abra una ventana
+ * propia con `new-window` y la race de spawns paralelos con `active-tab` cuando
+ * el navegador arranca en frío.
  * Resuelve cuando el proceso se lanza (`spawn`) y rechaza si el spawn falla
  * (`error`), p. ej. un ejecutable que ya no existe.
- * @param {string} url
+ * @param {string[]} urls
  * @param {{ id?: string, path: string }} browser
  * @param {import('../../renderer/shared/types.js').OpenBehavior} openBehavior
  * @returns {Promise<void>}
  */
-function openUrlInBrowser(url, browser, openBehavior) {
+function openUrlsInBrowser(urls, browser, openBehavior) {
   const newWindowFlag = browser.id ? BROWSER_NEW_WINDOW_FLAGS[browser.id] : getNewWindowFlag(browser.path);
-  const args = openBehavior === 'new-window' && newWindowFlag ? [newWindowFlag, url] : [url];
+  const args = openBehavior === 'new-window' && newWindowFlag ? [newWindowFlag, ...urls] : urls;
 
   return new Promise((resolve, reject) => {
     const child = spawn(browser.path, args, { detached: true, stdio: 'ignore' });
@@ -83,12 +87,14 @@ function openUrlWithSystem(url) {
 /**
  * Abre todas las pestañas de una sesión en el navegador resuelto (sesión →
  * global → sistema). Con un navegador concreto o el predeterminado del sistema
- * resuelto a un ejecutable, spawn del navegador (bandera de ventana nueva si
- * `openBehavior` lo pide, ya sea por id de candidato o por heurística de motor);
- * si el predeterminado del sistema no se pudo resolver a un ejecutable, cae a
- * `shell.openExternal`. Devuelve cuántas URLs se abrieron y cuántas fallaron;
- * lanza solo ante errores estructurales (sesión inexistente o navegador
- * configurado que no está instalado).
+ * resuelto a un ejecutable, hace UN spawn con todas las URLs como argumentos:
+ * con `openBehavior: 'new-window'` pasa la bandera de ventana nueva y el
+ * conjunto se abre en una sola ventana (cada URL como pestaña); con
+ * `active-tab` las URLs se abren como pestañas en la ventana vigente. Si el
+ * predeterminado del sistema no se pudo resolver a un ejecutable, cae a
+ * `shell.openExternal` por URL. Lanza ante errores estructurales (sesión
+ * inexistente, navegador configurado que no está instalado o spawn que falla);
+ * el fallback de sistema devuelve cuántas URLs se abrieron y cuántas fallaron.
  * @param {string} workspaceId
  * @returns {Promise<{ opened: number, failed: number }>}
  */
@@ -102,15 +108,23 @@ export async function launchWorkspace(workspaceId) {
     throw new Error('Navegador configurado no encontrado');
   }
 
+  const urls = (workspace.tabs ?? []).map((tab) => tab.url);
+  if (urls.length === 0) {
+    return { opened: 0, failed: 0 };
+  }
+
   if (!browser) {
     browser = await resolveSystemBrowser();
   }
 
-  const openUrl = browser ? (url) => openUrlInBrowser(url, browser, workspace.openBehavior) : openUrlWithSystem;
-  const results = await Promise.allSettled((workspace.tabs ?? []).map((tab) => openUrl(tab.url)));
+  if (!browser) {
+    const results = await Promise.allSettled(urls.map((url) => openUrlWithSystem(url)));
+    return {
+      opened: results.filter((result) => result.status === 'fulfilled').length,
+      failed: results.filter((result) => result.status === 'rejected').length,
+    };
+  }
 
-  return {
-    opened: results.filter((result) => result.status === 'fulfilled').length,
-    failed: results.filter((result) => result.status === 'rejected').length,
-  };
+  await openUrlsInBrowser(urls, browser, workspace.openBehavior);
+  return { opened: urls.length, failed: 0 };
 }

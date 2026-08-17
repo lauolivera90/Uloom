@@ -2,6 +2,7 @@ export { useCachedQuery } from './hook/useCachedQuery.js';
 export { useIconPicker } from './hook/useIconPicker.js';
 export { useConfirmAction } from './hook/useConfirmAction.js';
 export { useI18n, I18nContext } from './hook/useI18n.js';
+export { useToast, ToastContext } from './hook/useToast.js';
 export {
   es,
   en,
