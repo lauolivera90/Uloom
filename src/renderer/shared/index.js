@@ -16,3 +16,4 @@ export {
 } from './lib/i18n/index.js';
 export { getHostname, isCatalogIcon, isDataUrl, isRemoteIcon } from './lib/url.js';
 export { PALETTES, normalizePalette } from './lib/palettes.js';
+export { inferDuplicateName } from './lib/workspaceName.js';

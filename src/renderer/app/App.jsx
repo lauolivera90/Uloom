@@ -6,10 +6,9 @@ import {
   LanguageProvider,
   ToastProvider,
   useSidebar,
-  useWorkspaces,
   GlobalCreateWorkspace,
 } from './index.js';
-import { useWorkspaceFormModal } from '../entities/workspace/index.js';
+import { useGlobalCreateWorkspace } from './hook/useGlobalCreateWorkspace.js';
 import { MainLayout } from '../widgets/index.js';
 
 /**
@@ -22,8 +21,7 @@ import { MainLayout } from '../widgets/index.js';
  * }} props
  */
 function AppShell({ collapsed, onToggle, isSmall }) {
-  const { createWorkspace } = useWorkspaces();
-  const createModal = useWorkspaceFormModal({ workspace: null, onSubmit: createWorkspace });
+  const createModal = useGlobalCreateWorkspace();
 
   return (
     <>

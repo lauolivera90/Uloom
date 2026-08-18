@@ -12,36 +12,59 @@ import { SAVE_CHANGES_LABEL } from '../api/index.js';
 /** @typedef {import('../hook/useWorkspaceForm.js').WorkspaceFormState} WorkspaceFormState */
 
 /**
- * Modal de sesión compartido entre el Hub (alta) y el Detalle (edición). Todo el
- * contenido está en columna: nombre, selector de icono y descripción. Los labels
- * del título y del botón confirmar dependen de `isEditing`.
+ * Modal de sesión compartido entre el Hub (alta), el Detalle (edición y
+ * duplicación). Todo el contenido está en columna: nombre, selector de icono y
+ * descripción. Los labels del título y del botón confirmar dependen del modo:
+ * `isDuplicating` (preferente), `isEditing` o creación.
  * @param {{
  *   isOpen: boolean,
  *   isSaving?: boolean,
  *   isEditing?: boolean,
+ *   isDuplicating?: boolean,
  *   form: WorkspaceFormState,
  *   onCancel: () => void,
  * }} props
  */
-export function WorkspaceFormModal({ isOpen, isSaving = false, isEditing = false, form, onCancel }) {
+export function WorkspaceFormModal({
+  isOpen,
+  isSaving = false,
+  isEditing = false,
+  isDuplicating = false,
+  form,
+  onCancel,
+}) {
   const { submit, isNameValid } = form;
   const { t } = useI18n();
   const handleSubmit = () => {
     submit().catch((error) => console.error(error));
   };
+  const title = t(
+    isDuplicating
+      ? 'workspaceForm.duplicateTitle'
+      : isEditing
+        ? 'workspaceForm.editTitle'
+        : 'workspaceForm.createTitle',
+  );
+  const confirmLabel = t(
+    isDuplicating
+      ? 'workspaceForm.confirmDuplicate'
+      : isEditing
+        ? SAVE_CHANGES_LABEL
+        : 'workspaceForm.confirmCreate',
+  );
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
-      title={t(isEditing ? 'workspaceForm.editTitle' : 'workspaceForm.createTitle')}
+      title={title}
       size="md"
       footer={
         <ModalFooter
-          confirmLabel={t(isEditing ? SAVE_CHANGES_LABEL : 'workspaceForm.confirmCreate')}
+          confirmLabel={confirmLabel}
           onCancel={onCancel}
           onConfirm={handleSubmit}
-          confirmIcon={isEditing ? 'save' : 'add'}
+          confirmIcon={isDuplicating ? 'content_copy' : isEditing ? 'save' : 'add'}
           cancelDisabled={isSaving}
           confirmDisabled={!isNameValid || isSaving}
         />

@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 const uloomApi = {
   getConfig: () => ipcRenderer.invoke('config:get'),
   createWorkspace: (workspace) => ipcRenderer.invoke('workspace:create', workspace),
+  duplicateWorkspace: (sourceId, input) => ipcRenderer.invoke('workspace:duplicate', sourceId, input),
   updateWorkspace: (workspace) => ipcRenderer.invoke('workspace:update', workspace),
   deleteWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:delete', workspaceId),
   getInstalledBrowsers: () => ipcRenderer.invoke('browser:list'),

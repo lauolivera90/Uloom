@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.5.2)
+# Backend — Arquitectura (v0.5.3)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,9 +7,10 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2):
+API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 - `uloomApi.createWorkspace(input)` → invoca el canal `workspace:create`.
+- `uloomApi.duplicateWorkspace(sourceId, input)` → invoca el canal `workspace:duplicate`.
 - `uloomApi.updateWorkspace(workspace)` → invoca el canal `workspace:update`.
 - `uloomApi.deleteWorkspace(workspaceId)` → invoca el canal `workspace:delete`.
 - `uloomApi.launchWorkspace(workspaceId)` → invoca el canal `workspace:launch`.
@@ -29,11 +30,12 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`); desde v0.4.4 el handler `portability:import` suma `code?: string` a la respuesta de error (el código del fallo de portabilidad, ver `PORTABILITY_ERROR_CODES`) para que el frontend lo mapee a un mensaje localizado.
 
-Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2):
+Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |
 | `workspace:create` | `{ name, description?, icon? }` | `Workspace` (creado) |
+| `workspace:duplicate` | `sourceId`, `{ name, description?, icon? }` | `Workspace` (clon nuevo) |
 | `workspace:update` | `Workspace` (completo) | `Workspace` (persistido) |
 | `workspace:delete` | `workspaceId` | `null` |
 | `workspace:launch` | `workspaceId` | `{ opened, failed }` (URLs abiertas / fallidas) |
@@ -48,7 +50,7 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 | `portability:import` | — | `{ canceled: boolean, imported?: Workspace[] }` — lista final del catálogo persistido |
 
 ### 3. `src/main/services/` (Lógica de Negocio)
-- `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `updateWorkspace()` (delega; update estricto), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
+- `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `duplicateWorkspace(sourceId, input)` (v0.5.3: lee la sesión fuente con `getWorkspaceById`, clona sus `tabs` con **ids nuevos** y copia `openBehavior`/`browser` en un workspace nuevo con id nuevo y los datos básicos provistos — la fuente nunca se modifica), `updateWorkspace()` (delega; update estricto), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
 - `portabilityService.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos de error en v0.4.4): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error. `importFromFile()` — abre `dialog.showOpenDialog` (filtro `.json`, cancel ≠ error → `{ canceled: true }`), lee y valida el wrapper (`app: 'uloom'`, `kind` en `workspace|backup`, `schemaVersion` string, `data` array de workspaces con `name` string), normaliza cada sesión y delega la escritura en `workspaceRepository.importWorkspaces` con `replace: kind === 'backup'`. Devuelve `{ canceled, imported }` (lista final persistida). **Códigos de error (v0.4.4):** toda falla de importación adjunta un `code` al `Error` (constante `PORTABILITY_ERROR_CODES`): `INVALID_JSON`, `NOT_ULOOLM_FILE`, `UNSUPPORTED_KIND`, `INVALID_SCHEMA_VERSION`, `INVALID_WORKSPACES`, `READ_ERROR` (lectura del archivo) y `PERSIST_ERROR` (escritura del catálogo). El handler IPC los propaga y el frontend mapea cada código a un mensaje localizado en su toast.
 - `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre **todas** las `tab.url` en **un solo spawn** del ejecutable. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`) con todas las URLs como argumentos: con `openBehavior === 'new-window'` antepone la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) y el conjunto se abre en una sola ventana (cada URL como pestaña); en `active-tab` pasa solo las URLs (pestañas en la ventana vigente). Un solo spawn evita que cada pestaña abra una ventana propia en `new-window` y la race de spawns paralelos en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` por URL (único caso sin control de ventana nueva, y el único que puede devolver fallos parciales). Devuelve `{ opened, failed }` (todo o nada en el spawn); lanza ante errores estructurales (sesión inexistente, navegador configurado no instalado o spawn que falla).
 - `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn. `resolveSystemBrowser()` — **resolución única y compartida** del navegador predeterminado del SO (`app.getApplicationInfoForProtocol('https:')`): devuelve `{ id, name, path }` con `id: null` si el default no es del catálogo (mapeo por basename del ejecutable), o `null` si no es Windows o no se pudo resolver. Lo usan el launcher (spawn) y la UI. `getSystemDefaultBrowser()` — envuelve `resolveSystemBrowser()` y devuelve `{ id, name }` del catálogo o `null` (para el ícono del selector).
@@ -82,6 +84,20 @@ useWorkspacesHub.createWorkspace(input)   (pesimista)
    → workspaceService.createWorkspace(input) → id randomUUID + tabs []
    → workspaceRepository.addWorkspace → persiste
    → respuesta: workspace creado; el caller agrega el workspace y cierra el modal
+```
+
+### Duplicar sesión (v0.5.3)
+```
+Detalle: useDuplicateWorkspace (features) → form precargado con la fuente + nombre inferido `root (count)`
+   → useWorkspaces.duplicateWorkspace(sourceId, { name, description?, icon? })
+   → workspaceIpcApi.duplicateWorkspace(sourceId, input)
+   → preload → ipc 'workspace:duplicate' → workspaceHandler
+   → workspaceService.duplicateWorkspace: getWorkspaceById(sourceId)
+        → clone { id: randomUUID, name/description/icon provistos,
+                  tabs: source.tabs clonadas con id randomUUID cada una,
+                  openBehavior/browser copiados } — la fuente nunca se modifica
+   → workspaceRepository.addWorkspace → persiste
+   → respuesta: workspace clonado; el caller lo agrega al estado y cierra el modal
 ```
 
 ### Actualizar (agregar/editar/eliminar pestaña)
@@ -118,7 +134,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
-- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
+- `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `duplicateWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
 - `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos en v0.4.4): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error). Desde v0.4.4, `importFromFile` adjunta el `code` de error del backend al `Error` lanzado (cuando la respuesta lo trae) para que el hook mapee el fallo a un mensaje localizado.
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL`, `LAUNCH_EMPTY_TABS_TITLE` y `OPEN_BEHAVIOR_OPTIONS` (con `labelKey`), más los builders `buildOpenBehaviors(t)` (resuelve `labelKey` con el traductor del idioma activo), `getBrowserNameById` y `buildBrowserOptions`. Los labels son claves del diccionario i18n (`shared/lib/i18n`): los consumidores resuelven el texto con `t(clave)` (v0.4.3).

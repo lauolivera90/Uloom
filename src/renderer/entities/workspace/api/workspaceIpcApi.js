@@ -31,6 +31,21 @@ export async function createWorkspace(input) {
 }
 
 /**
+ * Duplica una sesión existente por su id: el main clona su configuración de
+ * lanzamiento y sus pestañas (con ids nuevos) en un workspace nuevo con id nuevo.
+ * @param {string} sourceId
+ * @param {{ name: string, description?: string, icon?: string }} input
+ * @returns {Promise<Workspace>}
+ */
+export async function duplicateWorkspace(sourceId, input) {
+  const response = await window.uloomApi.duplicateWorkspace(sourceId, input);
+  if (!response.success) {
+    throw new Error(response.error);
+  }
+  return response.data;
+}
+
+/**
  * Actualiza un workspace existente por su id (update estricto). Lanza si el
  * proceso main responde con error (p. ej. id inexistente).
  * @param {Workspace} workspace

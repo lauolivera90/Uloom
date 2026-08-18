@@ -53,7 +53,9 @@ export const en = {
   // workspaceForm
   'workspaceForm.createTitle': 'New session',
   'workspaceForm.editTitle': 'Edit session',
+  'workspaceForm.duplicateTitle': 'Duplicate session',
   'workspaceForm.confirmCreate': 'Create session',
+  'workspaceForm.confirmDuplicate': 'Duplicate',
   'workspaceForm.namePlaceholder': 'Session name',
   'workspaceForm.descriptionPlaceholder': 'Session description',
 
@@ -79,6 +81,7 @@ export const en = {
   'detail.notFoundDescription': "The session you're looking for doesn't exist or was deleted.",
   'detail.launch': 'Launch',
   'detail.editSession': 'Edit session',
+  'detail.duplicateSession': 'Duplicate session',
   'detail.deleteSession': 'Delete session',
   'detail.back': 'Back',
   'detail.resourcesManager': 'Resource manager',
@@ -173,6 +176,10 @@ export const en = {
     one: '{failed} tab could not be opened',
     other: '{failed} tabs could not be opened',
   },
+
+  // create / duplicate (creation with a result not visible from the view)
+  'create.success': 'Session created',
+  'duplicate.success': 'Session duplicated',
 
   // save / load (general persistence errors)
   'save.error': 'Could not save.',

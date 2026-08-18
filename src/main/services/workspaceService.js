@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   getConfig as getConfigFromRepository,
+  getWorkspaceById,
   addWorkspace,
   updateWorkspace as updateWorkspaceInRepository,
   deleteWorkspace as deleteWorkspaceInRepository,
@@ -43,6 +44,30 @@ export function createWorkspace({ name, description, icon }) {
  */
 export function updateWorkspace(nextWorkspace) {
   return updateWorkspaceInRepository(nextWorkspace);
+}
+
+/**
+ * Duplica una sesión existente: clona su configuración de lanzamiento
+ * (`openBehavior`, `browser`) y todas sus pestañas con ids nuevos, generando un
+ * workspace nuevo con id nuevo y los datos básicos provistos (`name`,
+ * `description`, `icon` — que pueden diferir de la fuente). Lee la sesión
+ * original del disco (nunca modifica la fuente) y persiste el clon.
+ * @param {string} sourceId
+ * @param {{ name: string, description?: string, icon?: string }} input
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function duplicateWorkspace(sourceId, { name, description, icon }) {
+  const source = getWorkspaceById(sourceId);
+  const clone = {
+    id: randomUUID(),
+    name,
+    description,
+    icon,
+    tabs: source.tabs.map((tab) => ({ ...tab, id: randomUUID() })),
+    openBehavior: source.openBehavior,
+    browser: source.browser,
+  };
+  return addWorkspace(clone);
 }
 
 /**

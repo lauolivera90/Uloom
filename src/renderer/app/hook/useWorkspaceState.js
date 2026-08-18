@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   getConfig,
   createWorkspace,
+  duplicateWorkspace as duplicateWorkspaceIpc,
   updateWorkspace,
   deleteWorkspace as deleteWorkspaceIpc,
   updatePreferences,
@@ -40,6 +41,7 @@ function hydrateCatalog(setWorkspaces, latestByWorkspaceRef, workspaceList) {
  *   workspaces: import('../../shared/types.js').Workspace[],
  *   preferences: import('../../shared/types.js').Preferences,
  *   createWorkspace: (input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
+ *   duplicateWorkspace: (sourceId: string, input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
  *   mutateWorkspace: (workspaceId: string, mutator: (workspace: import('../../shared/types.js').Workspace) => import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../../shared/types.js').Workspace>,
@@ -108,6 +110,13 @@ export function useWorkspaceState() {
 
   const createWorkspacePersisted = useCallback(async (input) => {
     const created = await createWorkspace(input);
+    latestByWorkspaceRef.current.set(created.id, created);
+    setWorkspaces((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const duplicateWorkspacePersisted = useCallback(async (sourceId, input) => {
+    const created = await duplicateWorkspaceIpc(sourceId, input);
     latestByWorkspaceRef.current.set(created.id, created);
     setWorkspaces((prev) => [...prev, created]);
     return created;
@@ -208,6 +217,7 @@ export function useWorkspaceState() {
     workspaces,
     preferences,
     createWorkspace: createWorkspacePersisted,
+    duplicateWorkspace: duplicateWorkspacePersisted,
     mutateWorkspace,
     addTab,
     deleteTab,

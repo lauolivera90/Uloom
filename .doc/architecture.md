@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.5.2)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.5.3)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -132,6 +132,7 @@ uloom/
 │       │       ├── useToastState.js    # Estado de la lista de toasts + timers de auto-cierre
 │       │       ├── useWorkspaceState.js
 │       │       ├── useSidebar.js
+│       │       ├── useGlobalCreateWorkspace.js # Modal global de alta (Sidebar) + toast condicional (v0.5.3)
 │       │       └── index.js
 │       ├── pages/
 │       ├── widgets/
@@ -198,6 +199,7 @@ uloom/
 │           │   │   ├── translate.js
 │           │   │   └── index.js
 │           │   ├── palettes.js      # Catálogo de paletas de identidad (v0.5.2)
+│           │   ├── workspaceName.js # Nombre inferido de duplicado `root (count)` (v0.5.3)
 │           │   └── url.js
 │           ├── ui/
 │           └── index.js

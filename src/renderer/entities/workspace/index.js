@@ -1,6 +1,7 @@
 export {
   getConfig,
   createWorkspace,
+  duplicateWorkspace,
   updateWorkspace,
   deleteWorkspace,
   getInstalledBrowsers,

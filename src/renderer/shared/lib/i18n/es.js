@@ -55,7 +55,9 @@ export const es = {
   // workspaceForm
   'workspaceForm.createTitle': 'Nueva sesión',
   'workspaceForm.editTitle': 'Editar sesión',
+  'workspaceForm.duplicateTitle': 'Duplicar sesión',
   'workspaceForm.confirmCreate': 'Crear sesión',
+  'workspaceForm.confirmDuplicate': 'Duplicar',
   'workspaceForm.namePlaceholder': 'Nombre de la sesión',
   'workspaceForm.descriptionPlaceholder': 'Descripción de la sesión',
 
@@ -81,6 +83,7 @@ export const es = {
   'detail.notFoundDescription': 'La sesión que buscás no existe o fue eliminada.',
   'detail.launch': 'Lanzar',
   'detail.editSession': 'Editar sesión',
+  'detail.duplicateSession': 'Duplicar sesión',
   'detail.deleteSession': 'Eliminar sesión',
   'detail.back': 'Volver',
   'detail.resourcesManager': 'Administrador de recursos',
@@ -175,6 +178,10 @@ export const es = {
     one: '{failed} pestaña no se pudo abrir',
     other: '{failed} pestañas no se pudieron abrir',
   },
+
+  // create / duplicate (alta con resultado no visible desde la vista)
+  'create.success': 'Sesión creada',
+  'duplicate.success': 'Sesión duplicada',
 
   // save / load (errores de persistencia generales)
   'save.error': 'No se pudo guardar.',

@@ -10,7 +10,7 @@ import {
 } from '../../../widgets/index.js';
 import { useI18n } from '../../../shared/index.js';
 import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
-import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig } from '../hook/index.js';
+import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig, useDuplicateWorkspace } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
 import { WorkspaceExportCard } from './WorkspaceExportCard.jsx';
@@ -52,6 +52,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
     confirmDelete: confirmDeleteWorkspace,
   } = useDeleteWorkspace(workspace?.id);
   const workspaceEdit = useWorkspaceEdit(workspace);
+  const duplicateWorkspace = useDuplicateWorkspace(workspace);
   const browserConfig = useSessionConfig(workspace?.id, workspace);
   const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
   const { isExporting, exportSession } = useExportWorkspace(workspace?.id);
@@ -106,6 +107,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
               </Button>
             )}
             <IconButton variant="warning" icon="edit" label={t('detail.editSession')} onClick={workspaceEdit.open} />
+            <IconButton variant="ghost" icon="content_copy" label={t('detail.duplicateSession')} onClick={duplicateWorkspace.open} />
             <IconButton variant="danger" icon="delete" label={t('detail.deleteSession')} onClick={requestDeleteWorkspace} />
             <div className="w-px h-6 bg-border/40 mx-1" />
             <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
@@ -166,6 +168,13 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
         isEditing={workspaceEdit.isEditing}
         form={workspaceEdit.form}
         onCancel={workspaceEdit.close}
+      />
+      <WorkspaceFormModal
+        isOpen={duplicateWorkspace.isOpen}
+        isSaving={duplicateWorkspace.isSaving}
+        isDuplicating={duplicateWorkspace.isDuplicating}
+        form={duplicateWorkspace.form}
+        onCancel={duplicateWorkspace.close}
       />
       <ConfirmDialog
         isOpen={isDeleteTabOpen}

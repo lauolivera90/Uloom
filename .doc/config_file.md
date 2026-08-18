@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.5.2)
+# config.json — Estructura (v0.5.3)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
 
@@ -6,7 +6,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.5.2'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.5.3'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
 
@@ -42,7 +42,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 ```json
 {
-  "version": "0.5.2",
+  "version": "0.5.3",
   "preferences": {
     "defaultBrowser": "system"
   },
@@ -59,9 +59,10 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 - Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior` y `browser`.
 - La escritura usa pretty-print (indentación de 2 espacios).
 
-## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1)
+## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1 · v0.5.3)
 
 - **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'` y `browser` arranca `null`.
+- **Duplicar sesión** (`workspace:duplicate`, v0.5.3): clona una sesión existente en un workspace nuevo — `id` nuevo (randomUUID), `name`/`description`/`icon` provistos por el usuario (editables en el modal antes de confirmar), `tabs` clonadas con **ids nuevos** (los favicons cacheados se copian tal cual) y `openBehavior`/`browser` copiados de la fuente. La sesión original nunca se modifica.
 - **Actualizar** (`workspace:update`): **update estricto (no upsert)** — si el `id` no existe en `workspaces`, lanza `Workspace no encontrado` (no inserta). Se reemplaza el workspace completo por su `id`.
 - **Eliminar sesión** (`workspace:delete`): **baja estricta** — si el `id` no existe, lanza `Workspace no encontrado`; se elimina el elemento del array y se persiste.
 - **Eliminar todas las sesiones** (`workspace:clearAll`, v0.4.1): vacía `workspaces` **preservando `preferences`** (el navegador predeterminado global queda intacto). No es estricta: no lanza si la lista ya está vacía.

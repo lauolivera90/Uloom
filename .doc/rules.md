@@ -150,7 +150,7 @@ Contexto histórico: antes de v0.4.3 esta regla ordenaba NO implementar i18n y d
 Los toasts existen para feedback de acciones, pero no toda acción merece uno. La política completa (con los casos aplicados) vive en `.doc/design.md` §3 (bullet Toast); acá queda la regla anclada:
 
 - **Principio:** se emite un toast solo en cambios o resultados que el usuario **no puede ver desde la vista actual**. Si la UI ya refleja el resultado (item que aparece/desaparece, modal que cierra, toggle/select que cambia), NO hay toast.
-- **Éxito:** solo cuando el resultado no es visible en la vista o es una operación bulk/cross-context (import, exportAll, exportSession, clearCache, deleteAll). Nunca sobre cambios in-place (crear/editar/borrar sesiones y pestañas, tema, idioma, navegador predeterminado).
+- **Éxito:** solo cuando el resultado no es visible en la vista o es una operación bulk/cross-context (import, exportAll, exportSession, clearCache, deleteAll, duplicate). El `create` global del Sidebar tostéa solo fuera del Hub (estando en el Hub la card es visible in-place). Nunca sobre cambios in-place (crear/editar/borrar sesiones y pestañas, tema, idioma, navegador predeterminado).
 - **Error:** siempre se justifica (infrecuentes y explican el porqué); imprescindibles en acciones externas/asíncronas (launch, import).
 - **Warning:** resultados parciales (ej. `launch.partialFailure`).
 - **Feedback alternativo:** error inline para fallos contextuales (form); no duplicar toast + inline.
