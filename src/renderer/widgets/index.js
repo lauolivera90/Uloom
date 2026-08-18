@@ -18,6 +18,7 @@ export {
   Textarea,
   Toast,
   ToastViewport,
+  PalettePicker,
 } from './ui/index.js';
 
 export { MainLayout, Page, PageHeader } from './layout/index.js';

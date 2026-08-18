@@ -4,12 +4,15 @@ import { useThemeState } from './hook/useTheme.js';
 const ThemeContext = createContext(null);
 
 /**
- * Acceso al tema global (claro/oscuro) compartido por la app. Debe usarse
- * dentro de un ThemeProvider; fuera de él lanza un error descriptivo.
+ * Acceso al tema global (claro/oscuro) y la paleta de identidad compartidos por
+ * la app. Debe usarse dentro de un ThemeProvider; fuera de él lanza un error
+ * descriptivo.
  * @returns {{
  *   theme: 'light' | 'dark',
  *   setTheme: (theme: 'light' | 'dark') => void,
  *   toggleTheme: () => void,
+ *   palette: string,
+ *   setPalette: (palette: string) => void,
  * }}
  */
 export function useTheme() {

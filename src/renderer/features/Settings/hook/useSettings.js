@@ -13,7 +13,8 @@ export const SETTINGS_SECTION = {
 
 /**
  * Estado de Configuración: sección activa, el tema global (día/noche, funcional
- * vía `useTheme` con persistencia en localStorage) y el navegador predeterminado
+ * vía `useTheme` con persistencia en localStorage), la paleta de identidad
+ * (selector de paletas predefinidas, v0.5.2) y el navegador predeterminado
  * GLOBAL, que también es funcional — persiste en las preferencias de la app y lo
  * heredan las sesiones "Predeterminado".
  * @returns {{
@@ -21,6 +22,8 @@ export const SETTINGS_SECTION = {
  *   setActiveSection: (section: string) => void,
  *   theme: 'light' | 'dark',
  *   toggleTheme: () => void,
+ *   palette: string,
+ *   setPalette: (palette: string) => void,
  *   language: import('../../../shared/types.js').Language,
  *   setLanguage: (language: import('../../../shared/types.js').Language) => void,
  *   browsers: Array<{ id: string, name: string }>,
@@ -34,7 +37,7 @@ export const SETTINGS_SECTION = {
  */
 export function useSettings() {
   const { preferences, updatePreferences } = useWorkspaces();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, palette, setPalette } = useTheme();
   const { language, setLanguage, t } = useI18n();
   const { toast } = useToast();
   const { browsers, isLoading: isLoadingBrowsers } = useInstalledBrowsers();
@@ -61,6 +64,8 @@ export function useSettings() {
     setActiveSection,
     theme,
     toggleTheme,
+    palette,
+    setPalette,
     language,
     setLanguage,
     browsers,

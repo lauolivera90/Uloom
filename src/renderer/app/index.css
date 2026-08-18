@@ -34,6 +34,83 @@
   --border: 63 63 74;
 }
 
+/* Paletas de identidad (v0.5.2): el atributo `data-palette` puede vivir en el
+   <html> (paleta activa de la app) o en un subárbol (preview en vivo de un
+   swatch). Cada paleta redefine SOLO los tokens de identidad en claro y oscuro;
+   los estructurales siguen a cargo de :root/.dark. El catálogo de ids vive en
+   shared/lib/palettes.js y el allowlist del anti-flash en public/theme-init.js.
+   Violeta (la default) también tiene bloque propio para que el preview de un
+   swatch no herede la paleta activa de la app. */
+[data-palette='violeta'] {
+  --primary: 34 26 183;
+  --primary-hover: 24 16 145;
+  --accent: 127 98 123;
+  --on-primary: 246 245 251;
+}
+
+.dark[data-palette='violeta'] {
+  --primary: 80 72 229;
+  --primary-hover: 107 99 234;
+  --accent: 157 128 153;
+  --on-primary: 248 247 255;
+}
+
+[data-palette='azul'] {
+  --primary: 37 99 235;
+  --primary-hover: 29 78 216;
+  --accent: 30 64 175;
+  --on-primary: 248 250 252;
+}
+
+.dark[data-palette='azul'] {
+  --primary: 37 99 235;
+  --primary-hover: 96 165 250;
+  --accent: 96 165 250;
+  --on-primary: 248 250 252;
+}
+
+[data-palette='esmeralda'] {
+  --primary: 6 95 70;
+  --primary-hover: 5 77 57;
+  --accent: 4 120 87;
+  --on-primary: 236 253 245;
+}
+
+.dark[data-palette='esmeralda'] {
+  --primary: 4 120 87;
+  --primary-hover: 52 211 153;
+  --accent: 110 231 183;
+  --on-primary: 236 253 245;
+}
+
+[data-palette='ambar'] {
+  --primary: 180 83 9;
+  --primary-hover: 154 52 18;
+  --accent: 146 64 14;
+  --on-primary: 255 251 235;
+}
+
+.dark[data-palette='ambar'] {
+  --primary: 217 119 6;
+  --primary-hover: 251 191 36;
+  --accent: 251 191 36;
+  --on-primary: 69 26 3;
+}
+
+[data-palette='rosa'] {
+  --primary: 157 23 77;
+  --primary-hover: 131 24 67;
+  --accent: 159 18 57;
+  --on-primary: 255 241 242;
+}
+
+.dark[data-palette='rosa'] {
+  --primary: 244 114 182;
+  --primary-hover: 249 168 212;
+  --accent: 249 168 212;
+  --on-primary: 80 7 36;
+}
+
 html,
 body,
 #root {
