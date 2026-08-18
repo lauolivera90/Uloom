@@ -143,9 +143,9 @@ Objetivo: feedback visual para errores y acciones.
 [x] Sistema de toast: crear un toast/notificación para feedback visual y revisar dónde aplicarlo (importación y otras acciones que hoy solo loguean errores con `console.error`). → Resuelto en v0.4.4: `shared/hook/useToast` (context) + `app/ToastProvider` (estado + timers) + widgets `Toast`/`ToastViewport` (variantes solo tokens, bottom-right, auto-cierre 4s, tope 4). Aplicado en import, exportAll, clearCache, deleteAll, delete tab/session, launch (error + parcial), export sesión, forms de sesión/pestaña, navegador predeterminado y load inicial. Sin toast en soft-fallbacks internos (`useTabForm` metadata, `useCachedQuery`) ni en `useSessionConfig` (error inline existente).
 
 🟢 v0.4.5 - Responsive
-[ ] Responsive parcial en toda la página: establecer responsive parcial (ajustes de layout a anchos menores) en Hub, Detalle y Configuración — mínimo viable, sin rediseño completo.
+[x] Responsive parcial en toda la página: establecer responsive parcial (ajustes de layout a anchos menores) en Hub, Detalle y Configuración — mínimo viable, sin rediseño completo. → Resuelto en v0.4.5: Hub con 3 columnas desde `lg` (`WorkspaceGrid.jsx`); el Detalle ya stackeaba bajo `lg` (solo se sincronizó la doc al código real); Configuración no necesitó cambios (el header wrappea y las OptionRow entran a ancho mínimo).
 
-[ ] Hacer que la sidebar si la pantalla es pequeña, siempre aparezca como minimizada, pero si hacemos hover sobre la sidebar, esta se expande pero superpuesta por el contenido, no quitando espacio en la pantalla.
+[x] Hacer que la sidebar si la pantalla es pequeña, siempre aparezca como minimizada, pero si hacemos hover sobre la sidebar, esta se expande pero superpuesta por el contenido, no quitando espacio en la pantalla. → Resuelto en v0.4.5: `shared/hook/useMediaQuery` + `useSidebar.isSmall` (< 1024px); la sidebar queda `fixed` siempre colapsada (`z-[40]`) y se expande por hover superpuesta (`shadow-xl`); `MainLayout` reserva el rail con `pl-16`. Toggle oculto en overlay (no hay estado que expandir); a11y con `aria-label` en los items colapsados.
 
 🟠 v0.5.0 — Identidad y personalización
 Objetivo: Selector de idioma, tema con paleta personalizable, duplicación de sesiones y reutilización de tabs frecuentes.

@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.4.4)
+# Backend — Arquitectura (v0.4.5)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 

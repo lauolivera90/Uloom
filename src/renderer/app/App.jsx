@@ -18,9 +18,10 @@ import { MainLayout } from '../widgets/index.js';
  * @param {{
  *   collapsed: boolean,
  *   onToggle: () => void,
+ *   isSmall: boolean,
  * }} props
  */
-function AppShell({ collapsed, onToggle }) {
+function AppShell({ collapsed, onToggle, isSmall }) {
   const { createWorkspace } = useWorkspaces();
   const createModal = useWorkspaceFormModal({ workspace: null, onSubmit: createWorkspace });
 
@@ -32,6 +33,7 @@ function AppShell({ collapsed, onToggle }) {
             <MainLayout
               collapsed={collapsed}
               onToggle={onToggle}
+              isSmall={isSmall}
               onAddSession={createModal.open}
             />
           }
@@ -52,7 +54,7 @@ function AppShell({ collapsed, onToggle }) {
 }
 
 export function App() {
-  const { collapsed, toggle } = useSidebar();
+  const { collapsed, toggle, isSmall } = useSidebar();
 
   return (
     <LanguageProvider>
@@ -60,7 +62,7 @@ export function App() {
         <ToastProvider>
           <WorkspaceProvider>
             <HashRouter>
-              <AppShell collapsed={collapsed} onToggle={toggle} />
+              <AppShell collapsed={collapsed} onToggle={toggle} isSmall={isSmall} />
             </HashRouter>
           </WorkspaceProvider>
         </ToastProvider>

@@ -21,7 +21,7 @@ export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }
   const { t } = useI18n();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {workspaces.map((workspace) => (
         <WorkspaceCard
           key={workspace.id}

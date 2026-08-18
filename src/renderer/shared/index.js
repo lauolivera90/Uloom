@@ -1,3 +1,4 @@
+export { useMediaQuery } from './hook/useMediaQuery.js';
 export { useCachedQuery } from './hook/useCachedQuery.js';
 export { useIconPicker } from './hook/useIconPicker.js';
 export { useConfirmAction } from './hook/useConfirmAction.js';

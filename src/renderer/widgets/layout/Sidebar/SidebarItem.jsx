@@ -19,6 +19,7 @@ export function SidebarItem({ icon, label, collapsed, isActive, onClick }) {
     <button
       type="button"
       aria-current={isActive ? 'page' : undefined}
+      aria-label={collapsed ? label : undefined}
       onClick={onClick}
       className={`flex items-center w-full py-3 transition duration-fast active:scale-[0.98] ${
         collapsed ? 'justify-center px-5' : 'justify-start gap-3 px-5'
