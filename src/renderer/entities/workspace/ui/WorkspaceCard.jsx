@@ -3,7 +3,7 @@
  */
 
 import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
-import { useI18n } from '../../../shared/index.js';
+import { formatRelativeTime, useI18n } from '../../../shared/index.js';
 import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
 import { PinButton } from './PinButton.jsx';
 
@@ -51,6 +51,15 @@ export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab, onTogglePi
             <span className="flex items-center gap-2 text-xs text-text/60">
               <Icon icon="tab" size={16} className="text-text/60" />
               {t('workspaceCard.tabsCount', { count: tabsCount })}
+            </span>
+            <span
+              className={`flex items-center gap-2 text-xs text-text/60 ${
+                workspace.lastLaunchedAt ? '' : 'invisible'
+              }`}
+              aria-hidden={!workspace.lastLaunchedAt}
+            >
+              <Icon icon="schedule" size={16} className="text-text/60" />
+              {workspace.lastLaunchedAt ? formatRelativeTime(workspace.lastLaunchedAt, t) : '—'}
             </span>
           </div>
           {tabsCount === 0 ? (

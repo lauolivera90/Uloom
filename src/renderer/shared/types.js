@@ -32,6 +32,10 @@
  * predeterminado global; un id = override fijo que no se modifica ante cambios globales.
  * @property {boolean} [pinned] Si la sesión está fijada (favorito): aparece primero en el Hub.
  * Default `false`. No se copia al duplicar una sesión (el clon arranca desfijado).
+ * @property {string} [lastLaunchedAt] Última vez que se lanzó la sesión, en ISO 8601. Default
+ * `null` (nunca lanzada). No se copia al duplicar (el clon arranca sin historial de uso).
+ * @property {number} [launchCount] Cantidad de lanzamientos de la sesión. Default `0`. No se
+ * copia al duplicar.
  */
 
 /**

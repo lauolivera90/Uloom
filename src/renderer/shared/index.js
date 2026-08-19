@@ -18,3 +18,4 @@ export { getHostname, isCatalogIcon, isDataUrl, isRemoteIcon } from './lib/url.j
 export { PALETTES, normalizePalette } from './lib/palettes.js';
 export { inferDuplicateName } from './lib/workspaceName.js';
 export { buildTabsFromHistory } from './lib/historyTabs.js';
+export { formatRelativeTime } from './lib/relativeTime.js';

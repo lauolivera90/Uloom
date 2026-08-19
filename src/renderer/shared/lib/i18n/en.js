@@ -21,6 +21,15 @@ export const en = {
   // menu (overflow de acciones secundarias)
   'menu.moreActions': 'More actions',
 
+  // time (relative time, v0.6.2)
+  'time.now': 'Just now',
+  'time.minute': { one: '1 minute ago', other: '{count} minutes ago' },
+  'time.hour': { one: '1 hour ago', other: '{count} hours ago' },
+  'time.day': { one: '1 day ago', other: '{count} days ago' },
+  'time.week': { one: '1 week ago', other: '{count} weeks ago' },
+  'time.month': { one: '1 month ago', other: '{count} months ago' },
+  'time.year': { one: '1 year ago', other: '{count} years ago' },
+
   // iconPicker
   'iconPicker.label': 'Icon',
   'iconPicker.showAll': 'Show all icons',
@@ -86,6 +95,11 @@ export const en = {
   'hub.pinSession': 'Pin session',
   'hub.unpinSession': 'Unpin session',
   'hub.pinError': "Couldn't update the session's pinned state.",
+  'hub.sortBy': 'Sort by',
+  'hub.sortCreated': 'Creation order',
+  'hub.sortAlpha': 'Alphabetical',
+  'hub.sortUsage': 'Most used',
+  'hub.sortLastLaunched': 'Last launched',
 
   // detail
   'detail.backToHub': 'Back to Hub',
@@ -108,6 +122,11 @@ export const en = {
   'detail.exportSession': 'Export this session',
   'detail.exportSessionDescription':
     'Downloads a `.json` file with this session to back it up or share it.',
+  'detail.usageData': 'Usage data',
+  'detail.lastLaunched': 'Last launched',
+  'detail.timesLaunched': 'Times launched',
+  'detail.launchCount': { one: 'Launched once', other: 'Launched {count} times' },
+  'detail.neverLaunched': 'Never launched',
 
   // tabList
   'tabList.empty': 'No tabs here',

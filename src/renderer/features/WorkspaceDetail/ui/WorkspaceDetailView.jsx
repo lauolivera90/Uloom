@@ -15,6 +15,7 @@ import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig, u
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
 import { WorkspaceExportCard } from './WorkspaceExportCard.jsx';
+import { WorkspaceUsageCard } from './WorkspaceUsageCard.jsx';
 import { useWorkspaces } from '../../../app/index.js';
 
 const BACK_TO_HUB_LABEL = 'detail.backToHub';
@@ -36,7 +37,7 @@ const BACK_TO_HUB_LABEL = 'detail.backToHub';
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { addTab, addTabs, updateTab, mutateWorkspace } = useWorkspaces();
+  const { addTab, addTabs, updateTab, mutateWorkspace, syncWorkspace } = useWorkspaces();
   const tabModal = useTabFormModal({
     workspaceId: workspace?.id,
     existingUrls: (workspace.tabs ?? []).map((tab) => tab.url),
@@ -57,7 +58,9 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   const duplicateWorkspace = useDuplicateWorkspace(workspace);
   const { togglePin } = useToggleWorkspacePin({ mutateWorkspace });
   const browserConfig = useSessionConfig(workspace?.id, workspace);
-  const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
+  const { isLaunching, launch } = useLaunchWorkspace(workspace?.id, {
+    onLaunched: syncWorkspace,
+  });
   const { isExporting, exportSession } = useExportWorkspace(workspace?.id);
 
   const handleDeleteWorkspace = async () => {
@@ -166,6 +169,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
               error={browserConfig.error}
             />
           </Card>
+          <WorkspaceUsageCard workspace={workspace} />
           <WorkspaceExportCard isExporting={isExporting} onExport={exportSession} />
         </section>
       </div>

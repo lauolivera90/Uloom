@@ -171,12 +171,27 @@ v0.6.1 Hub — Quick wins
 [x] Overflow de acciones secundarias del Detalle (ampliación de v0.6.1): Duplicar y Eliminar salen del header a un menú "..." accesible por click. → Resuelto en v0.6.1 con el widget `Menu` (`widgets/ui` + `useMenu` en `widgets/hooks`): trigger `more_vert` con popover `role="menu"` (click para abrir, click-fuera/Esc para cerrar devolviendo foco al trigger, roving focus con flechas que salta items disabled), items data-driven con variante `danger` para destructivas (Eliminar al final). El header del Detalle pasa a `[Lanzar] [Editar] [PinButton] [...] | [Volver]`.
 
 v0.6.2 Hub — Datos de uso y ordenamiento
-[ ] Última vez lanzada: guardar y mostrar timestamp del último `workspace:launch` por sesión. (Toca esquema de datos.)
-[ ] Orden de sesiones: por criterio (alfabético, más usada, última vez lanzada) u orden manual. Depende del timestamp del item anterior.
+[x] Última vez lanzada: guardar y mostrar timestamp del último `workspace:launch` por sesión. (Toca esquema de datos.) → Resuelto en v0.6.2: campos `lastLaunchedAt`/`launchCount` en la entidad (defaults `null`/`0`, normalizados al leer, no se copian al duplicar) que el Launcher registra best-effort durante `workspace:launch` (`recordLaunch` en el repository; respuesta `{ opened, failed, workspace }`) y el renderer refleja al instante con `syncWorkspace` (encolado en el write-chain, merge solo de los campos de uso). Visibles en el footer de la card del Hub (slot reservado en todas las cards, `invisible`/`aria-hidden` sin timestamp) y en la card "Datos de uso" del Detalle (última lanzada con tiempo relativo o "Nunca lanzada" + veces lanzada).
+[x] Orden de sesiones: por criterio (alfabético, más usada, última vez lanzada) u orden manual. Depende del timestamp del item anterior. → Resuelto en v0.6.2 **solo el criterio**: SortBy en el header del Hub (Select antes de la búsqueda) con 4 criterios — Orden de creación (default), Alfabético, Más usadas (`launchCount` desc), Última lanzada (`lastLaunchedAt` desc, nunca lanzadas al final); las fijadas siguen primero (sort estable dentro de cada grupo). Persistencia en `localStorage['uloom-sort']` (fuera del esquema de config.json). El **orden manual queda diferido** a v0.6.6.
 
-v0.6.3 Hub — Agrupación y plantillas
+v0.6.4 Hub — Pase estético
+[ ] Fix del `Select`: la flecha nativa del navegador ignora el padding derecho y pega el texto al borde. Rediseño con wrapper `relative inline-block`, `appearance-none` + `pr-9` y chevron propio (`expand_more` absoluto a la derecha, `pointer-events-none`); el className del consumidor dimensiona el wrapper y el select queda `w-full` adentro (corrige además el conflicto `w-full`/`w-40` actual).
+[ ] SortBy: pasar de `Select` a `IconButton` + dropdown con el widget `Menu` (gana prop `icon`, default `more_vert` para no romper el Detalle; en el Hub `icon="sort"`, item activo con `icon="check"`). La lógica `sort`/`setSort` de `useWorkspacesHub` no cambia.
+[ ] Searchbar con ancho fijo: `w-64` → `w-80 shrink-0` en el Hub y en Configuración (el placeholder nunca se corta).
+[ ] Densidad de las cards del Detalle: `OptionRow` gana variante `dense` (`py-3`); se aplica en `WorkspaceConfig`, `WorkspaceUsageCard` y `WorkspaceExportCard` (hoy 40px de aire entre filas por `py-5` ×2 + `p-5` del body). Settings conserva `py-5`.
+[ ] Slot de última lanzada por fila: agrupar `visibleWorkspaces` en filas según breakpoint (`useMediaQuery`, 3/2/1 cols) y solo reservar el slot si alguna card de esa fila tiene timestamp (`reserveLastLaunchedSlot` en `WorkspaceCard`; `CreateTile` se appenda a la última fila).
+
+v0.6.5 Hub — Separación Favoritas / Resto
+[ ] Dividir el Hub en dos secciones cuando no hay búsqueda: **Favoritas** (pinned) y **Resto** (no pinned). Cada sesión aparece en UNA sola sección (desfijar mueve la card a Resto al instante).
+[ ] Cards de la sección Favoritas: **solo header** `[ícono] [nombre] [estrella] [play]` — play a la derecha de la estrella; sin footer (recursos/última lanzada — cada usuario sabe qué contiene una favorita); sesión vacía → `+` en lugar del play; la card sigue siendo clickeable (accede al Detalle).
+[ ] Cards de la sección Resto: las completas actuales (con footer).
+[ ] Títulos de sección con estilo header de card (ícono accent + texto, ej. estrella + "Favoritas", grid_view + "Todas las sesiones"); la sección Favoritas se oculta si está vacía y el título de Resto solo aparece cuando hay Favoritas arriba.
+[ ] La búsqueda **unifica las secciones** en un solo resultado plano (sin títulos de sección), con las fijadas primero; `hub.noResults` global si no hay coincidencias. SortBy aplica al resultado unificado (y a Resto cuando no hay búsqueda; las favoritas quedan en orden de creación).
+
+v0.6.6 Hub — Carpetas, plantillas y orden manual (diferida desde v0.6.3)
 [ ] Carpetas o grupos de sesiones: agrupación manual (ej. "Trabajo", "Personal", "Clientes"). (Toca esquema de datos.)
 [ ] Plantillas de sesión: crear una sesión nueva a partir de una plantilla predefinida o guardada por el usuario.
+[ ] Orden manual de sesiones (diferido desde v0.6.2).
 
 ⚫ v0.7.0 — Gestión avanzada de Pestañas
 Objetivo: dar más control granular sobre las tabs dentro de una sesión.

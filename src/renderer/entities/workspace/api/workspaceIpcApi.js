@@ -91,9 +91,11 @@ export async function getPageMetadata(url) {
 /**
  * Lanza una sesión en el navegador resuelto: abre todas las pestañas del
  * workspace en el proceso main (spawn del navegador o openExternal según la
- * configuración de sesión/global). Lanza si el main responde con error.
+ * configuración de sesión/global). Lanza si el main responde con error. Desde
+ * v0.6.2 la respuesta incluye la sesión persistida actualizada con los datos de
+ * uso (`workspace`), o `null` si no hubo apertura.
  * @param {string} workspaceId
- * @returns {Promise<{ opened: number, failed: number }>}
+ * @returns {Promise<{ opened: number, failed: number, workspace: import('../../../shared/types.js').Workspace | null }>}
  */
 export async function launchWorkspace(workspaceId) {
   const response = await window.uloomApi.launchWorkspace(workspaceId);

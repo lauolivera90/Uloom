@@ -2,7 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const APP_VERSION = '0.6.1';
+const APP_VERSION = '0.6.2';
 
 /**
  * Devuelve la estructura de config por defecto cuando el archivo no existe o está corrupto.

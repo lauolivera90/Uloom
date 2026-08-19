@@ -1,4 +1,4 @@
-# config.json — Estructura (v0.6.1)
+# config.json — Estructura (v0.6.2)
 
 El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo), `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces) y `src/main/data/tabHistoryRepository.js` (historial de pestañas usadas, v0.5.4).
 
@@ -29,6 +29,8 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 | `openBehavior` | `string` | Modo de apertura al lanzar la sesión: `'active-tab'` (ventana activa) o `'new-window'` (ventana nueva). Default `'active-tab'`. |
 | `browser` | `string?` | Navegador de uso de la sesión. `null`/ausente = **heredar el predeterminado global** (Preferencias); un id = override fijo que no cambia ante cambios del global. |
 | `pinned` | `boolean?` | Sesión fijada (favorito): aparece primero en el Hub (v0.6.1). Default `false`. No se copia al duplicar una sesión (el clon arranca desfijado). |
+| `lastLaunchedAt` | `string?` | Última vez que se lanzó la sesión, en ISO 8601 (v0.6.2). Default `null` (nunca lanzada). No se copia al duplicar (el clon arranca sin historial de uso). |
+| `launchCount` | `number?` | Cantidad de lanzamientos de la sesión (v0.6.2). Default `0`. No se copia al duplicar. |
 
 ## `Tab`
 
@@ -55,7 +57,7 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 ```json
 {
-  "version": "0.6.1",
+  "version": "0.6.2",
   "preferences": {
     "defaultBrowser": "system"
   },
@@ -68,21 +70,22 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 
 - Si `config.json` no existe → se crea con el default.
 - Si el JSON es inválido o `workspaces` no es un array → se restaura el default (sobrescribe el archivo corrupto).
-- Al **leer**, cada workspace se normaliza: `tabs` siempre queda como array; `openBehavior` rellena `'active-tab'`, `browser` rellena `null` y `pinned` rellena `false` si vienen ausentes (migración ante edición manual del JSON o configs viejas).
+- Al **leer**, cada workspace se normaliza: `tabs` siempre queda como array; `openBehavior` rellena `'active-tab'`, `browser` rellena `null`, `pinned` rellena `false` y `lastLaunchedAt`/`launchCount` rellenan `null`/`0` si vienen ausentes (migración ante edición manual del JSON o configs viejas).
 - Al **leer**, `preferences` se normaliza: `defaultBrowser` rellena `'system'` si falta.
 - Al **leer**, el historial (`tabHistory`) se normaliza: si no es un array queda `[]`; cada entrada sin `url` válida se descarta y las válidas rellenan `name`/`count`/`lastUsedAt` ante configs viejas. El orden de lectura es `count` desc → `lastUsedAt` desc (más usadas primero).
-- Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior`, `browser` y `pinned`; las escrituras del historial normalizan, ordenan y capan `tabHistory` (máx. 20 entradas, evicción de las menos usadas).
+- Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior`, `browser`, `pinned` y los datos de uso (`lastLaunchedAt`/`launchCount`); las escrituras del historial normalizan, ordenan y capan `tabHistory` (máx. 20 entradas, evicción de las menos usadas).
 - La escritura usa pretty-print (indentación de 2 espacios).
 
-## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1 · v0.5.3 · v0.5.4 · v0.6.1)
+## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1 · v0.5.3 · v0.5.4 · v0.6.1 · v0.6.2)
 
-- **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'`, `browser` arranca `null` y `pinned` arranca `false`.
-- **Duplicar sesión** (`workspace:duplicate`, v0.5.3): clona una sesión existente en un workspace nuevo — `id` nuevo (randomUUID), `name`/`description`/`icon` provistos por el usuario (editables en el modal antes de confirmar), `tabs` clonadas con **ids nuevos** (los favicons cacheados se copian tal cual) y `openBehavior`/`browser` copiados de la fuente. El clon **no hereda el `pinned`** de la fuente (arranca desfijado, v0.6.1). La sesión original nunca se modifica.
+- **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'`, `browser` arranca `null`, `pinned` arranca `false` y los datos de uso arrancan `lastLaunchedAt: null`/`launchCount: 0`.
+- **Duplicar sesión** (`workspace:duplicate`, v0.5.3): clona una sesión existente en un workspace nuevo — `id` nuevo (randomUUID), `name`/`description`/`icon` provistos por el usuario (editables en el modal antes de confirmar), `tabs` clonadas con **ids nuevos** (los favicons cacheados se copian tal cual) y `openBehavior`/`browser` copiados de la fuente. El clon **no hereda el `pinned`** de la fuente (arranca desfijado, v0.6.1) ni los **datos de uso** (arranca `lastLaunchedAt: null`/`launchCount: 0`, v0.6.2). La sesión original nunca se modifica.
 - **Actualizar** (`workspace:update`): **update estricto (no upsert)** — si el `id` no existe en `workspaces`, lanza `Workspace no encontrado` (no inserta). Se reemplaza el workspace completo por su `id`. El **fijar/desfijar una sesión** (v0.6.1) también pasa por acá: el Hub lo dispara con `mutateWorkspace` (toggle `pinned`) y reescribe la sesión completa — como no cambian las pestañas, el diff del historial no registra nada.
 - **Eliminar sesión** (`workspace:delete`): **baja estricta** — si el `id` no existe, lanza `Workspace no encontrado`; se elimina el elemento del array y se persiste.
 - **Eliminar todas las sesiones** (`workspace:clearAll`, v0.4.1): vacía `workspaces` **preservando `preferences`** (el navegador predeterminado global queda intacto). No es estricta: no lanza si la lista ya está vacía.
 - **Limpiar caché de metadatos** (`workspace:clearMetadataCache`, v0.4.1): recorre todas las pestañas y remueve `Tab.favicon` (data URL cacheadas del fetch de `page:metadata`). Devuelve la cantidad de favicons removidos; los favicons se vuelven a obtener al editar la pestaña.
 - **Historial de pestañas** (`tabHistory`, v0.5.4): registro de uso separado de las sesiones. Se alimenta desde el backend: al **agregar** pestañas (`workspace:update` detecta las URLs nuevas por diff del `tabs` previo — tanto el alta individual `addTab` como el lote `addTabs` de la selección múltiple) y al **lanzar** una sesión (`workspace:launch` registra las URLs abiertas). Upsert por `url` (`count+1`, `lastUsedAt`, refresco de `name`/`icon`/`favicon`), orden `count` desc → `lastUsedAt` desc y cap de 20 entradas. **No participa** del export/import de portabilidad (es caché local de uso).
+- **Datos de uso de la sesión** (`workspace:launch`, v0.6.2): al abrir una sesión con al menos una pestaña con éxito, el Launcher registra el uso en la propia entidad (`recordLaunch` best-effort — `lastLaunchedAt` = ahora ISO, `launchCount + 1`) y devuelve la sesión persistida actualizada en la respuesta. El renderer la sincroniza con `syncWorkspace` (sin escritura extra). Un fallo del registro nunca convierte el launch en error.
 - **Borrar historial de pestañas** (`tabHistory:clear`, v0.5.4): vacía `tabHistory` y devuelve la cantidad de entradas removidas. No es estricta: no lanza si ya está vacío.
 - Toda mutación de pestañas o de configuración de sesión (openBehavior/browser) reescribe el **workspace completo**; el orden es siempre `create` → `update`.
 - **Preferencias globales** (`config:updatePreferences`): **merge parcial** — las claves provistas se combinan sobre las existentes (p. ej. cambiar solo `defaultBrowser` deja intactas otras preferencias).
@@ -119,7 +122,7 @@ Los archivos exportados (sesión individual o respaldo completo) son **un artefa
 ```
 
 - Nombres sugeridos: sesión individual → `<slug-del-nombre>.json`; respaldo completo → `uloom-backup-YYYY-MM-DD.json`.
-- El respaldo **no incluye `preferences`** ni el **historial de pestañas** (`tabHistory`): solo sesiones. El campo `pinned` de cada sesión **sí viaja** (es parte de la entidad) y se preserva al importar.
+- El respaldo **no incluye `preferences`** ni el **historial de pestañas** (`tabHistory`): solo sesiones. Los campos de entidad **sí viajan** (parte de la entidad): `pinned`, `lastLaunchedAt` y `launchCount` se preservan al importar.
 
 ## Importación de sesiones (.json, v0.4.2)
 

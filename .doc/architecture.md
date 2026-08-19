@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.6.1)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.6.2)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -172,7 +172,24 @@ uloom/
 │       │   │   └── index.js
 │       │   └── index.js
 │       ├── features/
-│       │   └── workspace/
+│       │   ├── WorkspacesHub/
+│       │   │   ├── hook/
+│       │   │   │   └── useWorkspacesHub.js      # Filtro/búsqueda, SortBy y orden del Hub (v0.6.1/v0.6.2)
+│       │   │   ├── ui/
+│       │   │   │   ├── WorkspacesHubView.jsx
+│       │   │   │   └── WorkspaceGrid.jsx
+│       │   │   └── index.js
+│       │   ├── WorkspaceDetail/
+│       │   │   ├── hook/                        # useSessionConfig, useDeleteTab, etc.
+│       │   │   ├── ui/
+│       │   │   │   ├── WorkspaceDetailView.jsx
+│       │   │   │   ├── TabList.jsx
+│       │   │   │   ├── TabRow.jsx
+│       │   │   │   ├── WorkspaceConfig.jsx
+│       │   │   │   ├── WorkspaceExportCard.jsx
+│       │   │   │   └── WorkspaceUsageCard.jsx   # Card "Datos de uso" (v0.6.2)
+│       │   │   └── index.js
+│       │   └── Settings/
 │       │       ├── hook/
 │       │       ├── ui/
 │       │       └── index.js
@@ -215,6 +232,7 @@ uloom/
 │           │   ├── palettes.js      # Catálogo de paletas de identidad (v0.5.2)
 │           │   ├── workspaceName.js # Nombre inferido de duplicado `root (count)` (v0.5.3)
 │           │   ├── historyTabs.js   # buildTabsFromHistory: lote del historial → Tab[] (v0.5.4)
+│           │   ├── relativeTime.js  # formatRelativeTime: tiempo relativo localizado (v0.6.2)
 │           │   └── url.js
 │           ├── ui/
 │           └── index.js

@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { shell } from 'electron';
-import { getConfig, getWorkspaceById } from '../data/workspaceRepository.js';
+import { getConfig, getWorkspaceById, recordLaunch } from '../data/workspaceRepository.js';
 import { getBrowserById, resolveSystemBrowser } from './browserService.js';
 import { recordTabsBestEffort } from './tabHistoryService.js';
 
@@ -86,6 +86,23 @@ function openUrlWithSystem(url) {
 }
 
 /**
+ * Registra el uso de una sesión (`lastLaunchedAt` + `launchCount`) de forma
+ * best-effort: un fallo del registro nunca convierte el launch en error (mismo
+ * precedente que el historial de pestañas). Devuelve el workspace persistido
+ * actualizado, o `null` si el registro no pudo completarse.
+ * @param {string} workspaceId
+ * @returns {import('../../renderer/shared/types.js').Workspace | null}
+ */
+function recordLaunchBestEffort(workspaceId) {
+  try {
+    return recordLaunch(workspaceId);
+  } catch (error) {
+    console.error('No se pudo registrar el lanzamiento de la sesión:', error);
+    return null;
+  }
+}
+
+/**
  * Abre todas las pestañas de una sesión en el navegador resuelto (sesión →
  * global → sistema). Con un navegador concreto o el predeterminado del sistema
  * resuelto a un ejecutable, hace UN spawn con todas las URLs como argumentos:
@@ -96,8 +113,11 @@ function openUrlWithSystem(url) {
  * `shell.openExternal` por URL. Lanza ante errores estructurales (sesión
  * inexistente, navegador configurado que no está instalado o spawn que falla);
  * el fallback de sistema devuelve cuántas URLs se abrieron y cuántas fallaron.
+ * Desde v0.6.2, si se abrió al menos una pestaña, registra el uso de la sesión
+ * (best-effort) y devuelve el workspace persistido actualizado en `workspace`
+ * (o `null` si el registro falló o no hubo apertura).
  * @param {string} workspaceId
- * @returns {Promise<{ opened: number, failed: number }>}
+ * @returns {Promise<{ opened: number, failed: number, workspace: import('../../renderer/shared/types.js').Workspace | null }>}
  */
 export async function launchWorkspace(workspaceId) {
   const config = getConfig();
@@ -111,7 +131,7 @@ export async function launchWorkspace(workspaceId) {
 
   const urls = (workspace.tabs ?? []).map((tab) => tab.url);
   if (urls.length === 0) {
-    return { opened: 0, failed: 0 };
+    return { opened: 0, failed: 0, workspace: null };
   }
 
   if (!browser) {
@@ -126,13 +146,20 @@ export async function launchWorkspace(workspaceId) {
     if (openedTabs.length > 0) {
       recordTabsBestEffort(openedTabs);
     }
+    const opened = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
     return {
-      opened: results.filter((result) => result.status === 'fulfilled').length,
-      failed: results.filter((result) => result.status === 'rejected').length,
+      opened,
+      failed,
+      workspace: opened > 0 ? recordLaunchBestEffort(workspace.id) : null,
     };
   }
 
   await openUrlsInBrowser(urls, browser, workspace.openBehavior);
   recordTabsBestEffort(workspace.tabs ?? []);
-  return { opened: urls.length, failed: 0 };
+  return {
+    opened: urls.length,
+    failed: 0,
+    workspace: recordLaunchBestEffort(workspace.id),
+  };
 }

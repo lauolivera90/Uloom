@@ -11,14 +11,21 @@ import { useI18n, useToast } from '../../../shared/index.js';
  * se loguean con `console.error`, emiten un toast de error localizado y quedan
  * en `error` (para feedback inline futuro) — nunca lanza. Si parte de las
  * pestañas fallan al abrirse, avisa con un toast de advertencia.
+ *
+ * Desde v0.6.2 el lanzamiento registra los datos de uso de la sesión en el
+ * backend (`lastLaunchedAt`/`launchCount`) y la respuesta incluye el workspace
+ * persistido actualizado; `onLaunched` (inyectado, precedente de
+ * `useToggleWorkspacePin`) se invoca con ese workspace para sincronizar el estado
+ * global sin una escritura extra (el main ya persistió).
  * @param {string} [workspaceId]
+ * @param {{ onLaunched?: (workspace: import('../../../shared/types.js').Workspace) => void }} [options]
  * @returns {{
  *   isLaunching: boolean,
  *   error: string | null,
- *   launch: (workspaceId?: string) => Promise<{ opened: number, failed: number } | null>,
+ *   launch: (workspaceId?: string) => Promise<{ opened: number, failed: number, workspace: import('../../../shared/types.js').Workspace | null } | null>,
  * }}
  */
-export function useLaunchWorkspace(workspaceId) {
+export function useLaunchWorkspace(workspaceId, { onLaunched } = {}) {
   const [isLaunching, setIsLaunching] = useState(false);
   const [error, setError] = useState(null);
   const { t } = useI18n();
@@ -42,6 +49,9 @@ export function useLaunchWorkspace(workspaceId) {
             message: t('launch.partialFailure', { failed: result.failed }),
           });
         }
+        if (result.workspace) {
+          onLaunched?.(result.workspace);
+        }
         return result;
       } catch (err) {
         console.error('Error al lanzar la sesión:', err);
@@ -52,7 +62,7 @@ export function useLaunchWorkspace(workspaceId) {
         setIsLaunching(false);
       }
     },
-    [workspaceId, t, toast],
+    [workspaceId, t, toast, onLaunched],
   );
 
   return { isLaunching, error, launch };

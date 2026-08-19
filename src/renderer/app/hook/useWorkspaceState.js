@@ -44,6 +44,7 @@ function hydrateCatalog(setWorkspaces, latestByWorkspaceRef, workspaceList) {
  *   createWorkspace: (input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
  *   duplicateWorkspace: (sourceId: string, input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
  *   mutateWorkspace: (workspaceId: string, mutator: (workspace: import('../../shared/types.js').Workspace) => import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace>,
+ *   syncWorkspace: (workspace: import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace | null>,
  *   addTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   addTabs: (workspaceId: string, tabs: import('../../shared/types.js').Tab[]) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../../shared/types.js').Workspace>,
@@ -116,6 +117,39 @@ export function useWorkspaceState() {
     latestByWorkspaceRef.current.set(created.id, created);
     setWorkspaces((prev) => [...prev, created]);
     return created;
+  }, []);
+
+  /**
+   * Sincroniza los datos de uso que el main registró durante `workspace:launch`
+   * (`lastLaunchedAt`/`launchCount`). Se serializa en el write-chain y **mergea
+   * solo esos campos** sobre la versión actual del workspace en estado (no
+   * reemplaza el objeto completo): así no pisa una mutación concurrente del
+   * mismo workspace (ej. toggle de pin o edición de pestaña aplicados mientras
+   * el launch resolvía). Sin re-IPC: el backend ya persistió.
+   * @param {import('../../shared/types.js').Workspace} workspace
+   * @returns {Promise<import('../../shared/types.js').Workspace | null>}
+   */
+  const syncWorkspace = useCallback((workspace) => {
+    const task = writeChainRef.current.then(() => {
+      const current =
+        latestByWorkspaceRef.current.get(workspace.id) ??
+        workspacesRef.current.find((item) => item.id === workspace.id);
+      if (!current) {
+        return null;
+      }
+      const merged = {
+        ...current,
+        lastLaunchedAt: workspace.lastLaunchedAt ?? current.lastLaunchedAt ?? null,
+        launchCount: workspace.launchCount ?? current.launchCount ?? 0,
+      };
+      latestByWorkspaceRef.current.set(merged.id, merged);
+      setWorkspaces((prev) =>
+        prev.map((item) => (item.id === merged.id ? merged : item)),
+      );
+      return merged;
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
   }, []);
 
   const duplicateWorkspacePersisted = useCallback(async (sourceId, input) => {
@@ -240,6 +274,7 @@ export function useWorkspaceState() {
     createWorkspace: createWorkspacePersisted,
     duplicateWorkspace: duplicateWorkspacePersisted,
     mutateWorkspace,
+    syncWorkspace,
     addTab,
     addTabs,
     deleteTab,

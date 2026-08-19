@@ -3,8 +3,8 @@ import { readConfig, writeConfig } from './configStore.js';
 
 /**
  * Normaliza un workspace para persistencia: garantiza que `tabs` sea un array y
- * rellena los defaults de navegador (`openBehavior`, `browser`) y de fijado
- * (`pinned`) ante configs viejas.
+ * rellena los defaults de navegador (`openBehavior`, `browser`), de fijado
+ * (`pinned`) y de uso (`lastLaunchedAt`, `launchCount`) ante configs viejas.
  * @param {import('../../renderer/shared/types.js').Workspace} workspace
  * @returns {import('../../renderer/shared/types.js').Workspace}
  */
@@ -15,6 +15,8 @@ export function normalizeWorkspace(workspace) {
     openBehavior: workspace.openBehavior ?? 'active-tab',
     browser: workspace.browser ?? null,
     pinned: workspace.pinned ?? false,
+    lastLaunchedAt: workspace.lastLaunchedAt ?? null,
+    launchCount: workspace.launchCount ?? 0,
   };
 }
 
@@ -79,6 +81,30 @@ export function updateWorkspace(nextWorkspace) {
     throw new Error('Workspace no encontrado');
   }
   const saved = normalizeWorkspace(nextWorkspace);
+  config.workspaces[index] = saved;
+  writeConfig(config);
+  return saved;
+}
+
+/**
+ * Registra un lanzamiento de una sesión: actualiza `lastLaunchedAt` (ahora, ISO)
+ * e incrementa `launchCount`. Es la única mutación de uso de la entidad, disparada
+ * por el Launcher de forma best-effort. Update estricto: si el id no existe, lanza.
+ * Devuelve el workspace persistido actualizado.
+ * @param {string} workspaceId
+ * @returns {import('../../renderer/shared/types.js').Workspace}
+ */
+export function recordLaunch(workspaceId) {
+  const config = readConfig();
+  const index = config.workspaces.findIndex((workspace) => workspace.id === workspaceId);
+  if (index === -1) {
+    throw new Error('Workspace no encontrado');
+  }
+  const saved = normalizeWorkspace({
+    ...config.workspaces[index],
+    lastLaunchedAt: new Date().toISOString(),
+    launchCount: (config.workspaces[index].launchCount ?? 0) + 1,
+  });
   config.workspaces[index] = saved;
   writeConfig(config);
   return saved;

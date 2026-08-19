@@ -23,6 +23,15 @@ export const es = {
   // menu (overflow de acciones secundarias)
   'menu.moreActions': 'Más acciones',
 
+  // time (tiempo relativo, v0.6.2)
+  'time.now': 'Ahora mismo',
+  'time.minute': { one: 'Hace 1 minuto', other: 'Hace {count} minutos' },
+  'time.hour': { one: 'Hace 1 hora', other: 'Hace {count} horas' },
+  'time.day': { one: 'Hace 1 día', other: 'Hace {count} días' },
+  'time.week': { one: 'Hace 1 semana', other: 'Hace {count} semanas' },
+  'time.month': { one: 'Hace 1 mes', other: 'Hace {count} meses' },
+  'time.year': { one: 'Hace 1 año', other: 'Hace {count} años' },
+
   // iconPicker
   'iconPicker.label': 'Icono',
   'iconPicker.showAll': 'Mostrar todos los iconos',
@@ -88,6 +97,11 @@ export const es = {
   'hub.pinSession': 'Fijar sesión',
   'hub.unpinSession': 'Desfijar sesión',
   'hub.pinError': 'No se pudo cambiar el estado fijado de la sesión.',
+  'hub.sortBy': 'Ordenar por',
+  'hub.sortCreated': 'Orden de creación',
+  'hub.sortAlpha': 'Alfabético',
+  'hub.sortUsage': 'Más usadas',
+  'hub.sortLastLaunched': 'Última lanzada',
 
   // detail
   'detail.backToHub': 'Volver al Hub',
@@ -110,6 +124,11 @@ export const es = {
   'detail.exportSession': 'Exportar esta sesión',
   'detail.exportSessionDescription':
     'Baja un archivo `.json` con esta sesión para respaldarla o compartirla.',
+  'detail.usageData': 'Datos de uso',
+  'detail.lastLaunched': 'Última vez lanzada',
+  'detail.timesLaunched': 'Veces lanzada',
+  'detail.launchCount': { one: 'Lanzada 1 vez', other: 'Lanzada {count} veces' },
+  'detail.neverLaunched': 'Nunca lanzada',
 
   // tabList
   'tabList.empty': 'Sin pestañas aquí',

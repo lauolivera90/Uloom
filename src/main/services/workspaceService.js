@@ -21,7 +21,8 @@ export function getConfig() {
 /**
  * Crea un workspace nuevo. El id lo genera el proceso main (randomUUID), no llega
  * del cliente. Arma el workspace completo con `tabs` vacío, sin fijar (`pinned:
- * false`) y lo persiste.
+ * false`) y sin historial de uso (`lastLaunchedAt: null`, `launchCount: 0`) y lo
+ * persiste.
  * @param {{ name: string, description?: string, icon?: string }} input
  * @returns {import('../../renderer/shared/types.js').Workspace}
  */
@@ -35,6 +36,8 @@ export function createWorkspace({ name, description, icon }) {
     openBehavior: 'active-tab',
     browser: null,
     pinned: false,
+    lastLaunchedAt: null,
+    launchCount: 0,
   };
   return addWorkspace(workspace);
 }
@@ -64,7 +67,8 @@ export function updateWorkspace(nextWorkspace) {
  * (`openBehavior`, `browser`) y todas sus pestañas con ids nuevos, generando un
  * workspace nuevo con id nuevo y los datos básicos provistos (`name`,
  * `description`, `icon` — que pueden diferir de la fuente). El clon arranca
- * desfijado (`pinned: false`), aunque la fuente esté fijada. Lee la sesión
+ * desfijado (`pinned: false`) y sin historial de uso (`lastLaunchedAt: null`,
+ * `launchCount: 0`), aunque la fuente tenga lanzamientos. Lee la sesión
  * original del disco (nunca modifica la fuente) y persiste el clon.
  * @param {string} sourceId
  * @param {{ name: string, description?: string, icon?: string }} input
@@ -81,6 +85,8 @@ export function duplicateWorkspace(sourceId, { name, description, icon }) {
     openBehavior: source.openBehavior,
     browser: source.browser,
     pinned: false,
+    lastLaunchedAt: null,
+    launchCount: 0,
   };
   return addWorkspace(clone);
 }
