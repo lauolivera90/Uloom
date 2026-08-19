@@ -1,4 +1,4 @@
-# Backend — Arquitectura (v0.5.3)
+# Backend — Arquitectura (v0.5.4)
 
 El proceso main de Electron sigue una arquitectura por capas (Controlador-Servicio-Repositorio). El renderer **nunca** llega a Node.js: todo pasa por `preload.js` → `ipc/` → `services/` → `data/`.
 
@@ -7,7 +7,7 @@ El proceso main de Electron sigue una arquitectura por capas (Controlador-Servic
 ### 1. `src/preload.js` (El Puente)
 Expone `window.uloomApi` vía `contextBridge`. No transforma datos: reexpone `ipcRenderer.invoke` tal cual.
 
-API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3):
+API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadatos web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3, + historial de pestañas en v0.5.4):
 - `uloomApi.getConfig()` → invoca el canal `config:get`. Resuelve con `{ success, data, error }`.
 - `uloomApi.createWorkspace(input)` → invoca el canal `workspace:create`.
 - `uloomApi.duplicateWorkspace(sourceId, input)` → invoca el canal `workspace:duplicate`.
@@ -23,14 +23,16 @@ API expuesta (v0.2.1, + navegador y preferencias en v0.2.2, + borrado y metadato
 - `uloomApi.clearMetadataCache()` → invoca el canal `workspace:clearMetadataCache`. Resuelve `{ cleared }`.
 - `uloomApi.clearAllWorkspaces()` → invoca el canal `workspace:clearAll`. Vacía `workspaces` preservando `preferences`; resuelve `{ deleted }`.
 - `uloomApi.importFromFile()` → invoca el canal `portability:import`. Abre el diálogo de apertura, valida el `.json` y reconstruye sesiones; resuelve `{ canceled, imported }`.
+- `uloomApi.getTabHistory()` → invoca el canal `tabHistory:get`. Devuelve el historial de pestañas usadas (v0.5.4).
+- `uloomApi.clearTabHistory()` → invoca el canal `tabHistory:clear`. Vacía el historial; resuelve `{ cleared }`.
 
 ### 2. `src/main/ipc/` (Controladores)
-`registerIpcHandlers()` (en `ipc/index.js`) delega el registro en handlers por dominio: `workspaceHandler.js` (canales del dominio workspace), `browserHandler.js`, `preferencesHandler.js`, `pageHandler.js`, `launcherHandler.js` y `portabilityHandler.js` (exportación e importación). Todo handler:
+`registerIpcHandlers()` (en `ipc/index.js`) delega el registro en handlers por dominio: `workspaceHandler.js` (canales del dominio workspace), `browserHandler.js`, `preferencesHandler.js`, `pageHandler.js`, `launcherHandler.js`, `portabilityHandler.js` (exportación e importación) y `tabHistoryHandler.js` (historial de pestañas usadas, v0.5.4). Todo handler:
 - Llama al servicio correspondiente.
 - Envuelve en `try/catch` — ningún handler puede dejar escapar una excepción.
 - Responde siempre con la forma `{ success: boolean, data?: any, error?: string }` (regla 7 de `rules.md`); desde v0.4.4 el handler `portability:import` suma `code?: string` a la respuesta de error (el código del fallo de portabilidad, ver `PORTABILITY_ERROR_CODES`) para que el frontend lo mapee a un mensaje localizado.
 
-Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3):
+Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadata web en v0.2.4, + lanzamiento en v0.3.1, + navegador del sistema en v0.3.2, + exportación y limpieza en v0.4.1, + importación en v0.4.2, + duplicación en v0.5.3, + historial en v0.5.4):
 | Canal | Params | Respuesta `data` |
 |---|---|---|
 | `config:get` | — | `Config` |
@@ -48,18 +50,22 @@ Canales registrados (v0.2.1 + v0.2.2, agrupados por dominio en v0.2.3, + metadat
 | `portability:exportWorkspace` | `workspaceId` | `{ canceled: boolean, filePath?: string }` |
 | `portability:exportAll` | — | `{ canceled: boolean, filePath?: string }` |
 | `portability:import` | — | `{ canceled: boolean, imported?: Workspace[] }` — lista final del catálogo persistido |
+| `tabHistory:get` | — | `TabHistoryEntry[]` (historial de pestañas usadas, ordenado más usadas primero) |
+| `tabHistory:clear` | — | `{ cleared: number }` (entradas del historial removidas) |
 
 ### 3. `src/main/services/` (Lógica de Negocio)
-- `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `duplicateWorkspace(sourceId, input)` (v0.5.3: lee la sesión fuente con `getWorkspaceById`, clona sus `tabs` con **ids nuevos** y copia `openBehavior`/`browser` en un workspace nuevo con id nuevo y los datos básicos provistos — la fuente nunca se modifica), `updateWorkspace()` (delega; update estricto), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
+- `workspaceService.js`: `getConfig()` (config completa normalizada), `createWorkspace()` (genera id con randomUUID, arma `tabs: []`, `openBehavior: 'active-tab'` y `browser: null`), `duplicateWorkspace(sourceId, input)` (v0.5.3: lee la sesión fuente con `getWorkspaceById`, clona sus `tabs` con **ids nuevos** y copia `openBehavior`/`browser` en un workspace nuevo con id nuevo y los datos básicos provistos — la fuente nunca se modifica), `updateWorkspace()` (**v0.5.4:** lee la sesión previa con `getWorkspaceById`, persiste el update estricto y registra en el historial las pestañas con URL nueva por diff — el alta de pestañas no tiene canal propio, va por `workspace:update`; editar/borrar no re-registra; el registro es best-effort y nunca condiciona el resultado del update), `deleteWorkspace()` (delega; baja estricta), `clearMetadataCache()` (delega en el repositorio; devuelve la cantidad de favicons removidos) y `deleteAllWorkspaces()` (delega; devuelve la cantidad de sesiones eliminadas preservando `preferences`).
 - `portabilityService.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos de error en v0.4.4): `exportWorkspace(workspaceId)` — lee la sesión por id (lectura estricta), arma el payload wrapper `{ app, kind: 'workspace', schemaVersion, exportedAt, data: [workspace] }` y abre `dialog.showSaveDialog` con nombre sugerido `<slug-del-nombre>.json`; `exportAll()` — arma el wrapper `{ app, kind: 'backup', ..., data: [todos los workspaces] }` y lo guarda como `uloom-backup-YYYY-MM-DD.json`. Ambas escriben con `fs.writeFileSync` (pretty-print 2) y devuelven `{ canceled, filePath }`; cancelar el diálogo no es un error. `importFromFile()` — abre `dialog.showOpenDialog` (filtro `.json`, cancel ≠ error → `{ canceled: true }`), lee y valida el wrapper (`app: 'uloom'`, `kind` en `workspace|backup`, `schemaVersion` string, `data` array de workspaces con `name` string), normaliza cada sesión y delega la escritura en `workspaceRepository.importWorkspaces` con `replace: kind === 'backup'`. Devuelve `{ canceled, imported }` (lista final persistida). **Códigos de error (v0.4.4):** toda falla de importación adjunta un `code` al `Error` (constante `PORTABILITY_ERROR_CODES`): `INVALID_JSON`, `NOT_ULOOLM_FILE`, `UNSUPPORTED_KIND`, `INVALID_SCHEMA_VERSION`, `INVALID_WORKSPACES`, `READ_ERROR` (lectura del archivo) y `PERSIST_ERROR` (escritura del catálogo). El handler IPC los propaga y el frontend mapea cada código a un mensaje localizado en su toast.
-- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre **todas** las `tab.url` en **un solo spawn** del ejecutable. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`) con todas las URLs como argumentos: con `openBehavior === 'new-window'` antepone la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) y el conjunto se abre en una sola ventana (cada URL como pestaña); en `active-tab` pasa solo las URLs (pestañas en la ventana vigente). Un solo spawn evita que cada pestaña abra una ventana propia en `new-window` y la race de spawns paralelos en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` por URL (único caso sin control de ventana nueva, y el único que puede devolver fallos parciales). Devuelve `{ opened, failed }` (todo o nada en el spawn); lanza ante errores estructurales (sesión inexistente, navegador configurado no instalado o spawn que falla).
+- `launcherService.js`: `launchWorkspace(workspaceId)` — resuelve el navegador efectivo de la sesión (sesión → global → sistema, ver flujo más abajo) y abre **todas** las `tab.url` en **un solo spawn** del ejecutable. Tanto un **navegador concreto** como el **predeterminado del sistema** (resuelto con `resolveSystemBrowser` de `browserService` a su ejecutable) se abren por `child_process.spawn` (`detached`, `stdio: 'ignore'`, `unref()`) con todas las URLs como argumentos: con `openBehavior === 'new-window'` antepone la bandera de ventana nueva del motor (`--new-window` en Chromium — chrome/edge/brave/opera/vivaldi — y `-new-window` en firefox; para el navegador de sistema la bandera sale del id del catálogo cuando aplica, o de la heurística por motor del ejecutable cuando no) y el conjunto se abre en una sola ventana (cada URL como pestaña); en `active-tab` pasa solo las URLs (pestañas en la ventana vigente). Un solo spawn evita que cada pestaña abra una ventana propia en `new-window` y la race de spawns paralelos en `active-tab`. Si el predeterminado del sistema no puede resolverse a un ejecutable, cae a `shell.openExternal` por URL (único caso sin control de ventana nueva, y el único que puede devolver fallos parciales). Devuelve `{ opened, failed }` (todo o nada en el spawn); lanza ante errores estructurales (sesión inexistente, navegador configurado no instalado o spawn que falla). **v0.5.4:** al abrir con éxito registra las URLs lanzadas en el historial (`recordTabsBestEffort`; en el fallback de sistema solo las fulfilled — una sesión que falla estructuralmente no registra nada y un fallo del historial nunca convierte el launch en error).
+- `tabHistoryService.js` (nuevo en v0.5.4): `getTabHistory()` (devuelve el historial normalizado y ordenado), `recordTabs(tabs)` (registra pestañas usadas con el mapeo centralizado `tabToHistoryEntry`) y `recordTabsBestEffort(tabs)` (mismo registro pero best-effort: atrapa errores y solo loguea — lo usan `workspaceService.updateWorkspace` por diff de URLs nuevas y `launcherService.launchWorkspace` al abrir) y `clearTabHistory()` (vacía el historial; devuelve la cantidad removida).
 - `browserService.js`: `getInstalledBrowsers()` — detecta navegadores instalados con un probe de rutas típicas (Chrome, Edge, Firefox, Brave, Opera, Vivaldi) ancladas en `PROGRAMFILES`/`PROGRAMFILES(X86)`/`LOCALAPPDATA` mediante `fs.existsSync`. Solo Windows; en otras plataformas devuelve `[]`. `getBrowserById(id)` — devuelve `{ id, name, path }` (el ejecutable resuelto) de un navegador instalado, o `null`. Lo consume el Launcher para el spawn. `resolveSystemBrowser()` — **resolución única y compartida** del navegador predeterminado del SO (`app.getApplicationInfoForProtocol('https:')`): devuelve `{ id, name, path }` con `id: null` si el default no es del catálogo (mapeo por basename del ejecutable), o `null` si no es Windows o no se pudo resolver. Lo usan el launcher (spawn) y la UI. `getSystemDefaultBrowser()` — envuelve `resolveSystemBrowser()` y devuelve `{ id, name }` del catálogo o `null` (para el ícono del selector).
 - `preferencesService.js`: `getPreferences()` y `updatePreferences(partial)` (merge parcial, delega en el repositorio).
 - `pageService.js`: `fetchPageMetadata(url)` — trae el `<title>` y el favicon del sitio con `net.fetch` (session default, `AbortController` de 4s, cap 1MB al HTML y ~32KB al favicon, favicon como **data URL**). Regex tolerante al orden de atributos para `<link rel="icon">`, resuelve URLs absolutas y cae a `/favicon.ico` si no hay link. **Soft-fallback**: cualquier fallo devuelve `null` en los campos, no lanza.
 
 ### 4. `src/main/data/` (Repositorios)
-- `configStore.js`: única capa que toca el archivo. `readConfig()` valida la raíz (existencia, `workspaces` array, corrupción → default) y normaliza `preferences`; los workspaces pasan **crudos** (la normalización de la entidad vive en su repositorio). Expone también `writeConfig()`, `normalizePreferences()` y `defaultConfig()`/`APP_VERSION` (versión del esquema).
+- `configStore.js`: única capa que toca el archivo. `readConfig()` valida la raíz (existencia, `workspaces` array, corrupción → default) y normaliza `preferences`; los workspaces pasan **crudos** (la normalización de la entidad vive en su repositorio). Expone también `writeConfig()`, `normalizePreferences()` y `defaultConfig()`/`APP_VERSION` (versión del esquema; desde v0.5.4 el default incluye `tabHistory: []`).
 - `workspaceRepository.js`: dueño de la entidad workspace. `normalizeWorkspace()` (rellena `tabs` como array, `openBehavior: 'active-tab'` y `browser: null` — migración de configs viejas), `getConfig()` (config completa con workspaces normalizados), `readWorkspaces()`, `getWorkspaceById()` (lectura estricta, usado por el Launcher), `addWorkspace()`, `updateWorkspace()` (update estricto), `deleteWorkspace()` (baja estricta), `clearMetadataCache()` (remueve `Tab.favicon` de todas las pestañas y persiste; devuelve la cantidad), `deleteAllWorkspaces()` (vacía `workspaces` preservando `preferences`; devuelve la cantidad) e `importWorkspaces(workspaces, { replace })` (v0.4.2: normaliza la lista; con `replace: true` deja las sesiones locales fuera — restauración de respaldo, preserva `preferences`; con `replace: false` agrega las importadas regenarando el id de las que colisionen con una sesión local; persiste y devuelve la lista final).
+- `tabHistoryRepository.js` (nuevo en v0.5.4): dueño del historial de pestañas. `normalizeTabHistory()` (garantiza array, descarta entradas sin URL, rellena defaults), `readTabHistory()` (historial normalizado y ordenado: `count` desc, desempate `lastUsedAt` desc), `recordTabs(tabs)` (upsert por URL — URL nueva crea entrada con `count: 1`; existente incrementa `count`, actualiza `lastUsedAt` y refresca `name`/`icon`/`favicon` — ordena y aplica el cap `MAX_TAB_HISTORY = 20` con evicción de las menos usadas) y `clearTabHistory()` (vacía y devuelve la cantidad removida).
 - `preferencesRepository.js`: `getPreferences()` y `updatePreferences(partial)` — merge parcial de preferencias sobre las existentes y reescritura del `config.json`.
 
 ## Flujos
@@ -135,6 +141,7 @@ Cada mutación de un workspace — pestañas y configuración por sesión — pa
 ## Frontend API (`src/renderer/entities/workspace/api/`)
 
 - `workspaceIpcApi.js` consume `window.uloomApi` y convierte `{ success: false, error }` en `throw new Error(error)`. Expone `getConfig`, `createWorkspace`, `duplicateWorkspace`, `updateWorkspace`, `deleteWorkspace`, `launchWorkspace`, `getInstalledBrowsers`, `getSystemDefaultBrowser`, `updatePreferences`, `getPageMetadata`, `clearMetadataCache` y `clearAllWorkspaces`.
+- `tabHistoryIpcApi.js` (nuevo en v0.5.4): `getTabHistory()` y `clearTabHistory()` — misma conversión de `{ success: false }` en throw; el clear devuelve `{ cleared }`.
 - `portabilityIpcApi.js` (nuevo en v0.4.1, + import en v0.4.2, + códigos en v0.4.4): `exportWorkspace(workspaceId)`, `exportAll()` e `importFromFile()` — misma conversión de `{ success: false }` en throw; las exportaciones devuelven `{ canceled, filePath }` y el import `{ canceled, imported }` (cancelar el diálogo no es un error). Desde v0.4.4, `importFromFile` adjunta el `code` de error del backend al `Error` lanzado (cuando la respuesta lo trae) para que el hook mapee el fallo a un mensaje localizado.
 - `workspaceIcons.js` expone `WORKSPACE_ICONS` (catálogo de iconos Material Symbols para sesiones) y `WORKSPACE_ICON_PREVIEW_COUNT`.
 - `workspaceLaunch.js` (nuevo) expone los catálogos estáticos de lanzamiento: `SYSTEM_BROWSER`, `SYSTEM_BROWSER_LABEL`, `DEFAULT_BROWSER_LABEL`, `LAUNCH_EMPTY_TABS_TITLE` y `OPEN_BEHAVIOR_OPTIONS` (con `labelKey`), más los builders `buildOpenBehaviors(t)` (resuelve `labelKey` con el traductor del idioma activo), `getBrowserNameById` y `buildBrowserOptions`. Los labels son claves del diccionario i18n (`shared/lib/i18n`): los consumidores resuelven el texto con `t(clave)` (v0.4.3).
@@ -237,5 +244,32 @@ Configuración → Sesiones: usePortability.clearCache / deleteAll (doble Confir
 ```
 Ambas mutaciones se serializan en el líder único de escritura (`writeChainRef`) del estado global, como el resto de las escrituras.
 
+### Historial de pestañas (v0.5.4)
+El historial es un registro liviano **separado de las sesiones** (`config.tabHistory`, cap 20). Se alimenta desde el backend en dos puntos:
+```
+Alta individual:  useTabModal.onSubmitTab → addTab → mutateWorkspace → workspace:update
+Alta en lote:      useTabModal.onSubmitTabs → addTabs → mutateWorkspace → workspace:update
+   (una sola escritura appende el lote; el diff detecta todas las URLs nuevas juntas)
+   → workspaceService.updateWorkspace: lee el previo (getWorkspaceById), persiste,
+     calcula URLs NUEVAS por diff (en next y no en prev) → recordTabsBestEffort
+Lanzamiento:      launcherService.launchWorkspace al abrir con éxito
+   → recordTabsBestEffort(todas las URLs lanzadas); en el fallback openExternal solo las fulfilled
+   → tabHistoryRepository.recordTabs: upsert por URL + count/lastUsedAt + cap 20
+```
+La UI lo consume en el modal de pestaña (lectura + selección múltiple) y en Configuración (limpieza):
+```
+Modal de pestaña (Hub y Detalle): useTabFormModal (composite) → useTabHistory({ isActive, existingUrls })
+   → tabHistoryIpcApi.getTabHistory → preload → ipc 'tabHistory:get'
+   → tabHistoryService.getTabHistory → repository.readTabHistory
+   (carga al montar la vista y refresca en cada apertura del modal, sin limpiar la
+   lista previa; fallo de carga = soft-fallback, queda el último estado conocido)
+   modo 'history': filas con checkbox (visibleEntries, excluye URLs ya presentes) → confirm arma las Tab[]
+   con buildTabsFromHistory (shared/lib) → onSubmitTabs → addTabs (una escritura en disco)
+   el segment Historial se deshabilita cuando no hay nada para mostrar, decidido antes de abrir el modal
+Configuración → Sesiones: usePortability.clearHistory → useWorkspaces.clearTabHistory
+   → tabHistoryIpcApi.clearTabHistory → preload → ipc 'tabHistory:clear' → service → repository
+   → { cleared } → toast de éxito/error (resultado no visible en Settings, regla 10)
+```
+
 ## Tipos
-Los `@typedef` (`Workspace`, `Tab`, `Config`) viven centralizados en `src/renderer/shared/types.js`. El backend los referencia vía JSDoc `@typedef {import(...)}`.
+Los `@typedef` (`Workspace`, `Tab`, `Config`, `TabHistoryEntry`) viven centralizados en `src/renderer/shared/types.js`. El backend los referencia vía JSDoc `@typedef {import(...)}`.

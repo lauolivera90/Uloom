@@ -1,14 +1,15 @@
-# config.json — Estructura (v0.5.3)
+# config.json — Estructura (v0.5.4)
 
-El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo) y `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces).
+El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo administra `src/main/data/configStore.js` (acceso al archivo), `src/main/data/workspaceRepository.js` (normalización y mutaciones de workspaces) y `src/main/data/tabHistoryRepository.js` (historial de pestañas usadas, v0.5.4).
 
 ## Esquema raíz
 
 | Campo | Tipo | Descripción | Default |
 |---|---|---|---|
-| `version` | `string` | Versión del esquema de configuración. | `'0.5.3'` |
+| `version` | `string` | Versión del esquema de configuración. | `'0.5.4'` |
 | `preferences` | `Preferences` | Preferencias globales de la aplicación. | `{ defaultBrowser: 'system' }` |
 | `workspaces` | `Workspace[]` | Lista de sesiones de trabajo. | `[]` |
+| `tabHistory` | `TabHistoryEntry[]` | Historial de pestañas usadas (reuso en el modal de agregar pestaña). No se exporta/importa. | `[]` |
 
 ## `Preferences`
 
@@ -38,15 +39,27 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 | `icon` | `string?` | Icono de la pestaña: símbolo del catálogo Material Symbols o **data URL** (favicon aplicado explícitamente por el usuario). |
 | `favicon` | `string?` | Favicon del sitio como **data URL**, cacheado por el fetch de metadatos (`page:metadata`). Solo se actualiza al ejecutar un fetch nuevo; una elección manual de `icon` no lo pisa, y `icon` y `favicon` no se duplican (ver `pageService` en `backend.md`). |
 
+## `TabHistoryEntry` (v0.5.4)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `url` | `string` | URL normalizada de la pestaña. Clave de unicidad del upsert. |
+| `name` | `string` | Nombre visible guardado al registrar la pestaña. |
+| `icon` | `string?` | Icono manual de la pestaña al registrarla (símbolo del catálogo o data URL). |
+| `favicon` | `string?` | Favicon cacheado como data URL si estaba disponible al registrar. |
+| `count` | `number` | Veces que se usó (agregada o lanzada). |
+| `lastUsedAt` | `string` | Última vez que se usó, en ISO 8601. |
+
 ## Default (archivo creado al primer arranque)
 
 ```json
 {
-  "version": "0.5.3",
+  "version": "0.5.4",
   "preferences": {
     "defaultBrowser": "system"
   },
-  "workspaces": []
+  "workspaces": [],
+  "tabHistory": []
 }
 ```
 
@@ -56,10 +69,11 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 - Si el JSON es inválido o `workspaces` no es un array → se restaura el default (sobrescribe el archivo corrupto).
 - Al **leer**, cada workspace se normaliza: `tabs` siempre queda como array; `openBehavior` rellena `'active-tab'` y `browser` rellena `null` si vienen ausentes (migración ante edición manual del JSON o configs viejas).
 - Al **leer**, `preferences` se normaliza: `defaultBrowser` rellena `'system'` si falta.
-- Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior` y `browser`.
+- Al **leer**, el historial (`tabHistory`) se normaliza: si no es un array queda `[]`; cada entrada sin `url` válida se descarta y las válidas rellenan `name`/`count`/`lastUsedAt` ante configs viejas. El orden de lectura es `count` desc → `lastUsedAt` desc (más usadas primero).
+- Al **escribir**, tanto la creación como la actualización de un workspace normalizan `tabs`, `openBehavior` y `browser`; las escrituras del historial normalizan, ordenan y capan `tabHistory` (máx. 20 entradas, evicción de las menos usadas).
 - La escritura usa pretty-print (indentación de 2 espacios).
 
-## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1 · v0.5.3)
+## Mutaciones (v0.2.1 · v0.2.2 · v0.2.4 · v0.4.1 · v0.5.3 · v0.5.4)
 
 - **Crear sesión** (`workspace:create`): el id lo genera el proceso main (randomUUID), el `tabs` arranca `[]`, `openBehavior` arranca `'active-tab'` y `browser` arranca `null`.
 - **Duplicar sesión** (`workspace:duplicate`, v0.5.3): clona una sesión existente en un workspace nuevo — `id` nuevo (randomUUID), `name`/`description`/`icon` provistos por el usuario (editables en el modal antes de confirmar), `tabs` clonadas con **ids nuevos** (los favicons cacheados se copian tal cual) y `openBehavior`/`browser` copiados de la fuente. La sesión original nunca se modifica.
@@ -67,6 +81,8 @@ El archivo de configuración vive en `app.getPath('userData')/config.json`. Lo a
 - **Eliminar sesión** (`workspace:delete`): **baja estricta** — si el `id` no existe, lanza `Workspace no encontrado`; se elimina el elemento del array y se persiste.
 - **Eliminar todas las sesiones** (`workspace:clearAll`, v0.4.1): vacía `workspaces` **preservando `preferences`** (el navegador predeterminado global queda intacto). No es estricta: no lanza si la lista ya está vacía.
 - **Limpiar caché de metadatos** (`workspace:clearMetadataCache`, v0.4.1): recorre todas las pestañas y remueve `Tab.favicon` (data URL cacheadas del fetch de `page:metadata`). Devuelve la cantidad de favicons removidos; los favicons se vuelven a obtener al editar la pestaña.
+- **Historial de pestañas** (`tabHistory`, v0.5.4): registro de uso separado de las sesiones. Se alimenta desde el backend: al **agregar** pestañas (`workspace:update` detecta las URLs nuevas por diff del `tabs` previo — tanto el alta individual `addTab` como el lote `addTabs` de la selección múltiple) y al **lanzar** una sesión (`workspace:launch` registra las URLs abiertas). Upsert por `url` (`count+1`, `lastUsedAt`, refresco de `name`/`icon`/`favicon`), orden `count` desc → `lastUsedAt` desc y cap de 20 entradas. **No participa** del export/import de portabilidad (es caché local de uso).
+- **Borrar historial de pestañas** (`tabHistory:clear`, v0.5.4): vacía `tabHistory` y devuelve la cantidad de entradas removidas. No es estricta: no lanza si ya está vacío.
 - Toda mutación de pestañas o de configuración de sesión (openBehavior/browser) reescribe el **workspace completo**; el orden es siempre `create` → `update`.
 - **Preferencias globales** (`config:updatePreferences`): **merge parcial** — las claves provistas se combinan sobre las existentes (p. ej. cambiar solo `defaultBrowser` deja intactas otras preferencias).
 - **Metadatos web** (`page:metadata`): lectura sin persistencia; el `favicon` resultante se persiste en `Tab.favicon` (data URL) al guardar la pestaña.
@@ -102,7 +118,7 @@ Los archivos exportados (sesión individual o respaldo completo) son **un artefa
 ```
 
 - Nombres sugeridos: sesión individual → `<slug-del-nombre>.json`; respaldo completo → `uloom-backup-YYYY-MM-DD.json`.
-- El respaldo **no incluye `preferences`**: solo sesiones.
+- El respaldo **no incluye `preferences`** ni el **historial de pestañas** (`tabHistory`): solo sesiones.
 
 ## Importación de sesiones (.json, v0.4.2)
 

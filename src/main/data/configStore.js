@@ -2,7 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const APP_VERSION = '0.5.3';
+const APP_VERSION = '0.5.4';
 
 /**
  * Devuelve la estructura de config por defecto cuando el archivo no existe o está corrupto.
@@ -15,6 +15,7 @@ function defaultConfig() {
       defaultBrowser: 'system',
     },
     workspaces: [],
+    tabHistory: [],
   };
 }
 

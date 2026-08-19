@@ -8,6 +8,7 @@ import {
   clearMetadataCache as clearMetadataCacheInRepository,
   deleteAllWorkspaces as deleteAllWorkspacesInRepository,
 } from '../data/workspaceRepository.js';
+import { recordTabsBestEffort } from './tabHistoryService.js';
 
 /**
  * Devuelve el contenido actual de la configuración (workspaces y preferencias normalizados).
@@ -38,12 +39,22 @@ export function createWorkspace({ name, description, icon }) {
 
 /**
  * Actualiza un workspace existente por su id (update estricto). Delega en el
- * repositorio y deja subir el error si el id no existe.
+ * repositorio y deja subir el error si el id no existe. Además registra en el
+ * historial de pestañas las URLs que aparecieron nuevas en la actualización
+ * (alta de pestañas — no hay canal `addTab`, el alta va por `workspace:update`):
+ * editar/borrar no re-registra porque la URL ya estaba o desaparece.
  * @param {import('../../renderer/shared/types.js').Workspace} nextWorkspace
  * @returns {import('../../renderer/shared/types.js').Workspace}
  */
 export function updateWorkspace(nextWorkspace) {
-  return updateWorkspaceInRepository(nextWorkspace);
+  const previous = getWorkspaceById(nextWorkspace.id);
+  const saved = updateWorkspaceInRepository(nextWorkspace);
+  const previousUrls = new Set((previous.tabs ?? []).map((tab) => tab.url));
+  const newTabs = (nextWorkspace.tabs ?? []).filter((tab) => !previousUrls.has(tab.url));
+  if (newTabs.length > 0) {
+    recordTabsBestEffort(newTabs);
+  }
+  return saved;
 }
 
 /**

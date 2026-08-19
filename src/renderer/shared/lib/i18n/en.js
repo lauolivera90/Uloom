@@ -64,6 +64,10 @@ export const en = {
   'tabForm.useSuggestedName': 'Use suggested name',
   'tabForm.namePlaceholder': 'Page name',
   'tabForm.urlPlaceholder': 'https://example.com',
+  'tabForm.modeManual': 'Manual',
+  'tabForm.modeHistory': 'History',
+  'tabForm.confirmMultiple': 'Add selected',
+  'tabForm.historyEmpty': 'No tabs in history yet. Add or launch tabs to reuse them here.',
 
   // workspaceCard
   'workspaceCard.resources': 'Resources',
@@ -130,6 +134,8 @@ export const en = {
   'settings.importDescription': 'Loads a `.json` file and rebuilds your sessions.',
   'settings.clearCache': 'Clear cache',
   'settings.clearCacheDescription': 'Clears the cached favicons of your tabs.',
+  'settings.clearHistory': 'Clear tab history',
+  'settings.clearHistoryDescription': 'Clears the record of tabs used when adding and launching.',
   'settings.clear': 'Clear',
   'settings.deleteAll': 'Delete all sessions',
   'settings.deleteAllDescription': 'Deletes all your sessions. {hint}',
@@ -163,6 +169,10 @@ export const en = {
   // cache
   'cache.success': 'Metadata cache cleared',
   'cache.error': 'The metadata cache could not be cleared',
+
+  // tab history
+  'history.clear.success': 'Tab history cleared',
+  'history.clear.error': 'The tab history could not be cleared',
 
   // delete (destructive removals)
   'deleteAll.success': 'All sessions were deleted',

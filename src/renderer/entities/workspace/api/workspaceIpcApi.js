@@ -1,7 +1,7 @@
 /**
- * @typedef {import('../../shared/types.js').Config} Config
- * @typedef {import('../../shared/types.js').Workspace} Workspace
- * @typedef {import('../../shared/types.js').Preferences} Preferences
+ * @typedef {import('../../../shared/types.js').Config} Config
+ * @typedef {import('../../../shared/types.js').Workspace} Workspace
+ * @typedef {import('../../../shared/types.js').Preferences} Preferences
  */
 
 /**

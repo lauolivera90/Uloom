@@ -16,6 +16,8 @@ const uloomApi = {
   importFromFile: () => ipcRenderer.invoke('portability:import'),
   clearMetadataCache: () => ipcRenderer.invoke('workspace:clearMetadataCache'),
   clearAllWorkspaces: () => ipcRenderer.invoke('workspace:clearAll'),
+  getTabHistory: () => ipcRenderer.invoke('tabHistory:get'),
+  clearTabHistory: () => ipcRenderer.invoke('tabHistory:clear'),
 };
 
 if (process.contextIsolated) {

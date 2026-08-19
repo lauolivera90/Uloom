@@ -66,6 +66,10 @@ export const es = {
   'tabForm.useSuggestedName': 'Usar nombre sugerido',
   'tabForm.namePlaceholder': 'Nombre de la página',
   'tabForm.urlPlaceholder': 'https://ejemplo.com',
+  'tabForm.modeManual': 'Manual',
+  'tabForm.modeHistory': 'Historial',
+  'tabForm.confirmMultiple': 'Agregar seleccionadas',
+  'tabForm.historyEmpty': 'Todavía no hay pestañas en el historial. Agregá o lanzá pestañas para reutilizarlas acá.',
 
   // workspaceCard
   'workspaceCard.resources': 'Recursos',
@@ -132,6 +136,8 @@ export const es = {
   'settings.importDescription': 'Carga un archivo `.json` y reconstruye tus sesiones.',
   'settings.clearCache': 'Borrar caché',
   'settings.clearCacheDescription': 'Limpia los favicons cacheados de tus pestañas.',
+  'settings.clearHistory': 'Borrar historial de pestañas',
+  'settings.clearHistoryDescription': 'Limpia el registro de pestañas usadas al agregar y lanzar.',
   'settings.clear': 'Borrar',
   'settings.deleteAll': 'Eliminar todas las sesiones',
   'settings.deleteAllDescription': 'Borra todas tus sesiones. {hint}',
@@ -165,6 +171,10 @@ export const es = {
   // cache
   'cache.success': 'Caché de metadatos borrada',
   'cache.error': 'No se pudo borrar la caché de metadatos',
+
+  // tab history
+  'history.clear.success': 'Historial de pestañas borrado',
+  'history.clear.error': 'No se pudo borrar el historial de pestañas',
 
   // delete (bajas destructivas)
   'deleteAll.success': 'Todas las sesiones fueron eliminadas',

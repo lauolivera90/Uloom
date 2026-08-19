@@ -30,6 +30,8 @@ export {
   importFromFile,
   clearMetadataCache,
   clearAllWorkspaces,
+  getTabHistory,
+  clearTabHistory,
 } from './api/index.js';
-export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers, useTabForm, useTabModal, useSystemDefaultBrowser, useExportWorkspace, useWorkspaceFormModal } from './hook/index.js';
+export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers, useTabForm, useTabModal, useTabFormModal, useSystemDefaultBrowser, useExportWorkspace, useWorkspaceFormModal } from './hook/index.js';
 export { WorkspaceCard, TabFavicon, WorkspaceFormModal, TabFormModal, BrowserIcon } from './ui/index.js';

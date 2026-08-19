@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
 import {
-  useTabModal,
+  useTabFormModal,
   useWorkspaceFormModal,
 } from '../../../entities/workspace/index.js';
 
@@ -10,8 +10,9 @@ import {
  * global de la app y orquesta el modal de creación (hook genérico
  * `useWorkspaceFormModal`, alta) y el modal de agregar pestaña que abre el botón
  * (+) de una card sin pestañas: `tabTargetId` recuerda sobre qué sesión se abre y
- * el submit delega en la persistencia global (addTab/updateTab inyectadas a
- * useTabModal, sin que entities dependa de app).
+ * la persistencia del modal de pestaña delega en la global (addTab/addTabs/
+ * updateTab inyectadas a `useTabFormModal`, sin que entities dependa de app). El
+ * `existingUrls` del modal sale de la sesión objetivo para filtrar el historial.
  * @returns {{
  *   workspaces: import('../../../shared/types.js').Workspace[],
  *   createModal: {
@@ -23,21 +24,36 @@ import {
  *   },
  *   tabModal: {
  *     isOpen: boolean,
- *     editingTab: import('../../../shared/types.js').Tab | null,
- *     openAdd: () => void,
- *     openEdit: (tab: import('../../../shared/types.js').Tab) => void,
- *     close: () => void,
+ *     isEditing: boolean,
  *     isSaving: boolean,
- *     onSubmitTab: (tab: import('../../../shared/types.js').Tab) => Promise<void>,
+ *     editingTab: import('../../../shared/types.js').Tab | null,
+ *     mode: 'manual' | 'history',
+ *     form: import('../../../entities/workspace/hook/useTabForm.js').TabFormState,
+ *     openAdd: () => void,
+ *     onCancel: () => void,
+ *     onModeChange: (mode: 'manual' | 'history') => void,
+ *     visibleEntries: import('../../../shared/types.js').TabHistoryEntry[],
+ *     historyDisabled: boolean,
+ *     selectedCount: number,
+ *     selectedUrls: Set<string>,
+ *     onToggleHistoryEntry: (url: string) => void,
+ *     onConfirmBatch: () => void,
  *   },
  *   openAddTab: (workspaceId: string) => void,
  * }}
  */
 export function useWorkspacesHub() {
-  const { workspaces, createWorkspace, addTab, updateTab } = useWorkspaces();
+  const { workspaces, createWorkspace, addTab, addTabs, updateTab } = useWorkspaces();
   const createModal = useWorkspaceFormModal({ workspace: null, onSubmit: createWorkspace });
   const [tabTargetId, setTabTargetId] = useState(null);
-  const tabModal = useTabModal({ workspaceId: tabTargetId, addTab, updateTab });
+  const tabTargetWorkspace = workspaces.find((workspace) => workspace.id === tabTargetId) ?? null;
+  const tabModal = useTabFormModal({
+    workspaceId: tabTargetId,
+    existingUrls: (tabTargetWorkspace?.tabs ?? []).map((tab) => tab.url),
+    addTab,
+    addTabs,
+    updateTab,
+  });
   const { openAdd } = tabModal;
 
   const openAddTab = useCallback(

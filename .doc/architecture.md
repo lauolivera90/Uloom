@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.5.3)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.5.4)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -102,18 +102,21 @@ uloom/
 │   │   │   ├── preferencesHandler.js
 │   │   │   ├── pageHandler.js
 │   │   │   ├── launcherHandler.js
-│   │   │   └── portabilityHandler.js
+│   │   │   ├── portabilityHandler.js
+│   │   │   └── tabHistoryHandler.js  # Historial de pestañas usadas (v0.5.4)
 │   │   ├── services/              # Lógica de negocio (por dominio)
 │   │   │   ├── workspaceService.js
 │   │   │   ├── browserService.js
 │   │   │   ├── preferencesService.js
 │   │   │   ├── pageService.js
 │   │   │   ├── launcherService.js
-│   │   │   └── portabilityService.js
+│   │   │   ├── portabilityService.js
+│   │   │   └── tabHistoryService.js  # Historial de pestañas usadas (v0.5.4)
 │   │   └── data/                  # Persistencia (por dominio)
 │   │       ├── configStore.js          # Acceso al archivo (read/write/defaults)
 │   │       ├── workspaceRepository.js  # CRUD + normalización de workspaces
-│   │       └── preferencesRepository.js
+│   │       ├── preferencesRepository.js
+│   │       └── tabHistoryRepository.js # Upsert/orden/cap del historial (v0.5.4)
 │   │
 │   ├── preload.js                 # BRIDGE (contextBridge → window.uloomApi)
 │   │
@@ -174,13 +177,19 @@ uloom/
 │       │   └── workspace/
 │       │       ├── api/
 │       │       │   ├── workspaceIpcApi.js
+│       │       │   ├── tabHistoryIpcApi.js  # Historial de pestañas usadas (v0.5.4)
 │       │       │   └── index.js
 │       │       ├── hook/
 │       │       │   ├── useWorkspaceForm.js
+│       │       │   ├── useTabForm.js
+│       │       │   ├── useTabModal.js         # Modal de pestaña: alta/edición + lote y modo (v0.5.4)
+│       │       │   ├── useTabHistory.js       # Historial + selección múltiple para el modal (v0.5.4)
+│       │       │   ├── useTabFormModal.js     # Orquestación del modal de pestaña (composite, v0.5.4)
 │       │       │   └── index.js
 │       │       └── ui/
 │       │           ├── WorkspaceCard.jsx
 │       │           ├── WorkspaceFormModal.jsx
+│       │           ├── TabFormModal.jsx       # Manual | Historial (segment control, v0.5.4)
 │       │           └── TabFavicon.jsx
 │       └── shared/
 │           ├── hook/
@@ -200,6 +209,7 @@ uloom/
 │           │   │   └── index.js
 │           │   ├── palettes.js      # Catálogo de paletas de identidad (v0.5.2)
 │           │   ├── workspaceName.js # Nombre inferido de duplicado `root (count)` (v0.5.3)
+│           │   ├── historyTabs.js   # buildTabsFromHistory: lote del historial → Tab[] (v0.5.4)
 │           │   └── url.js
 │           ├── ui/
 │           └── index.js

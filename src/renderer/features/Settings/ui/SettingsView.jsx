@@ -60,6 +60,8 @@ export function SettingsView() {
     exportAll,
     isClearingCache,
     clearCache,
+    isClearingHistory,
+    clearHistory,
     isDeleteOpen,
     isSecondConfirmOpen,
     isDeleting,
@@ -177,6 +179,22 @@ export function SettingsView() {
           icon="cleaning_services"
           disabled={isClearingCache}
           onClick={clearCache}
+        >
+          {t('settings.clear')}
+        </Button>
+      ),
+    },
+    {
+      section: SETTINGS_SECTION.sessions,
+      key: 'clearHistory',
+      label: t('settings.clearHistory'),
+      description: t('settings.clearHistoryDescription'),
+      control: (
+        <Button
+          variant="outline"
+          icon="history"
+          disabled={isClearingHistory}
+          onClick={clearHistory}
         >
           {t('settings.clear')}
         </Button>

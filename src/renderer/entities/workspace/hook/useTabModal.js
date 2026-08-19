@@ -13,6 +13,7 @@ import { useI18n, useToast } from '../../../shared/index.js';
  * @param {{
  *   workspaceId?: string | null,
  *   addTab: (workspaceId: string, tab: import('../../../shared/types.js').Tab) => Promise<unknown>,
+ *   addTabs?: (workspaceId: string, tabs: import('../../../shared/types.js').Tab[]) => Promise<unknown>,
  *   updateTab: (workspaceId: string, tab: import('../../../shared/types.js').Tab) => Promise<unknown>,
  * }} props
  * @returns {{
@@ -23,21 +24,27 @@ import { useI18n, useToast } from '../../../shared/index.js';
  *   close: () => void,
  *   isSaving: boolean,
  *   onSubmitTab: (tab: import('../../../shared/types.js').Tab) => Promise<void>,
+ *   onSubmitTabs: (tabs: import('../../../shared/types.js').Tab[]) => Promise<void>,
+ *   mode: 'manual' | 'history',
+ *   setMode: (mode: 'manual' | 'history') => void,
  * }}
  */
-export function useTabModal({ workspaceId, addTab, updateTab }) {
+export function useTabModal({ workspaceId, addTab, addTabs, updateTab }) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTab, setEditingTab] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [mode, setMode] = useState('manual');
   const { t } = useI18n();
   const { toast } = useToast();
 
   const openAdd = useCallback(() => {
     setEditingTab(null);
+    setMode('manual');
     setIsOpen(true);
   }, []);
   const openEdit = useCallback((tab) => {
     setEditingTab(tab);
+    setMode('manual');
     setIsOpen(true);
   }, []);
   const close = useCallback(() => setIsOpen(false), []);
@@ -63,5 +70,22 @@ export function useTabModal({ workspaceId, addTab, updateTab }) {
     [workspaceId, addTab, updateTab, editingTab, toast, t],
   );
 
-  return { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab };
+  const onSubmitTabs = useCallback(
+    async (tabs) => {
+      if (!workspaceId || !addTabs) return;
+      setIsSaving(true);
+      try {
+        await addTabs(workspaceId, tabs);
+        setIsOpen(false);
+      } catch (error) {
+        toast({ variant: 'error', message: t('save.error') });
+        throw error;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [workspaceId, addTabs, toast, t],
+  );
+
+  return { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab, onSubmitTabs, mode, setMode };
 }

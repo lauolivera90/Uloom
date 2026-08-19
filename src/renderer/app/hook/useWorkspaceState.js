@@ -8,6 +8,7 @@ import {
   updatePreferences,
   clearMetadataCache as clearMetadataCacheIpc,
   clearAllWorkspaces as clearAllWorkspacesIpc,
+  clearTabHistory as clearTabHistoryIpc,
   importFromFile as importFromFileIpc,
   SYSTEM_BROWSER,
 } from '../../entities/workspace/index.js';
@@ -44,12 +45,14 @@ function hydrateCatalog(setWorkspaces, latestByWorkspaceRef, workspaceList) {
  *   duplicateWorkspace: (sourceId: string, input: { name: string, description?: string, icon?: string }) => Promise<import('../../shared/types.js').Workspace>,
  *   mutateWorkspace: (workspaceId: string, mutator: (workspace: import('../../shared/types.js').Workspace) => import('../../shared/types.js').Workspace) => Promise<import('../../shared/types.js').Workspace>,
  *   addTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
+ *   addTabs: (workspaceId: string, tabs: import('../../shared/types.js').Tab[]) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteTab: (workspaceId: string, tabId: string) => Promise<import('../../shared/types.js').Workspace>,
  *   updateTab: (workspaceId: string, tab: import('../../shared/types.js').Tab) => Promise<import('../../shared/types.js').Workspace>,
  *   deleteWorkspace: (workspaceId: string) => Promise<void>,
  *   updatePreferences: (partial: Partial<import('../../shared/types.js').Preferences>) => Promise<import('../../shared/types.js').Preferences>,
  *   clearMetadataCache: () => Promise<number>,
  *   clearAllWorkspaces: () => Promise<number>,
+ *   clearTabHistory: () => Promise<number>,
  *   importWorkspaces: () => Promise<{ canceled: boolean, imported: number }>,
  * }}
  */
@@ -131,6 +134,15 @@ export function useWorkspaceState() {
     [mutateWorkspace],
   );
 
+  const addTabs = useCallback(
+    (workspaceId, tabs) =>
+      mutateWorkspace(workspaceId, (workspace) => ({
+        ...workspace,
+        tabs: [...(workspace.tabs ?? []), ...tabs],
+      })),
+    [mutateWorkspace],
+  );
+
   const deleteTab = useCallback(
     (workspaceId, tabId) =>
       mutateWorkspace(workspaceId, (workspace) => ({
@@ -200,6 +212,15 @@ export function useWorkspaceState() {
     return task;
   }, []);
 
+  const clearTabHistoryPersisted = useCallback(() => {
+    const task = writeChainRef.current.then(async () => {
+      const { cleared } = await clearTabHistoryIpc();
+      return cleared;
+    });
+    writeChainRef.current = task.catch(() => undefined);
+    return task;
+  }, []);
+
   const importWorkspacesFromFile = useCallback(() => {
     const task = writeChainRef.current.then(async () => {
       const { canceled, imported } = await importFromFileIpc();
@@ -220,12 +241,14 @@ export function useWorkspaceState() {
     duplicateWorkspace: duplicateWorkspacePersisted,
     mutateWorkspace,
     addTab,
+    addTabs,
     deleteTab,
     updateTab,
     deleteWorkspace,
     updatePreferences: updatePreferencesPersisted,
     clearMetadataCache: clearMetadataCachePersisted,
     clearAllWorkspaces: clearAllWorkspacesPersisted,
+    clearTabHistory: clearTabHistoryPersisted,
     importWorkspaces: importWorkspacesFromFile,
   };
 }

@@ -43,3 +43,7 @@ export {
   exportAll,
   importFromFile,
 } from './portabilityIpcApi.js';
+export {
+  getTabHistory,
+  clearTabHistory,
+} from './tabHistoryIpcApi.js';

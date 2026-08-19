@@ -39,10 +39,23 @@
  */
 
 /**
+ * @typedef {Object} TabHistoryEntry
+ * Entrada del historial de pestañas usadas: registro liviano de tabs agregadas o
+ * lanzadas, separado de las sesiones (reuso en el modal de agregar pestaña).
+ * @property {string} url URL normalizada de la pestaña (clave de unicidad).
+ * @property {string} name Nombre visible guardado al registrar la pestaña.
+ * @property {string} [icon] Icono manual de la pestaña (símbolo del catálogo o data URL).
+ * @property {string} [favicon] Favicon cacheado como data URL (si estaba disponible al registrar).
+ * @property {number} count Cantidad de veces que se usó (agregada o lanzada).
+ * @property {string} lastUsedAt Última vez que se usó, en ISO 8601.
+ */
+
+/**
  * @typedef {Object} Config
  * @property {string} version Versión del esquema de configuración.
  * @property {Preferences} preferences Preferencias globales de la aplicación.
  * @property {Workspace[]} workspaces Lista de sesiones de trabajo.
+ * @property {TabHistoryEntry[]} [tabHistory] Historial de pestañas usadas (v0.5.4).
  */
 
 export {};

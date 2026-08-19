@@ -23,10 +23,11 @@ const IMPORT_ERROR_KEYS = {
  * Acciones de portabilidad y limpieza de Configuración → Sesiones: importar
  * sesiones desde un `.json` (el main agrega las individuales o reemplaza el
  * catálogo ante un respaldo; cancelar el diálogo no es un error), exportar todo
- * (respaldo `.json`), borrar la caché de metadatos (favicons) y eliminar todas
- * las sesiones con doble confirmación (primer diálogo de aviso + segundo diálogo
- * que delega su máquina de confirmación en `useConfirmAction`). Preservar
- * `preferences` al vaciar las sesiones lo resuelve el backend (`workspace:clearAll`).
+ * (respaldo `.json`), borrar la caché de metadatos (favicons), borrar el
+ * historial de pestañas usadas y eliminar todas las sesiones con doble
+ * confirmación (primer diálogo de aviso + segundo diálogo que delega su máquina
+ * de confirmación en `useConfirmAction`). Preservar `preferences` al vaciar las
+ * sesiones lo resuelve el backend (`workspace:clearAll`).
  * Cada acción emite feedback visual (toast) de éxito y de error; los errores de
  * importación se mapean por código de error del backend a mensajes localizados.
  * @returns {{
@@ -36,6 +37,8 @@ const IMPORT_ERROR_KEYS = {
  *   exportAll: () => Promise<void>,
  *   isClearingCache: boolean,
  *   clearCache: () => Promise<void>,
+ *   isClearingHistory: boolean,
+ *   clearHistory: () => Promise<void>,
  *   isDeleteOpen: boolean,
  *   isSecondConfirmOpen: boolean,
  *   isDeleting: boolean,
@@ -46,12 +49,13 @@ const IMPORT_ERROR_KEYS = {
  * }}
  */
 export function usePortability() {
-  const { clearMetadataCache, clearAllWorkspaces, importWorkspaces } = useWorkspaces();
+  const { clearMetadataCache, clearAllWorkspaces, importWorkspaces, clearTabHistory } = useWorkspaces();
   const { t } = useI18n();
   const { toast } = useToast();
   const [isImporting, setIsImporting] = useState(false);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
   const [isFirstOpen, setIsFirstOpen] = useState(false);
 
   const {
@@ -113,6 +117,20 @@ export function usePortability() {
     }
   }, [isClearingCache, clearMetadataCache, toast, t]);
 
+  const clearHistory = useCallback(async () => {
+    if (isClearingHistory) return;
+    setIsClearingHistory(true);
+    try {
+      await clearTabHistory();
+      toast({ variant: 'success', message: t('history.clear.success') });
+    } catch (error) {
+      console.error('Error al borrar el historial de pestañas:', error);
+      toast({ variant: 'error', message: t('history.clear.error') });
+    } finally {
+      setIsClearingHistory(false);
+    }
+  }, [isClearingHistory, clearTabHistory, toast, t]);
+
   const confirmDeleteAll = useCallback(async () => {
     const ok = await confirmDeleteAllBase();
     if (ok) {
@@ -140,6 +158,8 @@ export function usePortability() {
     exportAll,
     isClearingCache,
     clearCache,
+    isClearingHistory,
+    clearHistory,
     isDeleteOpen: isFirstOpen,
     isSecondConfirmOpen,
     isDeleting,

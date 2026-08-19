@@ -9,7 +9,7 @@ import {
   ResourceCardHeader,
 } from '../../../widgets/index.js';
 import { useI18n } from '../../../shared/index.js';
-import { WorkspaceFormModal, useLaunchWorkspace, useTabForm, useTabModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
+import { WorkspaceFormModal, useLaunchWorkspace, useTabFormModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
 import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig, useDuplicateWorkspace } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
@@ -35,14 +35,15 @@ const BACK_TO_HUB_LABEL = 'detail.backToHub';
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { addTab, updateTab } = useWorkspaces();
-  const { isOpen, editingTab, openAdd, openEdit, close, isSaving, onSubmitTab } = useTabModal({
+  const { addTab, addTabs, updateTab } = useWorkspaces();
+  const tabModal = useTabFormModal({
     workspaceId: workspace?.id,
+    existingUrls: (workspace.tabs ?? []).map((tab) => tab.url),
     addTab,
+    addTabs,
     updateTab,
   });
-  const tabForm = useTabForm({ initialTab: isOpen ? editingTab : null, onSubmit: onSubmitTab });
-  const { reset: resetTabForm } = tabForm;
+  const { openAdd, openEdit } = tabModal;
   const { target: deleteTabTarget, isOpen: isDeleteTabOpen, requestDelete, cancelDelete, confirmDelete, isDeleting } = useDeleteTab(workspace?.id);
   const {
     isConfirmOpen: isDeleteConfirmOpen,
@@ -56,11 +57,6 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   const browserConfig = useSessionConfig(workspace?.id, workspace);
   const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
   const { isExporting, exportSession } = useExportWorkspace(workspace?.id);
-
-  const handleCancelTab = () => {
-    resetTabForm();
-    close();
-  };
 
   const handleDeleteWorkspace = async () => {
     const deleted = await confirmDeleteWorkspace();
@@ -156,11 +152,19 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
       </div>
 
       <TabFormModal
-        isOpen={isOpen}
-        isSaving={isSaving}
-        isEditing={editingTab !== null}
-        form={tabForm}
-        onCancel={handleCancelTab}
+        isOpen={tabModal.isOpen}
+        isSaving={tabModal.isSaving}
+        isEditing={tabModal.isEditing}
+        mode={tabModal.mode}
+        form={tabModal.form}
+        onCancel={tabModal.onCancel}
+        onModeChange={tabModal.onModeChange}
+        visibleEntries={tabModal.visibleEntries}
+        historyDisabled={tabModal.historyDisabled}
+        selectedCount={tabModal.selectedCount}
+        selectedUrls={tabModal.selectedUrls}
+        onToggleHistoryEntry={tabModal.onToggleHistoryEntry}
+        onConfirmBatch={tabModal.onConfirmBatch}
       />
       <WorkspaceFormModal
         isOpen={workspaceEdit.isOpen}

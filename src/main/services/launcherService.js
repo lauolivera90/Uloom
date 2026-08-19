@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { shell } from 'electron';
 import { getConfig, getWorkspaceById } from '../data/workspaceRepository.js';
 import { getBrowserById, resolveSystemBrowser } from './browserService.js';
+import { recordTabsBestEffort } from './tabHistoryService.js';
 
 /**
  * Navegadores Chromium: la bandera que fuerza una ventana nueva es la misma
@@ -119,6 +120,12 @@ export async function launchWorkspace(workspaceId) {
 
   if (!browser) {
     const results = await Promise.allSettled(urls.map((url) => openUrlWithSystem(url)));
+    const openedTabs = (workspace.tabs ?? []).filter(
+      (tab, index) => results[index].status === 'fulfilled',
+    );
+    if (openedTabs.length > 0) {
+      recordTabsBestEffort(openedTabs);
+    }
     return {
       opened: results.filter((result) => result.status === 'fulfilled').length,
       failed: results.filter((result) => result.status === 'rejected').length,
@@ -126,5 +133,6 @@ export async function launchWorkspace(workspaceId) {
   }
 
   await openUrlsInBrowser(urls, browser, workspace.openBehavior);
+  recordTabsBestEffort(workspace.tabs ?? []);
   return { opened: urls.length, failed: 0 };
 }

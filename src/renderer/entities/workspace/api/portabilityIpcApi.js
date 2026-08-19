@@ -34,7 +34,7 @@ export async function exportAll() {
  * es un error); ante un archivo inválido el main responde `{ success: false }` y
  * esta capa lo convierte en throw, adjuntando el `code` de error de portabilidad
  * (para que el caller mapee el fallo a un mensaje localizado).
- * @returns {Promise<{ canceled: boolean, imported?: import('../../shared/types.js').Workspace[] }>}
+ * @returns {Promise<{ canceled: boolean, imported?: import('../../../shared/types.js').Workspace[] }>}
  */
 export async function importFromFile() {
   const response = await window.uloomApi.importFromFile();
