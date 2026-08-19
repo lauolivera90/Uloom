@@ -5,6 +5,7 @@
 import { Card, Icon, IconButton, focusRing } from '../../../widgets/index.js';
 import { useI18n } from '../../../shared/index.js';
 import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
+import { PinButton } from './PinButton.jsx';
 
 /**
  * Tarjeta de una sesión de trabajo del Hub. Presentacional: muestra icono, nombre,
@@ -12,15 +13,19 @@ import { LAUNCH_EMPTY_TABS_TITLE, ADD_TAB_LABEL } from '../api/index.js';
  * detalle) y en hover muestra el botón de play para lanzar la sesión; si la sesión
  * no tiene pestañas el play se reemplaza por un botón `+` que invita a agregar la
  * primera pestaña (modal de alta vía `onAddTab`), porque no se puede lanzar una
- * sesión vacía.
+ * sesión vacía. Desde v0.6.1 la fila superior tiene un botón de estrella para
+ * fijar/desfijar la sesión (`onTogglePin`): fijada es siempre visible (lee el
+ * estado); no fijada se revela en hover/foco de la card (`appearOnHover`,
+ * patrón del play del footer).
  * @param {{
  *   workspace: Workspace,
  *   onClick: () => void,
  *   onPlay?: (workspaceId: string) => void,
  *   onAddTab?: (workspaceId: string) => void,
+ *   onTogglePin?: (workspaceId: string) => void,
  * }} props
  */
-export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
+export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab, onTogglePin }) {
   const tabsCount = workspace.tabs?.length ?? 0;
   const { t } = useI18n();
 
@@ -81,6 +86,13 @@ export function WorkspaceCard({ workspace, onClick, onPlay, onAddTab }) {
         <div className="flex items-center gap-2">
           <Icon icon={workspace.icon || 'work'} className="text-accent" />
           <h3 className="text-base font-semibold text-text">{workspace.name}</h3>
+          <PinButton
+            pinned={workspace.pinned ?? false}
+            onToggle={() => onTogglePin?.(workspace.id)}
+            size="sm"
+            appearOnHover={!workspace.pinned}
+            className="ml-auto"
+          />
         </div>
         {workspace.description && (
           <p className="text-sm text-text/60 line-clamp-3">{workspace.description}</p>

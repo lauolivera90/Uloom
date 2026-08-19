@@ -15,9 +15,10 @@ import { useI18n } from '../../../shared/index.js';
  *   onOpen: (workspaceId: string) => void,
  *   onPlay: (workspaceId: string) => void,
  *   onAddTab: (workspaceId: string) => void,
+ *   onTogglePin: (workspaceId: string) => void,
  * }} props
  */
-export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }) {
+export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab, onTogglePin }) {
   const { t } = useI18n();
 
   return (
@@ -29,6 +30,7 @@ export function WorkspaceGrid({ workspaces, onCreate, onOpen, onPlay, onAddTab }
           onClick={() => onOpen(workspace.id)}
           onPlay={onPlay}
           onAddTab={onAddTab}
+          onTogglePin={onTogglePin}
         />
       ))}
       <CreateTile label={t('hub.createNew')} onClick={onCreate} />

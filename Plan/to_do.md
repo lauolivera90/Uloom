@@ -166,8 +166,9 @@ v0.5.4 Historial de pestañas
 Objetivo: mejorar cómo se encuentran y organizan las sesiones a medida que crecen en cantidad.
 
 v0.6.1 Hub — Quick wins
-[ ] Favoritos/pinned: marcar sesiones para que aparezcan primero en el Hub.
-[ ] Búsqueda/filtro de sesiones en el Hub: extender el patrón de búsqueda ya usado en Configuración al Hub principal.
+[x] Favoritos/pinned: marcar sesiones para que aparezcan primero en el Hub. → Resuelto en v0.6.1: campo `pinned` en el workspace (default `false`, normalizado al leer; no se copia al duplicar — el clon arranca desfijado). Toggle con el widget `PinButton` (estrella compartida card + Detalle, `aria-pressed` + label estable `hub.pinSession`); en la card la estrella fijada es siempre visible y la no fijada se revela en hover/foco de teclado (`appearOnHover`); escribe por el líder único (`mutateWorkspace` → `workspace:update`, sin canal nuevo; error → toast `hub.pinError`, éxito in-place sin toast, regla 10). La lógica vive en `useToggleWorkspacePin` (entities, `mutateWorkspace` inyectado para no crear el ciclo `app → entities → app`). `visibleWorkspaces` del Hub ordena las fijadas primero (sort estable, también al buscar).
+[x] Búsqueda/filtro de sesiones en el Hub: extender el patrón de búsqueda ya usado en Configuración al Hub principal. → Resuelto en v0.6.1: `searchQuery` en `useWorkspacesHub` + `TextInput type="search"` en el header del Hub (mismo patrón que Configuración), filtra por nombre/descripción (case-insensitive) y muestra `hub.noResults` cuando no hay coincidencias.
+[x] Overflow de acciones secundarias del Detalle (ampliación de v0.6.1): Duplicar y Eliminar salen del header a un menú "..." accesible por click. → Resuelto en v0.6.1 con el widget `Menu` (`widgets/ui` + `useMenu` en `widgets/hooks`): trigger `more_vert` con popover `role="menu"` (click para abrir, click-fuera/Esc para cerrar devolviendo foco al trigger, roving focus con flechas que salta items disabled), items data-driven con variante `danger` para destructivas (Eliminar al final). El header del Detalle pasa a `[Lanzar] [Editar] [PinButton] [...] | [Volver]`.
 
 v0.6.2 Hub — Datos de uso y ordenamiento
 [ ] Última vez lanzada: guardar y mostrar timestamp del último `workspace:launch` por sesión. (Toca esquema de datos.)

@@ -19,6 +19,7 @@ export {
   Toast,
   ToastViewport,
   PalettePicker,
+  Menu,
 } from './ui/index.js';
 
 export { MainLayout, Page, PageHeader } from './layout/index.js';

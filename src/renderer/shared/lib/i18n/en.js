@@ -18,6 +18,9 @@ export const en = {
   // modal
   'modal.close': 'Close',
 
+  // menu (overflow de acciones secundarias)
+  'menu.moreActions': 'More actions',
+
   // iconPicker
   'iconPicker.label': 'Icon',
   'iconPicker.showAll': 'Show all icons',
@@ -78,6 +81,11 @@ export const en = {
   'hub.title': 'Sessions',
   'hub.description': 'Choose a session to open it or create a new one.',
   'hub.createNew': 'Create new session',
+  'hub.searchPlaceholder': 'Search sessions',
+  'hub.noResults': 'No sessions match your search.',
+  'hub.pinSession': 'Pin session',
+  'hub.unpinSession': 'Unpin session',
+  'hub.pinError': "Couldn't update the session's pinned state.",
 
   // detail
   'detail.backToHub': 'Back to Hub',

@@ -4,12 +4,13 @@ import {
   Card,
   ConfirmDialog,
   IconButton,
+  Menu,
   Page,
   PageHeader,
   ResourceCardHeader,
 } from '../../../widgets/index.js';
 import { useI18n } from '../../../shared/index.js';
-import { WorkspaceFormModal, useLaunchWorkspace, useTabFormModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT } from '../../../entities/workspace/index.js';
+import { WorkspaceFormModal, useLaunchWorkspace, useTabFormModal, TabFormModal, ADD_TAB_LABEL, DELETE_TAB_LABEL, useExportWorkspace, IRREVERSIBLE_ACTION_HINT, PinButton, useToggleWorkspacePin } from '../../../entities/workspace/index.js';
 import { useDeleteTab, useDeleteWorkspace, useWorkspaceEdit, useSessionConfig, useDuplicateWorkspace } from '../hook/index.js';
 import { TabList } from './TabList.jsx';
 import { WorkspaceConfig } from './WorkspaceConfig.jsx';
@@ -35,7 +36,7 @@ const BACK_TO_HUB_LABEL = 'detail.backToHub';
 export function WorkspaceDetailView({ workspace, isNotFound }) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { addTab, addTabs, updateTab } = useWorkspaces();
+  const { addTab, addTabs, updateTab, mutateWorkspace } = useWorkspaces();
   const tabModal = useTabFormModal({
     workspaceId: workspace?.id,
     existingUrls: (workspace.tabs ?? []).map((tab) => tab.url),
@@ -54,6 +55,7 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
   } = useDeleteWorkspace(workspace?.id);
   const workspaceEdit = useWorkspaceEdit(workspace);
   const duplicateWorkspace = useDuplicateWorkspace(workspace);
+  const { togglePin } = useToggleWorkspacePin({ mutateWorkspace });
   const browserConfig = useSessionConfig(workspace?.id, workspace);
   const { isLaunching, launch } = useLaunchWorkspace(workspace?.id);
   const { isExporting, exportSession } = useExportWorkspace(workspace?.id);
@@ -103,8 +105,25 @@ export function WorkspaceDetailView({ workspace, isNotFound }) {
               </Button>
             )}
             <IconButton variant="warning" icon="edit" label={t('detail.editSession')} onClick={workspaceEdit.open} />
-            <IconButton variant="ghost" icon="content_copy" label={t('detail.duplicateSession')} onClick={duplicateWorkspace.open} />
-            <IconButton variant="danger" icon="delete" label={t('detail.deleteSession')} onClick={requestDeleteWorkspace} />
+            <PinButton pinned={workspace.pinned ?? false} onToggle={() => togglePin(workspace.id)} />
+            <Menu
+              label={t('menu.moreActions')}
+              items={[
+                {
+                  key: 'duplicate',
+                  label: t('detail.duplicateSession'),
+                  icon: 'content_copy',
+                  onClick: duplicateWorkspace.open,
+                },
+                {
+                  key: 'delete',
+                  label: t('detail.deleteSession'),
+                  icon: 'delete',
+                  variant: 'danger',
+                  onClick: requestDeleteWorkspace,
+                },
+              ]}
+            />
             <div className="w-px h-6 bg-border/40 mx-1" />
             <Button variant="outline" icon="arrow_back" onClick={() => navigate('/')}>
               {t('detail.back')}

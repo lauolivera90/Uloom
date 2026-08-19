@@ -20,6 +20,9 @@ export const es = {
   // modal
   'modal.close': 'Cerrar',
 
+  // menu (overflow de acciones secundarias)
+  'menu.moreActions': 'Más acciones',
+
   // iconPicker
   'iconPicker.label': 'Icono',
   'iconPicker.showAll': 'Mostrar todos los iconos',
@@ -80,6 +83,11 @@ export const es = {
   'hub.title': 'Sesiones',
   'hub.description': 'Elegí una sesión para abrirla o creá una nueva.',
   'hub.createNew': 'Crear nueva sesión',
+  'hub.searchPlaceholder': 'Buscar sesiones',
+  'hub.noResults': 'No hay sesiones que coincidan con tu búsqueda.',
+  'hub.pinSession': 'Fijar sesión',
+  'hub.unpinSession': 'Desfijar sesión',
+  'hub.pinError': 'No se pudo cambiar el estado fijado de la sesión.',
 
   // detail
   'detail.backToHub': 'Volver al Hub',

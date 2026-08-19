@@ -30,6 +30,8 @@
  * @property {OpenBehavior} [openBehavior] Cómo abrir la sesión al lanzarla. Default `'active-tab'`.
  * @property {string} [browser] Navegador a usar para la sesión. `null`/ausente = heredar el
  * predeterminado global; un id = override fijo que no se modifica ante cambios globales.
+ * @property {boolean} [pinned] Si la sesión está fijada (favorito): aparece primero en el Hub.
+ * Default `false`. No se copia al duplicar una sesión (el clon arranca desfijado).
  */
 
 /**

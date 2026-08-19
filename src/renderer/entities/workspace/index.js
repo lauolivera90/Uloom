@@ -33,5 +33,5 @@ export {
   getTabHistory,
   clearTabHistory,
 } from './api/index.js';
-export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers, useTabForm, useTabModal, useTabFormModal, useSystemDefaultBrowser, useExportWorkspace, useWorkspaceFormModal } from './hook/index.js';
-export { WorkspaceCard, TabFavicon, WorkspaceFormModal, TabFormModal, BrowserIcon } from './ui/index.js';
+export { useWorkspaceForm, useLaunchWorkspace, useInstalledBrowsers, useTabForm, useTabModal, useTabFormModal, useSystemDefaultBrowser, useExportWorkspace, useWorkspaceFormModal, useToggleWorkspacePin } from './hook/index.js';
+export { WorkspaceCard, TabFavicon, WorkspaceFormModal, TabFormModal, BrowserIcon, PinButton } from './ui/index.js';

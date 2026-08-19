@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useWorkspaces } from '../../../app/index.js';
 import {
   useTabFormModal,
+  useToggleWorkspacePin,
   useWorkspaceFormModal,
 } from '../../../entities/workspace/index.js';
 
@@ -13,8 +14,19 @@ import {
  * la persistencia del modal de pestaña delega en la global (addTab/addTabs/
  * updateTab inyectadas a `useTabFormModal`, sin que entities dependa de app). El
  * `existingUrls` del modal sale de la sesión objetivo para filtrar el historial.
+ *
+ * Desde v0.6.1 maneja además la búsqueda de sesiones (filtra por nombre/
+ * descripción, patrón de Configuración) y el fijado de sesiones: `togglePin`
+ * delega en el hook de entidad compartido (`useToggleWorkspacePin`, mismo
+ * precedente que `useLaunchWorkspace`) y `visibleWorkspaces` deriva la lista
+ * filtrada y ordenada — las fijadas primero (sort estable, mantiene el orden de
+ * creación dentro de cada grupo; el orden aplica también al buscar).
  * @returns {{
- *   workspaces: import('../../../shared/types.js').Workspace[],
+ *   visibleWorkspaces: import('../../../shared/types.js').Workspace[],
+ *   isSearching: boolean,
+ *   searchQuery: string,
+ *   setSearchQuery: (value: string) => void,
+ *   togglePin: (workspaceId: string) => Promise<void>,
  *   createModal: {
  *     isOpen: boolean,
  *     isSaving: boolean,
@@ -43,9 +55,11 @@ import {
  * }}
  */
 export function useWorkspacesHub() {
-  const { workspaces, createWorkspace, addTab, addTabs, updateTab } = useWorkspaces();
+  const { workspaces, createWorkspace, addTab, addTabs, updateTab, mutateWorkspace } =
+    useWorkspaces();
   const createModal = useWorkspaceFormModal({ workspace: null, onSubmit: createWorkspace });
   const [tabTargetId, setTabTargetId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const tabTargetWorkspace = workspaces.find((workspace) => workspace.id === tabTargetId) ?? null;
   const tabModal = useTabFormModal({
     workspaceId: tabTargetId,
@@ -55,6 +69,7 @@ export function useWorkspacesHub() {
     updateTab,
   });
   const { openAdd } = tabModal;
+  const { togglePin } = useToggleWorkspacePin({ mutateWorkspace });
 
   const openAddTab = useCallback(
     (workspaceId) => {
@@ -64,8 +79,26 @@ export function useWorkspacesHub() {
     [setTabTargetId, openAdd],
   );
 
+  const isSearching = searchQuery.trim().length > 0;
+
+  const visibleWorkspaces = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? workspaces.filter(
+          (workspace) =>
+            (workspace.name ?? '').toLowerCase().includes(query) ||
+            (workspace.description ?? '').toLowerCase().includes(query),
+        )
+      : workspaces;
+    return [...filtered].sort((a, b) => Number(b.pinned) - Number(a.pinned));
+  }, [workspaces, searchQuery]);
+
   return {
-    workspaces,
+    visibleWorkspaces,
+    isSearching,
+    searchQuery,
+    setSearchQuery,
+    togglePin,
     createModal,
     tabModal,
     openAddTab,

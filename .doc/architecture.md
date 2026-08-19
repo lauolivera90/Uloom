@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.5.4)
+# Arquitectura del Proyecto: Uloom Workspace Launcher (v0.6.1)
 
 Este documento describe las decisiones arquitectónicas y la estructura de carpetas adoptadas para el desarrollo de Uloom. Dado que es una aplicación de escritorio basada en Electron con React, el sistema se divide fundamentalmente en dos grandes áreas: el **Frontend (Renderer Process)** y el **Backend (Main Process)**.
 
@@ -141,6 +141,7 @@ uloom/
 │       ├── widgets/
 │       │   ├── hooks/
 │       │   │   ├── useScrollLock.js
+│       │   │   ├── useMenu.js           # Estado/navegación del widget Menu (v0.6.1)
 │       │   │   └── index.js
 │       │   ├── layout/
 │       │   │   └── index.js
@@ -159,6 +160,8 @@ uloom/
 │       │   │   │   └── ToastViewport.jsx  # Contenedor flotante de toasts (v0.4.4)
 │       │   │   ├── PalettePicker/
 │       │   │   │   └── PalettePicker.jsx  # Selector de paleta de identidad (v0.5.2)
+│       │   │   ├── Menu/
+│       │   │   │   └── Menu.jsx            # Overflow de acciones secundarias "..." (v0.6.1)
 │       │   │   ├── form/                # Excepción familia: agrupada, no por widget
 │       │   │   │   ├── Form.jsx
 │       │   │   │   ├── FormField.jsx
@@ -185,11 +188,13 @@ uloom/
 │       │       │   ├── useTabModal.js         # Modal de pestaña: alta/edición + lote y modo (v0.5.4)
 │       │       │   ├── useTabHistory.js       # Historial + selección múltiple para el modal (v0.5.4)
 │       │       │   ├── useTabFormModal.js     # Orquestación del modal de pestaña (composite, v0.5.4)
+│       │       │   ├── useToggleWorkspacePin.js # Toggle de fijado (mutateWorkspace inyectado, v0.6.1)
 │       │       │   └── index.js
 │       │       └── ui/
 │       │           ├── WorkspaceCard.jsx
 │       │           ├── WorkspaceFormModal.jsx
 │       │           ├── TabFormModal.jsx       # Manual | Historial (segment control, v0.5.4)
+│       │           ├── PinButton.jsx          # Estrella de fijado (card + Detalle, v0.6.1)
 │       │           └── TabFavicon.jsx
 │       └── shared/
 │           ├── hook/

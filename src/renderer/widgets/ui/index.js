@@ -12,5 +12,6 @@ export { IconPickerField } from './IconPickerField/IconPickerField.jsx';
 export { Toast } from './Toast/Toast.jsx';
 export { ToastViewport } from './ToastViewport/ToastViewport.jsx';
 export { PalettePicker } from './PalettePicker/PalettePicker.jsx';
+export { Menu } from './Menu/Menu.jsx';
 export { focusRing } from './focusRing.js';
 export { Form, FormField, TextInput, Select, Textarea } from './form/index.js';

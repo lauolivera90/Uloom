@@ -7,3 +7,4 @@ export { useTabModal } from './useTabModal.js';
 export { useTabFormModal } from './useTabFormModal.js';
 export { useSystemDefaultBrowser } from './useSystemDefaultBrowser.js';
 export { useExportWorkspace } from './useExportWorkspace.js';
+export { useToggleWorkspacePin } from './useToggleWorkspacePin.js';

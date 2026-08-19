@@ -3,7 +3,8 @@ import { readConfig, writeConfig } from './configStore.js';
 
 /**
  * Normaliza un workspace para persistencia: garantiza que `tabs` sea un array y
- * rellena los defaults de navegador (`openBehavior`, `browser`) ante configs viejas.
+ * rellena los defaults de navegador (`openBehavior`, `browser`) y de fijado
+ * (`pinned`) ante configs viejas.
  * @param {import('../../renderer/shared/types.js').Workspace} workspace
  * @returns {import('../../renderer/shared/types.js').Workspace}
  */
@@ -13,6 +14,7 @@ export function normalizeWorkspace(workspace) {
     tabs: Array.isArray(workspace.tabs) ? workspace.tabs : [],
     openBehavior: workspace.openBehavior ?? 'active-tab',
     browser: workspace.browser ?? null,
+    pinned: workspace.pinned ?? false,
   };
 }
 
